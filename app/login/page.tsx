@@ -13,7 +13,9 @@ export default function LoginPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+      options: {
+        emailRedirectTo: `https://padel-app-sigma-seven.vercel.app/auth/callback`
+      }
     })
     setLoading(false)
     if (error) { setError(error.message) } else { setSent(true) }
