@@ -255,14 +255,19 @@ export default function OnboardingPage() {
     const initials = name.trim().split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
     const appLevel = result?.appLevel || '4'
 
-    const { error: profileError } = await supabase.from('profiles').insert({
+    // Use upsert so re-attempts don't fail if profile already exists
+    const { error: profileError } = await supabase.from('profiles').upsert({
       id: user.id, name: name.trim(), avatar: initials, level: appLevel, availability,
-    })
+    }, { onConflict: 'id' })
+
     if (profileError) { setError(profileError.message); setLoading(false); return }
 
-    await supabase.from('ratings').insert({
-      player_id: user.id, player_name: name.trim(), avatar: initials, rating: 3.5, match_count: 0,
-    })
+    // Use upsert for ratings too - seed with level-based starting rating
+    const startingRating = appLevel === '1' ? 6.0 : appLevel === '2' ? 5.0 : appLevel === '3' ? 3.5 : 2.0
+    await supabase.from('ratings').upsert({
+      player_id: user.id, player_name: name.trim(), avatar: initials,
+      rating: startingRating, match_count: 0,
+    }, { onConflict: 'player_id' })
 
     router.push('/')
   }
@@ -488,3 +493,4 @@ export default function OnboardingPage() {
     </div>
   )
 }
+
