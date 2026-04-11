@@ -251,9 +251,12 @@ export default function HomePage() {
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {currentUser && (
-              <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:20, padding:'4px 10px 4px 6px', cursor:'pointer' }} onClick={handleSignOut} title="Sign out">
-                <Avatar initials={currentUser.avatar} size={22} level={currentUser.level} />
-                <span style={{ fontSize:12, fontWeight:700, color:'#ccc' }}>{currentUser.name.split(' ')[0]}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:20, padding:'4px 10px 4px 6px', cursor:'pointer' }} onClick={() => setView('matches')} title="My profile">
+                  <Avatar initials={currentUser.avatar} size={22} level={currentUser.level} />
+                  <span style={{ fontSize:12, fontWeight:700, color:'#ccc' }}>{currentUser.name.split(' ')[0]}</span>
+                </div>
+                <button onClick={handleSignOut} title="Sign out" style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:12, padding:'4px 6px', fontFamily:'inherit' }}>↩</button>
               </div>
             )}
             <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
