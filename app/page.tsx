@@ -79,12 +79,9 @@ export default function HomePage() {
   }
 
   // ── Load session + data ───────────────────────────────────────────────────
-  const loadData = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) { router.push('/login'); return }
-
+  const loadData = useCallback(async (userId: string) => {
     const [profileRes, playersRes, postsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+      supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase.from('profiles').select('*').order('created_at'),
       supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false }),
     ])
@@ -93,7 +90,6 @@ export default function HomePage() {
     setCurrentUser(profileRes.data)
     setPlayers(playersRes.data || [])
 
-    // Flatten interested IDs
     const enrichedPosts = (postsRes.data || []).map((p: any) => ({
       ...p,
       interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
@@ -102,14 +98,30 @@ export default function HomePage() {
     setLoading(false)
   }, [router])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        loadData(session.user.id)
+      } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+        router.push('/login')
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [loadData, router])
 
-  // ── Realtime board updates ────────────────────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('board')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, loadData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, loadData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) loadData(session.user.id)
+        })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, () => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) loadData(session.user.id)
+        })
+      })
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [loadData])
