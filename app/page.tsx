@@ -80,42 +80,64 @@ export default function HomePage() {
 
   // ── Load session + data ───────────────────────────────────────────────────
   const loadData = useCallback(async (userId: string) => {
-    const [profileRes, playersRes, postsRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('profiles').select('*').order('created_at'),
-      supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false }),
-    ])
+    try {
+      const profileRes = await supabase.from('profiles').select('*').eq('id', userId).single()
 
-    if (profileRes.error) { router.push('/onboarding'); return }
-    setCurrentUser(profileRes.data)
-    setPlayers(playersRes.data || [])
+      if (profileRes.error) {
+        console.log('Profile error:', profileRes.error)
+        router.push('/onboarding')
+        return
+      }
 
-    const enrichedPosts = (postsRes.data || []).map((p: any) => ({
-      ...p,
-      interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
-    }))
-    setPosts(enrichedPosts)
-    setLoading(false)
+      setCurrentUser(profileRes.data)
+
+      const [playersRes, postsRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at'),
+        supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false }),
+      ])
+
+      setPlayers(playersRes.data || [])
+
+      const enrichedPosts = (postsRes.data || []).map((p: any) => ({
+        ...p,
+        interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
+      }))
+      setPosts(enrichedPosts)
+      setLoading(false)
+    } catch (err) {
+      console.error('loadData error:', err)
+      setLoading(false)
+    }
   }, [router])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadData(session.user.id)
-      } else {
-        router.push('/login')
-      }
-    })
+    let sessionChecked = false
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
+      sessionChecked = true
+      if (session?.user) {
         loadData(session.user.id)
       } else if (event === 'SIGNED_OUT') {
         router.push('/login')
+      } else if (event === 'INITIAL_SESSION' && !session) {
+        router.push('/login')
       }
     })
 
-    return () => subscription.unsubscribe()
+    // Fallback: if onAuthStateChange never fires after 3s, check manually
+    const fallback = setTimeout(() => {
+      if (!sessionChecked) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) loadData(session.user.id)
+          else router.push('/login')
+        })
+      }
+    }, 3000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(fallback)
+    }
   }, [loadData, router])
 
   useEffect(() => {
@@ -191,8 +213,12 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <div style={{ color:'#00c6a2', fontSize:14, fontWeight:600 }}>Loading…</div>
+      <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+        <div style={{ fontSize:32 }}>🎾</div>
+        <div style={{ color:'#00c6a2', fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
+        <button onClick={() => { window.location.href = '/login' }} style={{ marginTop:8, background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:10, padding:'8px 20px', color:'#555', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
+          Not loading? Click here
+        </button>
       </div>
     )
   }
