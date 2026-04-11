@@ -77,9 +77,10 @@ export default function HomePage() {
   const [editLevel,   setEditLevel]   = useState('')
   const [editSlots,   setEditSlots]   = useState<string[]>([])
   const [editLoading, setEditLoading] = useState(false)
-  const [boardLevel,  setBoardLevel]  = useState('1')
+  const [boardLevel,  setBoardLevel]  = useState('All')
   const [selected,    setSelected]    = useState<Profile|null>(null)
   const [filter,      setFilter]      = useState({ level:'All', slot:'All' })
+  const [fLevels,     setFLevels]     = useState<string[]>([])
   const [showForm,    setShowForm]    = useState(false)
   const [notif,       setNotif]       = useState<string|null>(null)
   const [loading,     setLoading]     = useState(true)
@@ -175,18 +176,20 @@ export default function HomePage() {
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
     if (!currentUser || !fDay || !fTime || !fDuration) { showNotif('Pick a day, time and duration'); return }
+    if (fLevels.length === 0) { showNotif('Select at least one level'); return }
     const fSlot = `${fDay} ${fTime} · ${fDuration}`
     const { error } = await supabase.from('posts').insert({
       player_id: currentUser.id,
       player_name: currentUser.name,
       player_avatar: currentUser.avatar,
-      level: currentUser.level,
+      level: fLevels[0],
+      allowed_levels: fLevels,
       slot: fSlot,
       spots_needed: fSpots,
       note: fNote.trim(),
     })
     if (error) { showNotif('Error posting: ' + error.message); return }
-    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote('')
+    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote(''); setFLevels([])
     showNotif('Game posted! 🎾')
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
@@ -195,6 +198,11 @@ export default function HomePage() {
     if (!currentUser) return
     const post = posts.find(p => p.id === postId)
     if (!post) return
+    const allowedLevels = post.allowed_levels || [post.level]
+    if (!allowedLevels.includes(currentUser.level) && !post.interested_ids.includes(currentUser.id)) {
+      showNotif('This game is restricted to ' + allowedLevels.map((l: string) => `L${l}`).join(', '))
+      return
+    }
     const already = post.interested_ids.includes(currentUser.id)
     if (already) {
       await supabase.from('post_interests').delete().eq('post_id', postId).eq('player_id', currentUser.id)
@@ -215,9 +223,9 @@ export default function HomePage() {
   }
 
   // ── Derived data ──────────────────────────────────────────────────────────
-  const boardPosts  = posts.filter(p => p.level === boardLevel)
+  const boardPosts  = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels || [p.level]).includes(boardLevel))
   const openPosts   = posts.filter(p => p.interested_ids.length < p.spots_needed)
-  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => p.level===l && p.interested_ids.length < p.spots_needed).length]))
+  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
 
   const filtered = players.filter(p =>
     (filter.level === 'All' || p.level === filter.level) &&
@@ -408,6 +416,23 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
+                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Open to levels (select all that apply)</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                    {levels.map(l => (
+                      <button key={l} onClick={() => setFLevels(prev => prev.includes(l) ? prev.filter(x=>x!==l) : [...prev,l])} style={{
+                        border:`1px solid ${fLevels.includes(l)?levelColor[l]+'60':'rgba(255,255,255,0.1)'}`,
+                        background: fLevels.includes(l)?levelBg[l]:'rgba(255,255,255,0.03)',
+                        color: fLevels.includes(l)?levelColor[l]:'#555',
+                        borderRadius:10, padding:'10px 0', fontWeight:700, cursor:'pointer', fontFamily:'inherit',
+                        display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+                      }}>
+                        <span style={{ fontSize:14, fontWeight:900 }}>L{l}</span>
+                        <span style={{ fontSize:10, opacity:0.8 }}>{levelDesc[l]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {[1,2,3].map(n => (
@@ -425,6 +450,10 @@ export default function HomePage() {
 
             {/* Level tabs */}
             <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
+              <button onClick={() => setBoardLevel('All')} style={{ border:`1px solid ${boardLevel==='All'?'rgba(0,198,162,0.6)':'rgba(255,255,255,0.1)'}`, background:boardLevel==='All'?'rgba(0,198,162,0.12)':'rgba(255,255,255,0.03)', color:boardLevel==='All'?'#00c6a2':'#555', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
+                All
+                <span style={{ background:boardLevel==='All'?'#00c6a2':'rgba(255,255,255,0.15)', color:boardLevel==='All'?'#000':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openPosts.length}</span>
+              </button>
               {levels.map(l => (
                 <button key={l} onClick={() => setBoardLevel(l)} style={{ border:`1px solid ${boardLevel===l?levelColor[l]+'60':'rgba(255,255,255,0.1)'}`, background:boardLevel===l?levelBg[l]:'rgba(255,255,255,0.03)', color:boardLevel===l?levelColor[l]:'#555', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
                   L{l} · {levelDesc[l]}
@@ -437,7 +466,7 @@ export default function HomePage() {
             {boardPosts.length===0 ? (
               <div style={{ textAlign:'center', padding:'40px 0' }}>
                 <div style={{ fontSize:30 }}>📋</div>
-                <div style={{ color:'#444', fontWeight:700, marginTop:10 }}>No posts for L{boardLevel} yet</div>
+                <div style={{ color:'#444', fontWeight:700, marginTop:10 }}>{boardLevel==='All'?'No games posted yet':`No posts for L${boardLevel} yet`}</div>
                 <div style={{ fontSize:12, color:'#333', marginTop:5 }}>Be the first to post a game!</div>
               </div>
             ) : boardPosts.map(post => {
@@ -455,7 +484,12 @@ export default function HomePage() {
                         <span style={{ fontWeight:800, fontSize:14, color:'#f0f0f0' }}>{post.player_name}</span>
                         <LevelBadge level={post.level} small />
                       </div>
-                      <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{timeAgo(post.created_at)}</div>
+                      <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' }}>
+                        {(post.allowed_levels || [post.level]).map((l: string) => (
+                          <span key={l} style={{ background:levelBg[l], color:levelColor[l], border:`1px solid ${levelColor[l]}40`, borderRadius:6, padding:'1px 6px', fontSize:9, fontWeight:800 }}>L{l}</span>
+                        ))}
+                        <span style={{ fontSize:10, color:'#555' }}>{timeAgo(post.created_at)}</span>
+                      </div>
                     </div>
                     {isOwner && <button onClick={() => handleDeletePost(post.id)} style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:16, padding:'2px 4px', lineHeight:1 }}>✕</button>}
                   </div>
@@ -692,3 +726,4 @@ export default function HomePage() {
     </div>
   )
 }
+
