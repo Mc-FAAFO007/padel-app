@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import AvailabilityPicker from '@/components/AvailabilityPicker'
 import type { Profile, Post } from '@/lib/types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -607,19 +608,10 @@ export default function HomePage() {
               </div>
 
               <div style={{ marginBottom:18 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>
-                  Availability ({editSlots.length} selected)
+                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+                  Availability
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                  {(['Sat AM','Sat PM','Sun AM','Sun PM','Mon PM','Wed PM','Thu PM','Fri PM'] as const).map(slot => (
-                    <button key={slot} onClick={() => setEditSlots(prev => prev.includes(slot) ? prev.filter(s=>s!==slot) : [...prev,slot])} style={{
-                      border:`1px solid ${editSlots.includes(slot) ? 'rgba(0,198,162,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                      background:editSlots.includes(slot) ? 'rgba(0,198,162,0.12)' : 'rgba(255,255,255,0.03)',
-                      color:editSlots.includes(slot) ? '#00c6a2' : '#555',
-                      borderRadius:10, padding:'10px 0', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit'
-                    }}>{slot}</button>
-                  ))}
-                </div>
+                <AvailabilityPicker value={editSlots} onChange={setEditSlots} />
               </div>
 
               <button

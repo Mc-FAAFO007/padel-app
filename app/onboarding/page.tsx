@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import AvailabilityPicker from '@/components/AvailabilityPicker'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
@@ -268,7 +269,7 @@ export default function OnboardingPage() {
 
   const pct = Math.round(((qIndex + 1) / QUESTIONS.length) * 100)
   const q = QUESTIONS[qIndex]
-  const allSlots = ['Sat AM','Sat PM','Sun AM','Sun PM','Mon PM','Wed PM','Thu PM','Fri PM']
+
 
   // ── STEP: Name ──────────────────────────────────────────────────────────────
   if (step === 'name') return (

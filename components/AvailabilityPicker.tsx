@@ -1,0 +1,125 @@
+'use client'
+import { useState } from 'react'
+
+export const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as const
+export const PERIODS = ['Morning','Afternoon','Evening'] as const
+export type Day = typeof DAYS[number]
+export type Period = typeof PERIODS[number]
+
+export function encodeSlot(day: Day, period: Period): string {
+  return `${day.slice(0,3)} ${period}`
+}
+
+const PERIOD_COLOR: Record<Period, { active: string; activeBg: string; dot: string }> = {
+  Morning:   { active: '#facc15', activeBg: 'rgba(250,204,21,0.13)',  dot: '#facc15' },
+  Afternoon: { active: '#f87171', activeBg: 'rgba(248,113,113,0.13)', dot: '#f87171' },
+  Evening:   { active: '#60a5fa', activeBg: 'rgba(96,165,250,0.13)',  dot: '#60a5fa' },
+}
+
+interface Props {
+  value: string[]
+  onChange: (slots: string[]) => void
+}
+
+export default function AvailabilityPicker({ value, onChange }: Props) {
+  const [openDays, setOpenDays] = useState<Record<string,boolean>>({})
+
+  function toggleDay(day: Day) {
+    setOpenDays(prev => ({ ...prev, [day]: !prev[day] }))
+  }
+
+  function toggleSlot(day: Day, period: Period) {
+    const slot = encodeSlot(day, period)
+    onChange(value.includes(slot) ? value.filter(s => s !== slot) : [...value, slot])
+  }
+
+  function hasPeriod(day: Day, period: Period) {
+    return value.includes(encodeSlot(day, period))
+  }
+
+  function hasAny(day: Day) {
+    return PERIODS.some(p => hasPeriod(day, p))
+  }
+
+  const totalSelected = value.length
+  const daysWithSlots = DAYS.filter(d => hasAny(d)).length
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
+      {DAYS.map(day => {
+        const isOpen = openDays[day] ?? false
+        const selected = hasAny(day)
+        return (
+          <div key={day} style={{
+            borderRadius:12, overflow:'hidden',
+            border:`1px solid ${selected ? 'rgba(0,198,162,0.3)' : 'rgba(255,255,255,0.08)'}`,
+            borderLeft:`3px solid ${selected ? '#00c6a2' : 'transparent'}`,
+          }}>
+            <button onClick={() => toggleDay(day)} style={{
+              width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'12px 14px',
+              background: selected ? 'rgba(0,198,162,0.06)' : 'rgba(255,255,255,0.03)',
+              border:'none', cursor:'pointer', fontFamily:'inherit',
+            }}>
+              <span style={{ fontSize:14, fontWeight:700, color: selected ? '#00c6a2' : '#e8e8e8' }}>
+                {day}
+              </span>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ display:'flex', gap:4 }}>
+                  {PERIODS.map(p => (
+                    <div key={p} style={{
+                      width:6, height:6, borderRadius:'50%',
+                      background: hasPeriod(day, p) ? PERIOD_COLOR[p].dot : '#2a2a2a',
+                      transition:'background 0.15s'
+                    }} />
+                  ))}
+                </div>
+                <span style={{
+                  fontSize:10, color:'#555', display:'inline-block',
+                  transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition:'transform 0.2s'
+                }}>▼</span>
+              </div>
+            </button>
+            {isOpen && (
+              <div style={{
+                padding:'10px 12px 12px', background:'#0d0d0d',
+                display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:7
+              }}>
+                {PERIODS.map(period => {
+                  const on = hasPeriod(day, period)
+                  const c = PERIOD_COLOR[period]
+                  return (
+                    <button key={period} onClick={() => toggleSlot(day, period)} style={{
+                      padding:'10px 0', borderRadius:9,
+                      fontSize:12, fontWeight:700, cursor:'pointer',
+                      fontFamily:'inherit', textAlign:'center',
+                      border:`1px solid ${on ? c.active+'80' : 'rgba(255,255,255,0.08)'}`,
+                      background: on ? c.activeBg : 'rgba(255,255,255,0.02)',
+                      color: on ? c.active : '#555',
+                      transition:'all 0.15s',
+                    }}>
+                      {period}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      <div style={{
+        padding:'10px 14px', borderRadius:10, marginTop:2,
+        background: totalSelected > 0 ? 'rgba(0,198,162,0.07)' : 'rgba(255,255,255,0.02)',
+        border:`1px solid ${totalSelected > 0 ? 'rgba(0,198,162,0.2)' : 'rgba(255,255,255,0.07)'}`,
+        fontSize:12, fontWeight:600,
+        color: totalSelected > 0 ? '#00c6a2' : '#555',
+      }}>
+        {totalSelected === 0
+          ? 'Tap a day to select your availability'
+          : `${totalSelected} slot${totalSelected!==1?'s':''} selected across ${daysWithSlots} day${daysWithSlots!==1?'s':''}`
+        }
+      </div>
+    </div>
+  )
+}
