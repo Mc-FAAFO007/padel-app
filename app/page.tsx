@@ -271,7 +271,7 @@ export default function HomePage() {
 
         {/* Nav */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', background:'rgba(255,255,255,0.05)', borderRadius:14, padding:4, marginBottom:22, gap:2 }}>
-          {([['home','🏠','Home'],['board','📋','Board'],['browse','🔍','Browse'],['matches','🎯','Matches']] as const).map(([v,icon,label]) => (
+          {([['home','🏠','Home'],['board','📋','Board'],['browse','🔍','Browse'],['matches','📅','Schedule']] as const).map(([v,icon,label]) => (
             <button key={v} onClick={() => setView(v)} style={{ ...navBtnStyle(view===v), position:'relative' }}>
               <span style={{ fontSize:14 }}>{icon}</span>
               <span>{label}</span>
@@ -466,58 +466,104 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* ══ MATCHES ══ */}
-        {view==='matches' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:13 }}>
-            {selected ? (
-              <>
-                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                  <Avatar initials={selected.avatar} size={46} level={selected.level} />
-                  <div>
-                    <div style={{ fontSize:16, fontWeight:800, color:'#fff' }}>Matches for {selected.name.split(' ')[0]}</div>
-                    <div style={{ fontSize:12, color:'#555' }}>{matches.length} compatible players</div>
-                  </div>
+        {/* ══ MY SCHEDULE ══ */}
+        {view==='matches' && (()=>{
+          if (!currentUser) return (
+            <div style={{ textAlign:'center', padding:'48px 20px' }}>
+              <div style={{ fontSize:32 }}>📅</div>
+              <div style={{ color:'#555', fontWeight:600, marginTop:10 }}>Log in to see your schedule</div>
+            </div>
+          )
+
+          const myPosts = posts.filter(p => p.player_id === currentUser.id)
+          const joinedPosts = posts.filter(p => p.interested_ids.includes(currentUser.id))
+
+          return (
+            <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <Avatar initials={currentUser.avatar} size={46} level={currentUser.level} />
+                <div>
+                  <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>{currentUser.name}'s Schedule</div>
+                  <div style={{ fontSize:12, color:'#555' }}>{myPosts.length + joinedPosts.length} active games</div>
                 </div>
-                {matches.map(m => {
-                  const shared = selected.availability.filter(s => m.availability.includes(s))
-                  const pct = Math.min(100, Math.round((m.score / 13) * 100))
+              </div>
+
+              {/* Games I posted */}
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color:'#555', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>
+                  Games I posted ({myPosts.length})
+                </div>
+                {myPosts.length === 0 ? (
+                  <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', textAlign:'center' }}>
+                    <div style={{ fontSize:24, marginBottom:8 }}>📋</div>
+                    <div style={{ fontSize:13, color:'#555' }}>You haven't posted any games yet</div>
+                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:10, padding:'8px 18px', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Post a game →</button>
+                  </div>
+                ) : myPosts.map(p => {
+                  const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
+                  const full = spotsLeft === 0
                   return (
-                    <div key={m.id} style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(0,198,162,0.18)', borderRadius:14, padding:'14px 16px', display:'flex', flexDirection:'column', gap:10 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:11 }}>
-                        <Avatar initials={m.avatar} size={38} level={m.level} />
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:700, fontSize:14, color:'#f0f0f0' }}>{m.name}</div>
-                          <div style={{ fontSize:11, color:'#555' }}>L{m.level} · {levelDesc[m.level]}</div>
+                    <div key={p.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <div>
+                          <span style={{ background:'rgba(0,122,255,0.12)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>🕐 {p.slot}</span>
                         </div>
-                        <div style={{ textAlign:'right' }}>
-                          <div style={{ fontSize:17, fontWeight:800, color:'#00c6a2' }}>{pct}%</div>
-                          <div style={{ fontSize:9, color:'#444', fontWeight:600 }}>MATCH</div>
-                        </div>
+                        <span style={{ fontSize:12, fontWeight:700, color: full ? '#00c6a2' : '#888' }}>
+                          {full ? '✓ Full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} left`}
+                        </span>
                       </div>
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <div style={{ flex:1, height:4, borderRadius:4, background:'rgba(255,255,255,0.07)', overflow:'hidden' }}>
-                          <div style={{ width:`${pct}%`, height:'100%', borderRadius:4, background:'linear-gradient(90deg,#00c6a2,#007aff)' }} />
-                        </div>
-                        <LevelBadge level={m.level} small />
-                      </div>
-                      {shared.length>0 && (
-                        <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                          {shared.map(s => <span key={s} style={{ background:'rgba(0,198,162,0.1)', color:'#00c6a2', border:'1px solid rgba(0,198,162,0.25)', borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:600 }}>{s}</span>)}
+                      {p.note && <div style={{ fontSize:13, color:'#777', fontStyle:'italic' }}>"{p.note}"</div>}
+                      {p.interested_ids.length > 0 && (
+                        <div style={{ fontSize:12, color:'#555' }}>
+                          <span style={{ color:'#4ade80', fontWeight:700 }}>{p.interested_ids.length}</span> player{p.interested_ids.length!==1?'s':''} interested
                         </div>
                       )}
+                      <button onClick={() => handleDeletePost(p.id)} style={{ background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:9, padding:'7px 0', color:'#f87171', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
+                        Remove post
+                      </button>
                     </div>
                   )
                 })}
-              </>
-            ) : (
-              <div style={{ textAlign:'center', padding:'48px 20px' }}>
-                <div style={{ fontSize:32 }}>👤</div>
-                <div style={{ color:'#555', fontWeight:600, marginTop:10 }}>No player selected</div>
-                <button onClick={() => setView('browse')} style={{ marginTop:14, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:12, padding:'10px 22px', color:'#00c6a2', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>Browse Players</button>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Games I joined */}
+              <div>
+                <div style={{ fontSize:12, fontWeight:800, color:'#555', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>
+                  Games I joined ({joinedPosts.length})
+                </div>
+                {joinedPosts.length === 0 ? (
+                  <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', textAlign:'center' }}>
+                    <div style={{ fontSize:24, marginBottom:8 }}>🎾</div>
+                    <div style={{ fontSize:13, color:'#555' }}>You haven't joined any games yet</div>
+                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:10, padding:'8px 18px', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
+                  </div>
+                ) : joinedPosts.map(p => {
+                  const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
+                  const full = spotsLeft === 0
+                  return (
+                    <div key={p.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <Avatar initials={p.player_avatar} size={32} level={p.level} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:700, fontSize:13, color:'#e8e8e8' }}>{p.player_name}'s game</div>
+                          <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{p.slot}</div>
+                        </div>
+                        <LevelBadge level={p.level} small />
+                      </div>
+                      {p.note && <div style={{ fontSize:13, color:'#777', fontStyle:'italic' }}>"{p.note}"</div>}
+                      <div style={{ fontSize:12, color: full ? '#00c6a2' : '#888', fontWeight:600 }}>
+                        {full ? '✓ Game is full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} still open`}
+                      </div>
+                      <button onClick={() => handleInterest(p.id)} style={{ background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:9, padding:'7px 0', color:'#f87171', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
+                        Cancel interest
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ══ PROFILE ══ */}
         {view==='profile' && currentUser && (
