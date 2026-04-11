@@ -3,77 +3,161 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
-  const [email,   setEmail]   = useState('')
-  const [sent,    setSent]    = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState('')
+  const [mode,     setMode]     = useState<'options'|'password'|'signup'|'sent'>('options')
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [name,     setName]     = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [error,    setError]    = useState('')
 
-  async function handleLogin() {
-    if (!email.trim()) { setError('Please enter your email'); return }
+  async function handleGoogle() {
     setLoading(true); setError('')
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `https://padel-app-sigma-seven.vercel.app/auth/callback` }
+    })
+    if (error) { setError(error.message); setLoading(false) }
+  }
+
+  async function handleSignIn() {
+    if (!email.trim() || !password) { setError('Please enter your email and password'); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    setLoading(false)
+    if (error) setError(error.message)
+  }
+
+  async function handleSignUp() {
+    if (!name.trim())     { setError('Please enter your name'); return }
+    if (!email.trim())    { setError('Please enter your email'); return }
+    if (password.length < 6) { setError('Password must be at least 6 characters'); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.signUp({
       email: email.trim(),
-      options: {
-        emailRedirectTo: `https://padel-app-sigma-seven.vercel.app/auth/callback`
-      }
+      password,
+      options: { data: { full_name: name.trim() } }
     })
     setLoading(false)
-    if (error) { setError(error.message) } else { setSent(true) }
+    if (error) { setError(error.message) } else { setMode('sent') }
   }
 
   const s: Record<string, React.CSSProperties> = {
-    page: { minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'DM Sans', sans-serif" },
-    card: { width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 24 },
-    logo: { display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center', marginBottom: 8 },
-    logoText: { fontSize: 28, fontWeight: 900, color: '#fff', letterSpacing: -0.5 },
-    sub: { fontSize: 14, color: '#555', textAlign: 'center', marginTop: -16 },
-    label: { fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
-    input: { width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '13px 14px', color: '#e8e8e8', fontSize: 15, fontFamily: 'inherit', outline: 'none' },
-    btn: { width: '100%', background: 'linear-gradient(90deg, #00c6a2, #007aff)', border: 'none', borderRadius: 12, padding: '14px 0', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' },
-    err: { background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.3)', borderRadius: 10, padding: '10px 14px', color: '#f87171', fontSize: 13 },
-    success: { background: 'rgba(0,198,162,0.1)', border: '1px solid rgba(0,198,162,0.3)', borderRadius: 14, padding: '24px', textAlign: 'center', color: '#00c6a2' },
+    page:    { minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
+    card:    { width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:20 },
+    logo:    { display:'flex', alignItems:'center', gap:10, justifyContent:'center', marginBottom:4 },
+    logoTxt: { fontSize:28, fontWeight:900, color:'#fff', letterSpacing:-0.5 },
+    sub:     { fontSize:14, color:'#555', textAlign:'center', marginTop:-12 },
+    label:   { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
+    input:   { width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'13px 14px', color:'#e8e8e8', fontSize:15, fontFamily:'inherit', outline:'none' },
+    btn:     { width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    gBtn:    { width:'100%', background:'#fff', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#111', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:10 },
+    outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#aaa', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    err:     { background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:10, padding:'10px 14px', color:'#f87171', fontSize:13 },
+    divider: { display:'flex', alignItems:'center', gap:12 },
+    line:    { flex:1, height:1, background:'rgba(255,255,255,0.08)' },
+    orTxt:   { fontSize:12, color:'#444', fontWeight:600 },
+    link:    { background:'none', border:'none', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
   }
 
   return (
     <div style={s.page}>
       <div style={s.card}>
         <div style={s.logo}>
-          <span style={{ fontSize: 28 }}>🎾</span>
-          <span style={s.logoText}>PadelMatch</span>
+          <span style={{fontSize:28}}>🎾</span>
+          <span style={s.logoTxt}>PadelMatch</span>
         </div>
         <p style={s.sub}>Club member login</p>
 
-        {sent ? (
-          <div style={s.success}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>📧</div>
-            <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 8 }}>Check your email!</div>
-            <div style={{ fontSize: 13, color: '#888', lineHeight: 1.5 }}>
-              We sent a magic link to <strong style={{ color: '#00c6a2' }}>{email}</strong>.<br />
-              Tap it to sign in — no password needed.
+        {/* ── SENT ── */}
+        {mode==='sent' && (
+          <div style={{background:'rgba(0,198,162,0.1)',border:'1px solid rgba(0,198,162,0.3)',borderRadius:14,padding:'24px',textAlign:'center',color:'#00c6a2'}}>
+            <div style={{fontSize:32,marginBottom:12}}>📧</div>
+            <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
+            <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
+              We sent a confirmation to <strong style={{color:'#00c6a2'}}>{email}</strong>.<br />
+              Click the link to activate your account.
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* ── OPTIONS ── */}
+        {mode==='options' && (
           <>
-            <div>
-              <div style={s.label}>Your email</div>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleLogin()}
-                style={s.input}
-              />
-            </div>
-            {error && <div style={s.err}>{error}</div>}
-            <button onClick={handleLogin} disabled={loading} style={{ ...s.btn, opacity: loading ? 0.6 : 1 }}>
-              {loading ? 'Sending…' : 'Send Magic Link →'}
+            <button onClick={handleGoogle} disabled={loading} style={{...s.gBtn, opacity:loading?0.6:1}}>
+              <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 002.38-5.88c0-.57-.05-.66-.15-1.18z"/><path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.01c-.72.48-1.63.77-2.7.77-2.08 0-3.85-1.4-4.48-3.29H1.83v2.07A8 8 0 008.98 17z"/><path fill="#FBBC05" d="M4.5 10.53A4.8 4.8 0 014.25 9c0-.53.09-1.04.25-1.53V5.4H1.83A8 8 0 001 9c0 1.3.31 2.52.83 3.6l2.67-2.07z"/><path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 001.83 5.4L4.5 7.47c.63-1.9 2.4-3.29 4.48-3.29z"/></svg>
+              Continue with Google
             </button>
-            <p style={{ textAlign: 'center', fontSize: 12, color: '#333', margin: 0 }}>
-              No password needed. One tap and you're in.
+
+            <div style={s.divider}>
+              <div style={s.line}/><span style={s.orTxt}>or</span><div style={s.line}/>
+            </div>
+
+            <button onClick={()=>setMode('password')} style={s.outBtn}>
+              Sign in with Email & Password
+            </button>
+
+            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+              New member?{' '}
+              <button onClick={()=>setMode('signup')} style={s.link}>Create account</button>
             </p>
           </>
         )}
+
+        {/* ── SIGN IN ── */}
+        {mode==='password' && (
+          <>
+            <div>
+              <div style={s.label}>Email</div>
+              <input type="email" placeholder="you@example.com" value={email}
+                onChange={e=>setEmail(e.target.value)} style={s.input}/>
+            </div>
+            <div>
+              <div style={s.label}>Password</div>
+              <input type="password" placeholder="••••••••" value={password}
+                onChange={e=>setPassword(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&handleSignIn()} style={s.input}/>
+            </div>
+            {error && <div style={s.err}>{error}</div>}
+            <button onClick={handleSignIn} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
+              {loading ? 'Signing in…' : 'Sign In →'}
+            </button>
+            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+              <button onClick={()=>{setMode('options');setError('')}} style={s.link}>← Back</button>
+              {' · '}
+              <button onClick={()=>{setMode('signup');setError('')}} style={s.link}>Create account</button>
+            </p>
+          </>
+        )}
+
+        {/* ── SIGN UP ── */}
+        {mode==='signup' && (
+          <>
+            <div>
+              <div style={s.label}>Full Name</div>
+              <input type="text" placeholder="e.g. Jamie Torres" value={name}
+                onChange={e=>setName(e.target.value)} style={s.input}/>
+            </div>
+            <div>
+              <div style={s.label}>Email</div>
+              <input type="email" placeholder="you@example.com" value={email}
+                onChange={e=>setEmail(e.target.value)} style={s.input}/>
+            </div>
+            <div>
+              <div style={s.label}>Password</div>
+              <input type="password" placeholder="Min 6 characters" value={password}
+                onChange={e=>setPassword(e.target.value)} style={s.input}/>
+            </div>
+            {error && <div style={s.err}>{error}</div>}
+            <button onClick={handleSignUp} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
+              {loading ? 'Creating account…' : 'Create Account →'}
+            </button>
+            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+              Already a member?{' '}
+              <button onClick={()=>{setMode('password');setError('')}} style={s.link}>Sign in</button>
+            </p>
+          </>
+        )}
+
       </div>
     </div>
   )
