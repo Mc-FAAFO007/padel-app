@@ -85,7 +85,8 @@ export default function HomePage() {
   const [loading,     setLoading]     = useState(true)
 
   // Post form state
-  const [fSlot,    setFSlot]    = useState('')
+  const [fDay,     setFDay]     = useState('')
+  const [fTime,    setFTime]    = useState('')
   const [fSpots,   setFSpots]   = useState(2)
   const [fNote,    setFNote]    = useState('')
 
@@ -172,7 +173,8 @@ export default function HomePage() {
 
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
-    if (!currentUser || !fSlot) { showNotif('Pick a time slot'); return }
+    if (!currentUser || !fDay || !fTime) { showNotif('Pick a day and time'); return }
+    const fSlot = `${fDay} ${fTime}`
     const { error } = await supabase.from('posts').insert({
       player_id: currentUser.id,
       player_name: currentUser.name,
@@ -183,7 +185,7 @@ export default function HomePage() {
       note: fNote.trim(),
     })
     if (error) { showNotif('Error posting: ' + error.message); return }
-    setShowForm(false); setFSlot(''); setFSpots(2); setFNote('')
+    setShowForm(false); setFDay(''); setFTime(''); setFSpots(2); setFNote('')
     showNotif('Game posted! 🎾')
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
@@ -272,7 +274,7 @@ export default function HomePage() {
                   <Avatar initials={currentUser.avatar} size={22} level={currentUser.level} />
                   <span style={{ fontSize:12, fontWeight:700, color:'#ccc' }}>{currentUser.name.split(' ')[0]}</span>
                 </div>
-                <button onClick={handleSignOut} title="Sign out" style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:12, padding:'4px 6px', fontFamily:'inherit' }}>↩</button>
+
               </div>
             )}
             <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
@@ -364,12 +366,31 @@ export default function HomePage() {
                 <div style={{ fontWeight:800, fontSize:14, color:'#fff' }}>Post a Game Request</div>
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {allSlots.map(s => {
-                      const c = slotColor(s)
-                      return <button key={s} onClick={() => setFSlot(s)} style={{ border:`1px solid ${fSlot===s?c.color+'80':'rgba(255,255,255,0.1)'}`, background:fSlot===s?c.bg:'transparent', color:fSlot===s?c.color:'#555', borderRadius:8, padding:'5px 11px', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>{s}</button>
-                    })}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fDay ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                      <option value="" disabled>Day</option>
+                      {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
+                        <option key={d} value={d} style={{ background:'#1a1a1a', color:'#e8e8e8' }}>{d}</option>
+                      ))}
+                    </select>
+                    <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fTime ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                      <option value="" disabled>Time</option>
+                      {Array.from({ length: 31 }, (_, i) => {
+                        const totalMins = 7 * 60 + i * 30
+                        const h24 = Math.floor(totalMins / 60)
+                        const mins = totalMins % 60
+                        const h12 = h24 % 12 === 0 ? 12 : h24 % 12
+                        const ampm = h24 < 12 ? 'am' : 'pm'
+                        const label = `${h12}:${mins.toString().padStart(2,'0')} ${ampm}`
+                        return <option key={label} value={label} style={{ background:'#1a1a1a', color:'#e8e8e8' }}>{label}</option>
+                      })}
+                    </select>
                   </div>
+                  {fDay && fTime && (
+                    <div style={{ marginTop:7, fontSize:12, color:'#00c6a2', fontWeight:600 }}>
+                      📅 {fDay} at {fTime}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
