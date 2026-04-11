@@ -99,29 +99,41 @@ export default function HomePage() {
   }, [router])
 
   useEffect(() => {
+    let redirectTimer: ReturnType<typeof setTimeout>
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
+        if (redirectTimer) clearTimeout(redirectTimer)
         loadData(session.user.id)
-      } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
+      } else if (event === 'INITIAL_SESSION' && !session) {
+        // Give the client time to detect session from URL hash before redirecting
+        redirectTimer = setTimeout(() => {
+          supabase.auth.getSession().then(({ data }) => {
+            if (!data.session) router.push('/login')
+            else loadData(data.session.user.id)
+          })
+        }, 1500)
+      } else if (event === 'SIGNED_OUT') {
         router.push('/login')
       }
     })
-    return () => subscription.unsubscribe()
+
+    return () => {
+      subscription.unsubscribe()
+      if (redirectTimer) clearTimeout(redirectTimer)
+    }
   }, [loadData, router])
 
   useEffect(() => {
+    const refreshData = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) loadData(session.user.id)
+      })
+    }
     const channel = supabase
       .channel('board')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) loadData(session.user.id)
-        })
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, () => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) loadData(session.user.id)
-        })
-      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, refreshData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, refreshData)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [loadData])
@@ -484,3 +496,4 @@ export default function HomePage() {
     </div>
   )
 }
+
