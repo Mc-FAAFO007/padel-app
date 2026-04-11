@@ -443,11 +443,34 @@ export default function HomePage() {
         )}
         {/* ══ ARENA ══ */}
         {view==='arena' && (
-          <div style={{ textAlign:'center', padding:'60px 20px' }}>
-            <div style={{ fontSize:32, marginBottom:12 }}>⚔️</div>
-            <div style={{ fontSize:17, fontWeight:800, color:'#fff', marginBottom:8 }}>The Arena</div>
-            <div style={{ fontSize:13, color:'#555', marginBottom:24 }}>Ratings · Leaderboard · Match Log</div>
-            <button onClick={() => router.push('/ratings')} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'13px 32px', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:16, paddingTop:8 }}>
+            <div style={{ textAlign:'center', paddingBottom:4 }}>
+              <div style={{ fontSize:32, marginBottom:10 }}>⚔️</div>
+              <div style={{ fontSize:20, fontWeight:900, color:'#fff', marginBottom:6 }}>The Arena</div>
+              <div style={{ fontSize:12, color:'#555' }}>Ratings · Leaderboard · Match Log</div>
+            </div>
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'18px 16px' }}>
+              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8 }}>
+                Every match counts — <span style={{ color:'#e8e8e8', fontWeight:600 }}>yes, even that one you'd rather forget.</span>
+                {' '}The Arena is your club's live rating system. Log your results, track your rating on the <span style={{ color:'#00c6a2', fontWeight:700 }}>1.0–7.0 scale</span>, and see exactly where you stand on the leaderboard.
+              </div>
+              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8, marginTop:12 }}>
+                The more you play, the sharper your rating gets — which means better matchups, more competitive games, and <span style={{ color:'#e8e8e8', fontWeight:600 }}>no more being destroyed by someone who "said they were a beginner".</span>
+              </div>
+              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8, marginTop:12 }}>
+                Fair matches. Happy players. <span style={{ color:'#00c6a2', fontWeight:700 }}>Zero excuses.</span>
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+              {[['🏆','Leaderboard','See club rankings'],['🎾','Log Match','Record results'],['📈','My Results','Track your rating']].map(([icon,title,desc]) => (
+                <div key={title as string} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 10px', textAlign:'center' }}>
+                  <div style={{ fontSize:20, marginBottom:6 }}>{icon}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'#e8e8e8', marginBottom:3 }}>{title}</div>
+                  <div style={{ fontSize:10, color:'#555', lineHeight:1.4 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
               Enter The Arena →
             </button>
           </div>
@@ -625,9 +648,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            <button onClick={handleSignOut} style={{ width:'100%', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:12, padding:'12px 0', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
-              Sign Out
-            </button>
+
           </div>
         )}
 
