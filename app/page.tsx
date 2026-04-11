@@ -334,13 +334,13 @@ export default function HomePage() {
                 <div style={{ padding:'0 14px 16px', display:'flex', flexDirection:'column', gap:12 }}>
                   {[
                     { level:'1', name:'Elite', range:'5.5 – 7.0', color:levelColor['1'], bg:levelBg['1'],
-                      desc:'You compete at a high level and have done so for a while. Your wall play is automatic, your shot selection is deliberate, and you understand how to construct a point. You've likely played in tournaments or at a club competitive level. Matches at this tier are fast, technical, and unforgiving.' },
+                      desc:'You compete at a high level and have done so for a while. Your wall play is automatic, your shot selection is deliberate, and you understand how to construct a point. You have likely played in tournaments or at a club competitive level. Matches at this tier are fast, technical, and unforgiving.' },
                     { level:'2', name:'Competitive', range:'4.0 – 5.5', color:levelColor['2'], bg:levelBg['2'],
-                      desc:'A solid club player with real technical ability. You're comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You win more than you lose at casual club level and you're starting to play with real tactical intent.' },
+                      desc:'A solid club player with real technical ability. You are comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You win more than you lose at casual club level and you are starting to play with real tactical intent.' },
                     { level:'3', name:'Casual', range:'2.5 – 4.0', color:levelColor['3'], bg:levelBg['3'],
-                      desc:'You've found your feet on the court and can hold a rally. Wall bounces don't panic you anymore and you're developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You're building consistency and starting to think tactically.' },
+                      desc:'You've found your feet on the court and can hold a rally. Wall bounces do not panic you anymore and you are developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You are building consistency and starting to think tactically.' },
                     { level:'4', name:'Beginner', range:'1.0 – 2.5', color:levelColor['4'], bg:levelBg['4'],
-                      desc:'New to padel or still finding your footing. You're learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here — the only way is up.' },
+                      desc:'New to padel or still finding your footing. You are learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here. The only way is up.' },
                   ].map(l => (
                     <div key={l.level} style={{ background:l.bg, border:`1px solid ${l.color}25`, borderLeft:`3px solid ${l.color}`, borderRadius:12, padding:'13px 14px' }}>
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
