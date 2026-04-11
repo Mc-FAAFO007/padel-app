@@ -60,7 +60,11 @@ export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<Profile|null>(null)
   const [players,     setPlayers]     = useState<Profile[]>([])
   const [posts,       setPosts]       = useState<(Post & { interested_ids: string[] })[]>([])
-  const [view,        setView]        = useState<'home'|'board'|'browse'|'matches'>('home')
+  const [view,        setView]        = useState<'home'|'board'|'browse'|'matches'|'profile'>('home')
+  const [editName,    setEditName]    = useState('')
+  const [editLevel,   setEditLevel]   = useState('')
+  const [editSlots,   setEditSlots]   = useState<string[]>([])
+  const [editLoading, setEditLoading] = useState(false)
   const [boardLevel,  setBoardLevel]  = useState('1')
   const [selected,    setSelected]    = useState<Profile|null>(null)
   const [filter,      setFilter]      = useState({ level:'All', slot:'All' })
@@ -252,7 +256,7 @@ export default function HomePage() {
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {currentUser && (
               <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:20, padding:'4px 10px 4px 6px', cursor:'pointer' }} onClick={() => setView('matches')} title="My profile">
+                <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:20, padding:'4px 10px 4px 6px', cursor:'pointer' }} onClick={() => { if(currentUser){ setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); } setView('profile') }} title="My profile">
                   <Avatar initials={currentUser.avatar} size={22} level={currentUser.level} />
                   <span style={{ fontSize:12, fontWeight:700, color:'#ccc' }}>{currentUser.name.split(' ')[0]}</span>
                 </div>
@@ -512,6 +516,104 @@ export default function HomePage() {
                 <button onClick={() => setView('browse')} style={{ marginTop:14, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:12, padding:'10px 22px', color:'#00c6a2', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:13 }}>Browse Players</button>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ══ PROFILE ══ */}
+        {view==='profile' && currentUser && (
+          <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
+              <div>
+                <div style={{ fontSize:18, fontWeight:900, color:'#fff' }}>{currentUser.name}</div>
+                <div style={{ fontSize:12, color:'#555', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+              </div>
+            </div>
+
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'18px' }}>
+              <div style={{ fontSize:13, fontWeight:800, color:'#00c6a2', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
+
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Name</div>
+                <input
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'11px 13px', color:'#e8e8e8', fontSize:14, fontFamily:'inherit', outline:'none' }}
+                />
+              </div>
+
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:7 }}>
+                  {(['1','2','3','4'] as const).map(l => (
+                    <button key={l} onClick={() => setEditLevel(l)} style={{
+                      border:`1px solid ${editLevel===l ? levelColor[l]+'80' : 'rgba(255,255,255,0.1)'}`,
+                      background:editLevel===l ? levelBg[l] : 'transparent',
+                      color:editLevel===l ? levelColor[l] : '#555',
+                      borderRadius:10, padding:'10px 0', fontWeight:700,
+                      cursor:'pointer', fontFamily:'inherit', display:'flex', flexDirection:'column', alignItems:'center', gap:1
+                    }}>
+                      <span style={{ fontSize:14, fontWeight:900 }}>L{l}</span>
+                      <span style={{ fontSize:9, opacity:0.8 }}>{levelDesc[l]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom:18 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>
+                  Availability ({editSlots.length} selected)
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                  {(['Sat AM','Sat PM','Sun AM','Sun PM','Mon PM','Wed PM','Thu PM','Fri PM'] as const).map(slot => (
+                    <button key={slot} onClick={() => setEditSlots(prev => prev.includes(slot) ? prev.filter(s=>s!==slot) : [...prev,slot])} style={{
+                      border:`1px solid ${editSlots.includes(slot) ? 'rgba(0,198,162,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                      background:editSlots.includes(slot) ? 'rgba(0,198,162,0.12)' : 'rgba(255,255,255,0.03)',
+                      color:editSlots.includes(slot) ? '#00c6a2' : '#555',
+                      borderRadius:10, padding:'10px 0', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit'
+                    }}>{slot}</button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                disabled={editLoading || !editName.trim() || editSlots.length === 0}
+                onClick={async () => {
+                  if (!editName.trim() || editSlots.length === 0) return
+                  setEditLoading(true)
+                  const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
+                  const { error } = await supabase.from('profiles').update({
+                    name: editName.trim(),
+                    avatar: initials,
+                    level: editLevel,
+                    availability: editSlots,
+                  }).eq('id', currentUser.id)
+                  setEditLoading(false)
+                  if (!error) {
+                    showNotif('Profile updated!')
+                    supabase.auth.getSession().then(({ data: { session } }) => {
+                      if (session?.user) loadData(session.user.id)
+                    })
+                    setView('home')
+                  } else {
+                    showNotif('Error saving — try again')
+                  }
+                }}
+                style={{
+                  width:'100%',
+                  background: editLoading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(90deg,#00c6a2,#007aff)',
+                  border:'none', borderRadius:12, padding:'13px 0', color:'#fff',
+                  fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
+                  opacity: editLoading ? 0.6 : 1
+                }}
+              >
+                {editLoading ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+
+            <button onClick={handleSignOut} style={{ width:'100%', background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:12, padding:'12px 0', color:'#f87171', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
+              Sign Out
+            </button>
           </div>
         )}
 
