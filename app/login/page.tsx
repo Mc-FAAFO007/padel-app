@@ -14,7 +14,7 @@ export default function LoginPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `https://padel-app-sigma-seven.vercel.app/auth/callback` }
+      options: { redirectTo: `https://padel-app-sigma-seven.vercel.app/auth/confirm` }
     })
     if (error) { setError(error.message); setLoading(false) }
   }

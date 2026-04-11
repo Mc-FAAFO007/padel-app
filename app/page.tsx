@@ -99,29 +99,23 @@ export default function HomePage() {
   }, [router])
 
   useEffect(() => {
-    let redirectTimer: ReturnType<typeof setTimeout>
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadData(session.user.id)
+      } else {
+        router.push('/login')
+      }
+    })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        if (redirectTimer) clearTimeout(redirectTimer)
+      if (event === 'SIGNED_IN' && session?.user) {
         loadData(session.user.id)
-      } else if (event === 'INITIAL_SESSION' && !session) {
-        // Give the client time to detect session from URL hash before redirecting
-        redirectTimer = setTimeout(() => {
-          supabase.auth.getSession().then(({ data }) => {
-            if (!data.session) router.push('/login')
-            else loadData(data.session.user.id)
-          })
-        }, 1500)
       } else if (event === 'SIGNED_OUT') {
         router.push('/login')
       }
     })
 
-    return () => {
-      subscription.unsubscribe()
-      if (redirectTimer) clearTimeout(redirectTimer)
-    }
+    return () => subscription.unsubscribe()
   }, [loadData, router])
 
   useEffect(() => {
@@ -496,4 +490,3 @@ export default function HomePage() {
     </div>
   )
 }
-
