@@ -82,6 +82,7 @@ export default function HomePage() {
   const [filter,      setFilter]      = useState({ level:'All', slot:'All' })
   const [fLevels,     setFLevels]     = useState<string[]>([])
   const [showForm,    setShowForm]    = useState(false)
+  const [showLevelGuide, setShowLevelGuide] = useState(false)
   const [notif,       setNotif]       = useState<string|null>(null)
   const [loading,     setLoading]     = useState(true)
 
@@ -321,6 +322,39 @@ export default function HomePage() {
                 <button onClick={() => setView('board')} style={{ flex:1, background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 0', color:'#fff', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>📋 Game Board</button>
                 <button onClick={() => setView('arena')} style={{ flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'12px 0', color:'#ccc', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>⚔️ The Arena</button>
               </div>
+            </div>
+
+            {/* Level Guide */}
+            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+              <button onClick={() => setShowLevelGuide(v => !v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                <span style={{ fontSize:13, fontWeight:700, color:'#aaa' }}>What do the levels mean?</span>
+                <span style={{ fontSize:11, color:'#555', transform: showLevelGuide ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▼</span>
+              </button>
+              {showLevelGuide && (
+                <div style={{ padding:'0 14px 16px', display:'flex', flexDirection:'column', gap:12 }}>
+                  {[
+                    { level:'1', name:'Elite', range:'5.5 – 7.0', color:levelColor['1'], bg:levelBg['1'],
+                      desc:'You compete at a high level and have done so for a while. Your wall play is automatic, your shot selection is deliberate, and you understand how to construct a point. You've likely played in tournaments or at a club competitive level. Matches at this tier are fast, technical, and unforgiving.' },
+                    { level:'2', name:'Competitive', range:'4.0 – 5.5', color:levelColor['2'], bg:levelBg['2'],
+                      desc:'A solid club player with real technical ability. You're comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You win more than you lose at casual club level and you're starting to play with real tactical intent.' },
+                    { level:'3', name:'Casual', range:'2.5 – 4.0', color:levelColor['3'], bg:levelBg['3'],
+                      desc:'You've found your feet on the court and can hold a rally. Wall bounces don't panic you anymore and you're developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You're building consistency and starting to think tactically.' },
+                    { level:'4', name:'Beginner', range:'1.0 – 2.5', color:levelColor['4'], bg:levelBg['4'],
+                      desc:'New to padel or still finding your footing. You're learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here — the only way is up.' },
+                  ].map(l => (
+                    <div key={l.level} style={{ background:l.bg, border:`1px solid ${l.color}25`, borderLeft:`3px solid ${l.color}`, borderRadius:12, padding:'13px 14px' }}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#e8e8e8' }}>{l.name}</span>
+                        </div>
+                        <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
+                      </div>
+                      <div style={{ fontSize:12, color:'#888', lineHeight:1.6 }}>{l.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:9 }}>
