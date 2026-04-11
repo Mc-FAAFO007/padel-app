@@ -104,8 +104,14 @@ export default function HomePage() {
       const profileRes = await supabase.from('profiles').select('*').eq('id', userId).single()
 
       if (profileRes.error) {
-        console.log('Profile error:', profileRes.error)
-        router.push('/onboarding')
+        // Only redirect to onboarding if profile genuinely doesn't exist
+        // PGRST116 = row not found, anything else is a network/server error
+        if (profileRes.error.code === 'PGRST116') {
+          router.push('/onboarding')
+        } else {
+          console.error('Profile fetch error:', profileRes.error)
+          setLoading(false)
+        }
         return
       }
 
@@ -760,4 +766,3 @@ export default function HomePage() {
     </div>
   )
 }
-

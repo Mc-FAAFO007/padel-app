@@ -269,7 +269,8 @@ export default function OnboardingPage() {
       rating: startingRating, match_count: 0,
     }, { onConflict: 'player_id' })
 
-    router.push('/')
+    // Small delay to ensure DB write completes before redirect
+    setTimeout(() => router.push('/'), 500)
   }
 
   const pct = Math.round(((qIndex + 1) / QUESTIONS.length) * 100)
@@ -493,4 +494,3 @@ export default function OnboardingPage() {
     </div>
   )
 }
-
