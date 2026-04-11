@@ -6,7 +6,18 @@ import AvailabilityPicker from '@/components/AvailabilityPicker'
 import type { Profile, Post } from '@/lib/types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const allSlots  = ['Sat AM','Sat PM','Sun AM','Sun PM','Mon PM','Wed PM','Thu PM','Fri PM']
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+const PERIODS = ['Morning','Afternoon','Evening']
+const allSlots = DAYS.flatMap(d => PERIODS.map(p => `${d.slice(0,3)} ${p}`))
+const PERIOD_COLOR: Record<string,{color:string,bg:string}> = {
+  Morning:   { color:'#facc15', bg:'rgba(250,204,21,0.12)'  },
+  Afternoon: { color:'#f87171', bg:'rgba(248,113,113,0.12)' },
+  Evening:   { color:'#60a5fa', bg:'rgba(96,165,250,0.12)'  },
+}
+function slotColor(slot: string) {
+  const period = slot.split(' ')[1] as string
+  return PERIOD_COLOR[period] || { color:'#00c6a2', bg:'rgba(0,198,162,0.12)' }
+}
 const levels    = ['1','2','3','4']
 const levelColor: Record<string,string> = { '1':'#f87171','2':'#fb923c','3':'#facc15','4':'#4ade80' }
 const levelBg:    Record<string,string> = { '1':'rgba(248,113,113,0.12)','2':'rgba(251,146,60,0.12)','3':'rgba(250,204,21,0.12)','4':'rgba(74,222,128,0.12)' }
@@ -174,7 +185,7 @@ export default function HomePage() {
     if (error) { showNotif('Error posting: ' + error.message); return }
     setShowForm(false); setFSlot(''); setFSpots(2); setFNote('')
     showNotif('Game posted! 🎾')
-    loadData()
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
   async function handleInterest(postId: number) {
@@ -187,13 +198,13 @@ export default function HomePage() {
     } else {
       await supabase.from('post_interests').insert({ post_id: postId, player_id: currentUser.id })
     }
-    loadData()
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
   async function handleDeletePost(postId: number) {
     await supabase.from('posts').delete().eq('id', postId)
     showNotif('Post removed')
-    loadData()
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
   function handleSignOut() {
@@ -354,9 +365,10 @@ export default function HomePage() {
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {allSlots.map(s => (
-                      <button key={s} onClick={() => setFSlot(s)} style={{ border:`1px solid ${fSlot===s?'rgba(0,122,255,0.5)':'rgba(255,255,255,0.1)'}`, background:fSlot===s?'rgba(0,122,255,0.12)':'transparent', color:fSlot===s?'#60a5fa':'#555', borderRadius:8, padding:'5px 11px', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>{s}</button>
-                    ))}
+                    {allSlots.map(s => {
+                      const c = slotColor(s)
+                      return <button key={s} onClick={() => setFSlot(s)} style={{ border:`1px solid ${fSlot===s?c.color+'80':'rgba(255,255,255,0.1)'}`, background:fSlot===s?c.bg:'transparent', color:fSlot===s?c.color:'#555', borderRadius:8, padding:'5px 11px', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>{s}</button>
+                    })}
                   </div>
                 </div>
                 <div>
@@ -458,7 +470,7 @@ export default function HomePage() {
                     <LevelBadge level={p.level} />
                   </div>
                   <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                    {p.availability.map(s => <span key={s} style={{ background:'rgba(0,122,255,0.1)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:600 }}>{s}</span>)}
+                    {p.availability.map(s => { const c = slotColor(s); return <span key={s} style={{ background:c.bg, color:c.color, border:`1px solid ${c.color}40`, borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:600 }}>{s}</span> })}
                   </div>
                   <button onClick={() => { setSelected(p); setView('matches') }} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:10, padding:'8px 0', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Find Matches →</button>
                 </div>
