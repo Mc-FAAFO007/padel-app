@@ -85,10 +85,11 @@ export default function HomePage() {
   const [loading,     setLoading]     = useState(true)
 
   // Post form state
-  const [fDay,     setFDay]     = useState('')
-  const [fTime,    setFTime]    = useState('')
-  const [fSpots,   setFSpots]   = useState(2)
-  const [fNote,    setFNote]    = useState('')
+  const [fDay,      setFDay]     = useState('')
+  const [fTime,     setFTime]    = useState('')
+  const [fDuration, setFDuration] = useState('')
+  const [fSpots,    setFSpots]   = useState(2)
+  const [fNote,     setFNote]    = useState('')
 
   function showNotif(msg: string) {
     setNotif(msg)
@@ -173,8 +174,8 @@ export default function HomePage() {
 
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
-    if (!currentUser || !fDay || !fTime) { showNotif('Pick a day and time'); return }
-    const fSlot = `${fDay} ${fTime}`
+    if (!currentUser || !fDay || !fTime || !fDuration) { showNotif('Pick a day, time and duration'); return }
+    const fSlot = `${fDay} ${fTime} · ${fDuration}`
     const { error } = await supabase.from('posts').insert({
       player_id: currentUser.id,
       player_name: currentUser.name,
@@ -185,7 +186,7 @@ export default function HomePage() {
       note: fNote.trim(),
     })
     if (error) { showNotif('Error posting: ' + error.message); return }
-    setShowForm(false); setFDay(''); setFTime(''); setFSpots(2); setFNote('')
+    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote('')
     showNotif('Game posted! 🎾')
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
@@ -391,6 +392,20 @@ export default function HomePage() {
                       📅 {fDay} at {fTime}
                     </div>
                   )}
+                </div>
+                <div>
+                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Duration</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+                    {['60 min','90 min'].map(d => (
+                      <button key={d} onClick={() => setFDuration(d)} style={{
+                        border:`1px solid ${fDuration===d?'rgba(0,198,162,0.5)':'rgba(255,255,255,0.1)'}`,
+                        background: fDuration===d?'rgba(0,198,162,0.12)':'rgba(255,255,255,0.03)',
+                        color: fDuration===d?'#00c6a2':'#555',
+                        borderRadius:10, padding:'11px 0', fontSize:13, fontWeight:700,
+                        cursor:'pointer', fontFamily:'inherit',
+                      }}>{d}</button>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
