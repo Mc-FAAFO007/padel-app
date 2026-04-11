@@ -72,7 +72,7 @@ export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<Profile|null>(null)
   const [players,     setPlayers]     = useState<Profile[]>([])
   const [posts,       setPosts]       = useState<(Post & { interested_ids: string[] })[]>([])
-  const [view,        setView]        = useState<'home'|'board'|'browse'|'matches'|'profile'>('home')
+  const [view,        setView]        = useState<'home'|'board'|'arena'|'matches'|'profile'>('home')
   const [editName,    setEditName]    = useState('')
   const [editLevel,   setEditLevel]   = useState('')
   const [editSlots,   setEditSlots]   = useState<string[]>([])
@@ -275,20 +275,15 @@ export default function HomePage() {
                 <button onClick={handleSignOut} title="Sign out" style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:12, padding:'4px 6px', fontFamily:'inherit' }}>↩</button>
               </div>
             )}
-            <div style={{ display:'flex', gap:7, alignItems:'center' }}>
-              <button onClick={() => router.push('/ratings')} style={{ background:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.25)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#fb923c', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-                Ratings
-              </button>
-              <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
-                {players.length} members
-              </div>
+            <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
+              {players.length} members
             </div>
           </div>
         </div>
 
         {/* Nav */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', background:'rgba(255,255,255,0.05)', borderRadius:14, padding:4, marginBottom:22, gap:2 }}>
-          {([['home','🏠','Home'],['board','📋','Board'],['browse','🔍','Browse'],['matches','📅','Schedule']] as const).map(([v,icon,label]) => (
+          {([['home','🏠','Home'],['board','📋','Board'],['arena','⚔️','Arena'],['matches','📅','Schedule']] as const).map(([v,icon,label]) => (
             <button key={v} onClick={() => setView(v)} style={{ ...navBtnStyle(view===v), position:'relative' }}>
               <span style={{ fontSize:14 }}>{icon}</span>
               <span>{label}</span>
@@ -446,10 +441,11 @@ export default function HomePage() {
             })}
           </div>
         )}
-
-        {/* ══ BROWSE ══ */}
-        {view==='browse' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:15 }}>
+        {/* ══ ARENA ══ */}
+        {view==='arena' && (()=>{
+          router.push('/ratings')
+          return null
+        })()}>
             <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>All Players</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {([['Level','level',['All',...levels],(o:string)=>o==='All'?'All':`L${o} ${levelDesc[o]}`],['Time','slot',['All',...allSlots],(o:string)=>o]] as const).map(([label,key,opts,fmt]) => (

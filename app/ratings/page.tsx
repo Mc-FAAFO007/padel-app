@@ -241,8 +241,8 @@ export default function RatingsPage() {
         {/* Header */}
         <div style={{ padding:'22px 0 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontSize:20, fontWeight:900, color:'#fff' }}>Club Ratings</div>
-            <div style={{ fontSize:12, color:'#555', marginTop:2 }}>1.0 – 7.0 · FIP/Playtomic scale</div>
+            <div style={{ fontSize:20, fontWeight:900, color:'#fff' }}>The Arena</div>
+            <div style={{ fontSize:12, color:'#555', marginTop:2 }}>Ratings · Matches · Leaderboard</div>
           </div>
           <button onClick={() => router.push('/')} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'7px 14px', color:'#888', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
             ← App
