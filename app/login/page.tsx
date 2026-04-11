@@ -8,7 +8,7 @@ export default function LoginPage() {
     supabase.auth.signOut()
   }, [])
 
-  const [mode,     setMode]     = useState<'options'|'password'|'signup'|'sent'>('options')
+  const [mode,     setMode]     = useState<'options'|'password'|'signup'|'sent'|'forgot'|'reset_sent'>('options')
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [name,     setName]     = useState('')
@@ -30,6 +30,16 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     setLoading(false)
     if (error) setError(error.message)
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) { setError('Please enter your email address'); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: 'https://padel-app-sigma-seven.vercel.app/auth/confirm'
+    })
+    setLoading(false)
+    if (error) { setError(error.message) } else { setMode('reset_sent') }
   }
 
   async function handleSignUp() {
@@ -129,9 +139,43 @@ export default function LoginPage() {
             <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
               <button onClick={()=>{setMode('options');setError('')}} style={s.link}>← Back</button>
               {' · '}
+              <button onClick={()=>{setMode('forgot');setError('')}} style={s.link}>Forgot password</button>
+              {' · '}
               <button onClick={()=>{setMode('signup');setError('')}} style={s.link}>Create account</button>
             </p>
           </>
+        )}
+
+        {/* ── FORGOT PASSWORD ── */}
+        {mode==='forgot' && (
+          <>
+            <div>
+              <div style={s.label}>Your email</div>
+              <input type="email" placeholder="you@example.com" value={email}
+                onChange={e=>setEmail(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&handleForgotPassword()}
+                style={s.input}/>
+            </div>
+            {error && <div style={s.err}>{error}</div>}
+            <button onClick={handleForgotPassword} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
+              {loading ? 'Sending…' : 'Send Reset Link →'}
+            </button>
+            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+              <button onClick={()=>{setMode('password');setError('')}} style={s.link}>← Back to sign in</button>
+            </p>
+          </>
+        )}
+
+        {/* ── RESET SENT ── */}
+        {mode==='reset_sent' && (
+          <div style={s.success}>
+            <div style={{fontSize:32,marginBottom:12}}>📧</div>
+            <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
+            <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
+              We sent a password reset link to <strong style={{color:'#00c6a2'}}>{email}</strong>.<br/>
+              Click the link to set a new password.
+            </div>
+          </div>
         )}
 
         {/* ── SIGN UP ── */}
