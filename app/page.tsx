@@ -315,11 +315,11 @@ export default function HomePage() {
                 Need players?<br /><span style={{ color:'#00c6a2' }}>No problem.</span>
               </div>
               <div style={{ fontSize:13, color:'#777', lineHeight:1.6, marginBottom:18 }}>
-                Post when you need players, browse who's looking, and get matched by level.
+                Post when you need players and get matched by level. Track your rating in The Arena.
               </div>
               <div style={{ display:'flex', gap:9 }}>
                 <button onClick={() => setView('board')} style={{ flex:1, background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 0', color:'#fff', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>📋 Game Board</button>
-                <button onClick={() => setView('browse')} style={{ flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'12px 0', color:'#ccc', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Browse Players</button>
+                <button onClick={() => setView('arena')} style={{ flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'12px 0', color:'#ccc', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>⚔️ The Arena</button>
               </div>
             </div>
 
