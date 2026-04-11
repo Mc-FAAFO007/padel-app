@@ -201,9 +201,9 @@ export default function HomePage() {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
               <span style={{ fontSize:22 }}>🎾</span>
-              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#fff' }}>PadelMatch</span>
+              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#fff' }}>Court Connections</span>
             </div>
-            <div style={{ fontSize:12, color:'#555' }}>Find your game. Find your people.</div>
+            <div style={{ fontSize:12, color:'#555' }}>Connect with players at your level.</div>
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center' }}>
             {currentUser && (
@@ -238,7 +238,7 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
             <div style={{ background:'linear-gradient(135deg,rgba(0,198,162,0.14) 0%,rgba(0,122,255,0.09) 100%)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'26px 22px' }}>
               <div style={{ fontSize:27, fontWeight:900, lineHeight:1.2, color:'#fff', marginBottom:10 }}>
-                No group?<br /><span style={{ color:'#00c6a2' }}>No problem.</span>
+                Need players?<br /><span style={{ color:'#00c6a2' }}>No problem.</span>
               </div>
               <div style={{ fontSize:13, color:'#777', lineHeight:1.6, marginBottom:18 }}>
                 Post when you need players, browse who's looking, and get matched by level.

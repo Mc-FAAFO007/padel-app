@@ -64,7 +64,7 @@ export default function LoginPage() {
       <div style={s.card}>
         <div style={s.logo}>
           <span style={{fontSize:28}}>🎾</span>
-          <span style={s.logoTxt}>PadelMatch</span>
+          <span style={s.logoTxt}>Court Connections</span>
         </div>
         <p style={s.sub}>Club member login</p>
 

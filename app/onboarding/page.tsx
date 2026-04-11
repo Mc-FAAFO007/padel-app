@@ -78,7 +78,7 @@ export default function OnboardingPage() {
         <div>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
             <span style={{ fontSize:22 }}>🎾</span>
-            <span style={{ fontSize:18, fontWeight:900, color:'#fff' }}>PadelMatch</span>
+            <span style={{ fontSize:18, fontWeight:900, color:'#fff' }}>Court Connections</span>
           </div>
           <div style={s.title}>Set up your profile</div>
           <div style={{ fontSize:13, color:'#555', marginTop:4 }}>Just a few details to get you matched</div>

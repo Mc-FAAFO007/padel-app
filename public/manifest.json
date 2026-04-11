@@ -1,7 +1,7 @@
 {
-  "name": "PadelMatch",
-  "short_name": "PadelMatch",
-  "description": "Find your game. Find your people.",
+  "name": "Court Connections",
+  "short_name": "Court Connections",
+  "description": "Connect with players at your level.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",

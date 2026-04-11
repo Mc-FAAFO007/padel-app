@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = {
-  title: 'PadelMatch',
-  description: 'Find your game. Find your people.',
+  title: 'Court Connections',
+  description: 'Connect with players at your level.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'PadelMatch',
+    title: 'Court Connections',
   },
 }
 
