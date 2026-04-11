@@ -275,8 +275,13 @@ export default function HomePage() {
                 <button onClick={handleSignOut} title="Sign out" style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:12, padding:'4px 6px', fontFamily:'inherit' }}>↩</button>
               </div>
             )}
-            <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
-              {players.length} members
+            <div style={{ display:'flex', gap:7, alignItems:'center' }}>
+              <button onClick={() => router.push('/ratings')} style={{ background:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.25)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#fb923c', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                Ratings
+              </button>
+              <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
+                {players.length} members
+              </div>
             </div>
           </div>
         </div>
@@ -603,20 +608,11 @@ export default function HomePage() {
 
               <div style={{ marginBottom:14 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:7 }}>
-                  {(['1','2','3','4'] as const).map(l => (
-                    <button key={l} onClick={() => setEditLevel(l)} style={{
-                      border:`1px solid ${editLevel===l ? levelColor[l]+'80' : 'rgba(255,255,255,0.1)'}`,
-                      background:editLevel===l ? levelBg[l] : 'transparent',
-                      color:editLevel===l ? levelColor[l] : '#555',
-                      borderRadius:10, padding:'10px 0', fontWeight:700,
-                      cursor:'pointer', fontFamily:'inherit', display:'flex', flexDirection:'column', alignItems:'center', gap:1
-                    }}>
-                      <span style={{ fontSize:14, fontWeight:900 }}>L{l}</span>
-                      <span style={{ fontSize:9, opacity:0.8 }}>{levelDesc[l]}</span>
-                    </button>
-                  ))}
+                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:13, color:'#888' }}>Assigned by assessment</span>
+                  <span style={{ background:levelBg[currentUser.level], color:levelColor[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}40`, borderRadius:20, padding:'3px 12px', fontSize:12, fontWeight:800 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</span>
                 </div>
+                <div style={{ fontSize:11, color:'#444', marginTop:6 }}>To change your level, contact your club admin.</div>
               </div>
 
               <div style={{ marginBottom:18 }}>
@@ -635,7 +631,6 @@ export default function HomePage() {
                   const { error } = await supabase.from('profiles').update({
                     name: editName.trim(),
                     avatar: initials,
-                    level: editLevel,
                     availability: editSlots,
                   }).eq('id', currentUser.id)
                   setEditLoading(false)
