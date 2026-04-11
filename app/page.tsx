@@ -442,41 +442,14 @@ export default function HomePage() {
           </div>
         )}
         {/* ══ ARENA ══ */}
-        {view==='arena' && (()=>{
-          router.push('/ratings')
-          return null
-        })()}>
-            <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>All Players</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-              {([['Level','level',['All',...levels],(o:string)=>o==='All'?'All':`L${o} ${levelDesc[o]}`],['Time','slot',['All',...allSlots],(o:string)=>o]] as const).map(([label,key,opts,fmt]) => (
-                <div key={key} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:12, color:'#444', fontWeight:600, width:40, flexShrink:0 }}>{label}</span>
-                  <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
-                    {([...opts] as string[]).map(o => (
-                      <button key={o} onClick={() => setFilter(f => ({ ...f, [key]:o }))} style={{ border:`1px solid ${filter[key as 'level'|'slot']===o?'rgba(0,198,162,0.5)':'rgba(255,255,255,0.1)'}`, background:filter[key as 'level'|'slot']===o?'rgba(0,198,162,0.12)':'transparent', color:filter[key as 'level'|'slot']===o?'#00c6a2':'#555', borderRadius:20, padding:'4px 11px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', flexShrink:0 }}>{fmt(o)}</button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize:12, color:'#444', fontWeight:600 }}>{filtered.length} players</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:11 }}>
-              {filtered.map(p => (
-                <div key={p.id} style={{ background:'rgba(255,255,255,0.035)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:10 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:11 }}>
-                    <Avatar initials={p.avatar} size={42} level={p.level} />
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontWeight:700, fontSize:15, color:'#f0f0f0' }}>{p.name}</div>
-                    </div>
-                    <LevelBadge level={p.level} />
-                  </div>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:5 }}>
-                    {p.availability.map(s => { const c = slotColor(s); return <span key={s} style={{ background:c.bg, color:c.color, border:`1px solid ${c.color}40`, borderRadius:8, padding:'2px 8px', fontSize:11, fontWeight:600 }}>{s}</span> })}
-                  </div>
-                  <button onClick={() => { setSelected(p); setView('matches') }} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:10, padding:'8px 0', color:'#fff', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Find Matches →</button>
-                </div>
-              ))}
-            </div>
+        {view==='arena' && (
+          <div style={{ textAlign:'center', padding:'60px 20px' }}>
+            <div style={{ fontSize:32, marginBottom:12 }}>⚔️</div>
+            <div style={{ fontSize:17, fontWeight:800, color:'#fff', marginBottom:8 }}>The Arena</div>
+            <div style={{ fontSize:13, color:'#555', marginBottom:24 }}>Ratings · Leaderboard · Match Log</div>
+            <button onClick={() => router.push('/ratings')} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'13px 32px', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+              Enter The Arena →
+            </button>
           </div>
         )}
 
