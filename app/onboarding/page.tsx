@@ -447,25 +447,9 @@ export default function OnboardingPage() {
 
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
-            Available slots <span style={{ color: '#333', fontWeight: 400, textTransform: 'none' }}>({availability.length} selected)</span>
+            When can you play?
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            {allSlots.map(slot => (
-              <button
-                key={slot}
-                onClick={() => toggleSlot(slot)}
-                style={{
-                  border: `1px solid ${availability.includes(slot) ? 'rgba(0,198,162,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                  background: availability.includes(slot) ? 'rgba(0,198,162,0.12)' : 'rgba(255,255,255,0.03)',
-                  color: availability.includes(slot) ? '#00c6a2' : '#555',
-                  borderRadius: 12, padding: '11px 0', fontSize: 13, fontWeight: 600,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                {slot}
-              </button>
-            ))}
-          </div>
+          <AvailabilityPicker value={availability} onChange={setAvailability} />
         </div>
 
         {/* Summary card */}
@@ -494,3 +478,4 @@ export default function OnboardingPage() {
     </div>
   )
 }
+
