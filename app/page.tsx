@@ -52,16 +52,16 @@ function formatSlotDisplay(slot: string): string {
   }
 }
 const levels    = ['1','2','3','4']
-const levelColor: Record<string,string> = { '1':'#990033','2':'#000099','3':'#006633','4':'#660033' }
-const levelBg:    Record<string,string> = { '1':'rgba(153,0,51,0.12)','2':'rgba(0,0,153,0.10)','3':'rgba(0,102,51,0.10)','4':'rgba(102,0,51,0.10)' }
+const levelColor: Record<string,string> = { '1':'#cc9900','2':'#000099','3':'#006633','4':'#990033' }
+const levelBg:    Record<string,string> = { '1':'rgba(204,153,0,0.12)','2':'rgba(0,0,153,0.10)','3':'rgba(0,102,51,0.10)','4':'rgba(153,0,51,0.12)' }
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Competitive','3':'Casual','4':'Beginner' }
 
 // Derive level badge from numeric rating
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
-  if (rating >= 5.6) return { level:'1', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Elite' }
+  if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
   if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
   if (rating >= 2.6) return { level:'3', color:'#006633', bg:'rgba(0,102,51,0.10)', desc:'Casual' }
-  return              { level:'4', color:'#660033', bg:'rgba(102,0,51,0.10)', desc:'Beginner' }
+  return              { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Beginner' }
 }
 
 function timeAgo(iso: string) {
@@ -385,13 +385,13 @@ export default function HomePage() {
               {showLevelGuide && (
                 <div style={{ padding:'0 14px 16px', display:'flex', flexDirection:'column', gap:12 }}>
                   {[
-                    { level:'1', name:'Elite', range:'5.6 – 7.0', color:levelColor['1'], bg:levelBg['1'],
+                    { level:'1', name:'Elite', range:'5.6 – 7.0', color:'#cc9900', bg:'rgba(204,153,0,0.12)',
                       desc:'You compete at a high level and have done so for a while. Your wall play is automatic, your shot selection is deliberate, and you understand how to construct a point. You have likely played in tournaments or at a club competitive level. Matches at this tier are fast, technical, and unforgiving.' },
                     { level:'2', name:'Competitive', range:'4.1 – 5.5', color:levelColor['2'], bg:levelBg['2'],
                       desc:'A solid club player with real technical ability. You are comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You win more than you lose at casual club level and you are starting to play with real tactical intent.' },
                     { level:'3', name:'Casual', range:'2.6 – 4.0', color:levelColor['3'], bg:levelBg['3'],
                       desc:'You have found your feet on the court and can hold a rally. Wall bounces do not panic you anymore and you are developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You are building consistency and starting to think tactically.' },
-                    { level:'4', name:'Beginner', range:'1.0 – 2.5', color:levelColor['4'], bg:levelBg['4'],
+                    { level:'4', name:'Beginner', range:'1.0 – 2.5', color:'#990033', bg:'rgba(153,0,51,0.12)',
                       desc:'New to padel or still finding your footing. You are learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here. The only way is up.' },
                   ].map(l => (
                     <div key={l.level} style={{ background:l.bg, border:`1px solid ${l.color}25`, borderLeft:`3px solid ${l.color}`, borderRadius:12, padding:'13px 14px' }}>

@@ -133,8 +133,8 @@ const LEVEL_RESULTS: LevelResult[] = [
     appLevel: '4',
     name: 'Beginner',
     range: 'Level 1.0 – 2.0',
-    color: '#4ade80',
-    bg: 'rgba(74,222,128,0.12)',
+    color: '#990033',
+    bg: 'rgba(153,0,51,0.12)',
     blurb: "You're in the early stages of your padel journey. Your priority right now is developing consistency and building a relationship with the glass. The walls are padel's defining feature — embrace them.",
     focus: [
       'Glass fundamentals: let every ball bounce off the back glass before hitting',
@@ -175,8 +175,8 @@ const LEVEL_RESULTS: LevelResult[] = [
     appLevel: '1',
     name: 'Semi-pro / Competitive',
     range: 'Level 5.5+',
-    color: '#f87171',
-    bg: 'rgba(248,113,113,0.12)',
+    color: '#cc9900',
+    bg: 'rgba(204,153,0,0.12)',
     blurb: 'You play at a high competitive level. Your technique, wall play, and tactical understanding are well above the club average. The focus at this stage is refinement, mental resilience, and physical conditioning.',
     focus: [
       'Shot perfection under fatigue: maintain technique in 3rd-set pressure situations',
