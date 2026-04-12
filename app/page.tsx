@@ -18,6 +18,39 @@ function slotColor(slot: string) {
   const period = slot.split(' ')[1] as string
   return PERIOD_COLOR[period] || { color:'#00c6a2', bg:'rgba(0,198,162,0.12)' }
 }
+
+function formatSlotDisplay(slot: string): string {
+  // slot format: "Wednesday 12:00 pm · 90 min"
+  // output: "Wednesday, 12:00 – 1:30 pm"
+  try {
+    const dotIndex = slot.indexOf(' · ')
+    if (dotIndex === -1) return slot
+    const timePart = slot.slice(0, dotIndex)   // "Wednesday 12:00 pm"
+    const durPart  = slot.slice(dotIndex + 3)  // "90 min"
+    const mins     = parseInt(durPart) || 60
+
+    // Parse time
+    const parts = timePart.split(' ')           // ["Wednesday", "12:00", "pm"]
+    const day   = parts[0]
+    const time  = parts[1]                     // "12:00"
+    const ampm  = parts[2]                     // "pm"
+    const [hStr, mStr] = time.split(':')
+    let h = parseInt(hStr), m = parseInt(mStr)
+    if (ampm === 'pm' && h !== 12) h += 12
+    if (ampm === 'am' && h === 12) h = 0
+
+    const endTotal = h * 60 + m + mins
+    const endH = Math.floor(endTotal / 60) % 24
+    const endM = endTotal % 60
+    const endAmpm = endH < 12 ? 'am' : 'pm'
+    const endH12 = endH % 12 === 0 ? 12 : endH % 12
+    const endTime = `${endH12}:${endM.toString().padStart(2,'0')} ${endAmpm}`
+
+    return `${day}, ${time} – ${endTime}`
+  } catch {
+    return slot
+  }
+}
 const levels    = ['1','2','3','4']
 const levelColor: Record<string,string> = { '1':'#f87171','2':'#fb923c','3':'#facc15','4':'#4ade80' }
 const levelBg:    Record<string,string> = { '1':'rgba(248,113,113,0.12)','2':'rgba(251,146,60,0.12)','3':'rgba(250,204,21,0.12)','4':'rgba(74,222,128,0.12)' }
@@ -533,17 +566,52 @@ export default function HomePage() {
                     </div>
                     {isOwner && <button onClick={() => handleDeletePost(post.id)} style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:16, padding:'2px 4px', lineHeight:1 }}>✕</button>}
                   </div>
+                  {/* Time display */}
                   <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
-                    <span style={{ background:'rgba(0,122,255,0.12)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'2px 9px', fontSize:11, fontWeight:700 }}>🕐 {post.slot}</span>
-                    <span style={{ background:full?'rgba(248,113,113,0.12)':`${c}18`, color:full?'#f87171':c, border:`1px solid ${full?'rgba(248,113,113,0.3)':c+'35'}`, borderRadius:8, padding:'2px 9px', fontSize:12, fontWeight:700 }}>
-                      {full ? '⛔ Full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} open`}
+                    <span style={{ background:'rgba(0,122,255,0.12)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
+                      📅 {formatSlotDisplay(post.slot)}
                     </span>
                   </div>
                   {post.note && <div style={{ fontSize:13, color:'#888', lineHeight:1.5, fontStyle:'italic' }}>"{post.note}"</div>}
-                  {post.interested_ids.length>0 && <div style={{ fontSize:11, color:'#555' }}><span style={{ color:'#4ade80', fontWeight:700 }}>{post.interested_ids.length}</span> interested of {post.spots_needed} needed</div>}
-                  {!isOwner && currentUser && (
-                    <button onClick={() => handleInterest(post.id)} disabled={full && !alreadyIn} style={{ background:alreadyIn?'rgba(248,113,113,0.1)':full?'rgba(255,255,255,0.03)':`${c}18`, border:`1px solid ${alreadyIn?'rgba(248,113,113,0.4)':full?'rgba(255,255,255,0.08)':c+'50'}`, borderRadius:10, padding:'9px 0', cursor:full&&!alreadyIn?'default':'pointer', color:alreadyIn?'#f87171':full?'#333':c, fontWeight:700, fontSize:13, fontFamily:'inherit' }}>
-                      {alreadyIn ? '✓ I\'m in — tap to cancel' : full ? 'Game is full' : '🙋 I\'m Interested!'}
+
+                  {/* Player slots */}
+                  {(()=>{
+                    const totalSlots = post.spots_needed + 1
+                    const interestedPlayers = players.filter(p => post.interested_ids.includes(p.id))
+                    const organiser = players.find(p => p.id === post.player_id)
+                    const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
+                    const emptySlots = Math.max(0, totalSlots - filledSlots.length)
+                    const canJoin = !isOwner && currentUser && !alreadyIn && !full
+                    const allowedLevels = post.allowed_levels || [post.level]
+                    const levelAllowed = currentUser && allowedLevels.includes(currentUser.level)
+                    return (
+                      <div>
+                        <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
+                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(95px,1fr))', gap:7 }}>
+                          {filledSlots.map((p:any, i:number) => p && (
+                            <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}18`:'rgba(74,222,128,0.08)', border:`1px solid ${i===0?levelColor[p.level]+'35':'rgba(74,222,128,0.25)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
+                              <Avatar initials={p.avatar} size={24} level={p.level} />
+                              <div style={{ minWidth:0 }}>
+                                <div style={{ fontSize:11, fontWeight:700, color:'#e8e8e8', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name.split(' ')[0]}</div>
+                                <div style={{ fontSize:9, color:i===0?levelColor[p.level]:'#4ade80', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
+                              </div>
+                            </div>
+                          ))}
+                          {Array.from({length:emptySlots}).map((_,i)=>(
+                            <button key={`empty-${i}`}
+                              onClick={()=>canJoin&&levelAllowed?handleInterest(post.id):!levelAllowed&&currentUser?showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`):null}
+                              style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${canJoin&&levelAllowed?'rgba(0,198,162,0.35)':'rgba(255,255,255,0.07)'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
+                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#00c6a2':'#333' }}>{canJoin&&levelAllowed?'+':'○'}</span>
+                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#00c6a2':'#444' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
+                  {alreadyIn && !isOwner && (
+                    <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#f87171', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                      Cancel my spot
                     </button>
                   )}
                 </div>
