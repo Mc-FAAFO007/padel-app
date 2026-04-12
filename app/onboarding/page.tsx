@@ -334,13 +334,13 @@ export default function OnboardingPage() {
             <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Level Assessment</span>
             <span>{qIndex + 1} / {QUESTIONS.length}</span>
           </div>
-          <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 4, background: 'rgba(102,0,51,0.12)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{ width: `${pct}%`, height: '100%', background: '#990033', borderRadius: 4, transition: 'width 0.3s ease' }} />
           </div>
         </div>
 
         <div>
-          <div style={{ display: 'inline-block', fontSize: 10, color: '#990033', background: 'rgba(0,198,162,0.1)', border: '1px solid rgba(0,198,162,0.2)', borderRadius: 20, padding: '2px 10px', fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ display: 'inline-block', fontSize: 10, color: '#ffcc66', background: '#660033', border: '1px solid #990033', borderRadius: 20, padding: '3px 12px', fontWeight: 700, marginBottom: 12 }}>
             {q.tag}
           </div>
           <div style={{ fontSize: 17, fontWeight: 700, color: '#111', lineHeight: 1.5 }}>{q.text}</div>
@@ -352,10 +352,10 @@ export default function OnboardingPage() {
               key={i}
               onClick={() => selectAnswer(i)}
               style={{
-                background: answers[qIndex] === i ? 'rgba(0,198,162,0.12)' : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${answers[qIndex] === i ? 'rgba(0,198,162,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                background: answers[qIndex] === i ? '#660033' : '#fff',
+                border: `1px solid ${answers[qIndex] === i ? '#990033' : 'rgba(102,0,51,0.2)'}`,
                 borderRadius: 12, padding: '13px 16px',
-                color: answers[qIndex] === i ? '#00c6a2' : '#888',
+                color: answers[qIndex] === i ? '#ffcc66' : '#660033',
                 fontWeight: answers[qIndex] === i ? 700 : 400,
                 fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
                 textAlign: 'left', lineHeight: 1.5, transition: 'all 0.15s',
@@ -370,14 +370,14 @@ export default function OnboardingPage() {
           <button
             onClick={prevQ}
             disabled={qIndex === 0}
-            style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '11px 0', color: '#666', fontWeight: 700, fontSize: 14, cursor: qIndex === 0 ? 'default' : 'pointer', fontFamily: 'inherit', opacity: qIndex === 0 ? 0.4 : 1 }}
+            style={{ flex: 1, background: 'transparent', border: '1px solid rgba(102,0,51,0.25)', borderRadius: 10, padding: '11px 0', color: '#660033', fontWeight: 700, fontSize: 14, cursor: qIndex === 0 ? 'default' : 'pointer', fontFamily: 'inherit', opacity: qIndex === 0 ? 0.4 : 1 }}
           >
             Back
           </button>
           <button
             onClick={nextQ}
             disabled={answers[qIndex] === null}
-            style={{ flex: 2, background: answers[qIndex] !== null ? 'linear-gradient(90deg,#00c6a2,#007aff)' : 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 10, padding: '11px 0', color: answers[qIndex] !== null ? '#fff' : '#444', fontWeight: 800, fontSize: 14, cursor: answers[qIndex] !== null ? 'pointer' : 'default', fontFamily: 'inherit' }}
+            style={{ flex: 2, background: answers[qIndex] !== null ? '#660033' : 'rgba(102,0,51,0.08)', border: 'none', borderRadius: 10, padding: '11px 0', color: answers[qIndex] !== null ? '#ffcc66' : '#aaa', fontWeight: 800, fontSize: 14, cursor: answers[qIndex] !== null ? 'pointer' : 'default', fontFamily: 'inherit' }}
           >
             {qIndex === QUESTIONS.length - 1 ? 'See my result →' : 'Next →'}
           </button>
@@ -470,7 +470,7 @@ export default function OnboardingPage() {
         <button
           onClick={handleSubmit}
           disabled={loading || availability.length === 0}
-          style={{ width: '100%', background: availability.length > 0 ? 'linear-gradient(90deg,#00c6a2,#007aff)' : 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 12, padding: '14px 0', color: availability.length > 0 ? '#fff' : '#444', fontWeight: 800, fontSize: 15, cursor: availability.length > 0 ? 'pointer' : 'default', fontFamily: 'inherit', opacity: loading ? 0.6 : 1 }}
+          style={{ width: '100%', background: availability.length > 0 ? '#660033' : 'rgba(102,0,51,0.08)', border: 'none', borderRadius: 12, padding: '14px 0', color: availability.length > 0 ? '#ffcc66' : '#aaa', fontWeight: 800, fontSize: 15, cursor: availability.length > 0 ? 'pointer' : 'default', fontFamily: 'inherit', opacity: loading ? 0.6 : 1 }}
         >
           {loading ? 'Setting up your profile…' : 'Enter Court Connections →'}
         </button>
@@ -478,4 +478,3 @@ export default function OnboardingPage() {
     </div>
   )
 }
-

@@ -11,9 +11,9 @@ export function encodeSlot(day: Day, period: Period): string {
 }
 
 const PERIOD_COLOR: Record<Period, { active: string; activeBg: string; dot: string }> = {
-  Morning:   { active: '#facc15', activeBg: 'rgba(250,204,21,0.13)',  dot: '#facc15' },
-  Afternoon: { active: '#f87171', activeBg: 'rgba(248,113,113,0.13)', dot: '#f87171' },
-  Evening:   { active: '#60a5fa', activeBg: 'rgba(96,165,250,0.13)',  dot: '#60a5fa' },
+  Morning:   { active: '#cc9900', activeBg: 'rgba(204,153,0,0.12)',   dot: '#cc9900' },
+  Afternoon: { active: '#990033', activeBg: 'rgba(153,0,51,0.12)',   dot: '#990033' },
+  Evening:   { active: '#000099', activeBg: 'rgba(0,0,153,0.10)',    dot: '#000099' },
 }
 
 interface Props {
@@ -83,7 +83,7 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
             </button>
             {isOpen && (
               <div style={{
-                padding:'10px 12px 12px', background:'#0d0d0d',
+                padding:'10px 12px 12px', background:'#ede8e0',
                 display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:7
               }}>
                 {PERIODS.map(period => {
@@ -123,4 +123,3 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
     </div>
   )
 }
-
