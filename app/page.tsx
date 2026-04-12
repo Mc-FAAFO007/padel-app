@@ -295,7 +295,6 @@ export default function HomePage() {
   if (loading) {
     return (
       <div style={{ minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
-        <div style={{ fontSize:32 }}>🎾</div>
         <div style={{ color:'#990033', fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
         <button onClick={() => { window.location.href = '/login' }} style={{ marginTop:8, background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:10, padding:'8px 20px', color:'#555', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
           Not loading? Click here
@@ -322,9 +321,8 @@ export default function HomePage() {
         {/* Header */}
         <div style={{ padding:'22px 0 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
-              <span style={{ fontSize:22 }}>🎾</span>
-              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#000099' }}>Court Connections</span>
+            <div style={{ marginBottom:3 }}>
+              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#660033' }}>Court Connections</span>
             </div>
             <div style={{ fontSize:12, color:'#660033' }}>Connect with players at your level.</div>
           </div>
@@ -334,11 +332,11 @@ export default function HomePage() {
               <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
                 onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
                 <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
-                <div style={{ background:'#fff', border:`1px solid ${rd.color}30`, borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
-                  <div style={{ fontSize:17, fontWeight:900, color:rd.color, lineHeight:1.1 }}>
+                <div style={{ background:'#660033', border:'1px solid #990033', borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
+                  <div style={{ fontSize:17, fontWeight:900, color:'#ffcc66', lineHeight:1.1 }}>
                     {liveRating ? liveRating.toFixed(1) : '--'}
                   </div>
-                  <div style={{ fontSize:9, fontWeight:700, color:rd.color, marginTop:2, opacity:0.85, whiteSpace:'nowrap' }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:'rgba(255,204,102,0.85)', marginTop:2, whiteSpace:'nowrap' }}>
                     L{rd.level} · {rd.desc}
                   </div>
                 </div>
@@ -444,7 +442,7 @@ export default function HomePage() {
                 <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Players looking to fill their game</div>
               </div>
               {!showForm && (
-                <button onClick={() => setShowForm(true)} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'9px 15px', color:'#660033', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
+                <button onClick={() => setShowForm(true)} style={{ background:'#660033', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               )}
             </div>
 
@@ -522,7 +520,7 @@ export default function HomePage() {
                 <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(102,0,51,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
                   <button onClick={() => setShowForm(false)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-                  <button onClick={handlePostSubmit} style={{ flex:2, background:`linear-gradient(90deg,${levelColor[currentUser.level]},${levelColor[currentUser.level]}99)`, border:'none', borderRadius:10, padding:'10px 0', color:'#660033', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>Post →</button>
+                  <button onClick={handlePostSubmit} style={{ flex:2, background:'#660033', border:'none', borderRadius:10, padding:'10px 0', color:'#ffcc66', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>Post →</button>
                 </div>
               </div>
             )}
@@ -593,7 +591,7 @@ export default function HomePage() {
                     return (
                       <div>
                         <div style={{ fontSize:10, fontWeight:700, color:'#660033', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
-                        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(95px,1fr))', gap:7 }}>
+                        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                           {filledSlots.map((p:any, i:number) => p && (
                             <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[p.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
                               <Avatar initials={p.avatar} size={24} level={p.level} />
@@ -654,7 +652,7 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#660033', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'#660033', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
               Enter The Arena →
             </button>
           </div>
