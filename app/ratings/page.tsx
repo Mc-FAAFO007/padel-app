@@ -69,9 +69,9 @@ function Notif({ msg }: { msg: string | null }) {
   return (
     <div style={{
       position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
-      background: 'rgba(0,198,162,0.15)', backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(0,198,162,0.4)', borderRadius: 14,
-      padding: '11px 22px', zIndex: 9999, color: '#990033',
+      background: 'rgba(102,0,51,0.12)', backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(153,0,51,0.4)', borderRadius: 14,
+      padding: '11px 22px', zIndex: 9999, color: '#660033',
       fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap',
     }}>{msg}</div>
   )
@@ -266,15 +266,17 @@ export default function RatingsPage() {
               return (
                 <div key={r.id} style={{
                   display:'flex', alignItems:'center', gap:12,
-                  padding:'12px 0', borderBottom:'1px solid rgba(255,255,255,0.05)',
-                  background: isMe ? 'rgba(0,198,162,0.04)' : 'transparent',
+                  padding:'12px 4px', borderBottom:'1px solid rgba(102,0,51,0.08)',
+                  background: isMe ? 'rgba(102,0,51,0.05)' : 'transparent',
+                  borderRadius: isMe ? 8 : 0,
+                  margin: isMe ? '0 -4px' : 0,
                 }}>
-                  <div style={{ fontSize:13, fontWeight:900, color: i < 3 ? '#facc15' : '#555', width:20, textAlign:'center', flexShrink:0 }}>
+                  <div style={{ fontSize:13, fontWeight:900, color: i < 3 ? '#660033' : '#aaa', width:20, textAlign:'center', flexShrink:0, background: i < 3 ? 'rgba(102,0,51,0.1)' : 'transparent', borderRadius:'50%', height:20, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     {i + 1}
                   </div>
                   <Avatar initials={r.avatar} size={38} rating={r.rating} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color: isMe ? '#00c6a2' : '#e8e8e8' }}>
+                    <div style={{ fontSize:13, fontWeight:700, color: isMe ? '#990033' : '#660033' }}>
                       {r.player_name}{isMe ? ' (you)' : ''}
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
@@ -284,7 +286,7 @@ export default function RatingsPage() {
                     </div>
                   </div>
                   <div style={{ textAlign:'right' }}>
-                    <div style={{ fontSize:22, fontWeight:900, color:'#990033' }}>{r.rating.toFixed(1)}</div>
+                    <div style={{ fontSize:22, fontWeight:900, color:'#660033' }}>{r.rating.toFixed(1)}</div>
                     <div style={{ height:4, width:60, background:'#e8e0d5', borderRadius:4, overflow:'hidden', marginTop:4 }}>
                       <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4 }} />
                     </div>
