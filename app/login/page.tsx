@@ -6,14 +6,18 @@ export default function LoginPage() {
   // Sign out any stale session when landing on login page
   useEffect(() => {
     supabase.auth.signOut()
+    // Load remembered email if saved
+    const saved = localStorage.getItem('cc_remembered_email')
+    if (saved) { setEmail(saved); setRememberMe(true) }
   }, [])
 
-  const [mode,     setMode]     = useState<'options'|'password'|'signup'|'sent'|'forgot'|'reset_sent'>('options')
-  const [email,    setEmail]    = useState('')
-  const [password, setPassword] = useState('')
-  const [name,     setName]     = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState('')
+  const [mode,       setMode]       = useState<'options'|'password'|'signup'|'sent'|'forgot'|'reset_sent'>('options')
+  const [email,      setEmail]      = useState('')
+  const [password,   setPassword]   = useState('')
+  const [name,       setName]       = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState('')
 
   async function handleGoogle() {
     setLoading(true); setError('')
@@ -27,6 +31,11 @@ export default function LoginPage() {
   async function handleSignIn() {
     if (!email.trim() || !password) { setError('Please enter your email and password'); return }
     setLoading(true); setError('')
+    if (rememberMe) {
+      localStorage.setItem('cc_remembered_email', email.trim())
+    } else {
+      localStorage.removeItem('cc_remembered_email')
+    }
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     setLoading(false)
     if (error) setError(error.message)
@@ -57,21 +66,21 @@ export default function LoginPage() {
   }
 
   const s: Record<string, React.CSSProperties> = {
-    page:    { minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
+    page:    { minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
     card:    { width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:20 },
     logo:    { display:'flex', alignItems:'center', gap:10, justifyContent:'center', marginBottom:4 },
-    logoTxt: { fontSize:28, fontWeight:900, color:'#fff', letterSpacing:-0.5 },
-    sub:     { fontSize:14, color:'#555', textAlign:'center', marginTop:-12 },
-    label:   { fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
-    input:   { width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'13px 14px', color:'#e8e8e8', fontSize:15, fontFamily:'inherit', outline:'none' },
-    btn:     { width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    logoTxt: { fontSize:28, fontWeight:900, color:'#000099', letterSpacing:-0.5 },
+    sub:     { fontSize:14, color:'#666', textAlign:'center', marginTop:-12 },
+    label:   { fontSize:11, fontWeight:700, color:'#666', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
+    input:   { width:'100%', boxSizing:'border-box', background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#000', fontSize:15, fontFamily:'inherit', outline:'none' },
+    btn:     { width:'100%', background:'#990033', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
     gBtn:    { width:'100%', background:'#fff', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#111', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:10 },
     outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#aaa', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
     err:     { background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:10, padding:'10px 14px', color:'#f87171', fontSize:13 },
     divider: { display:'flex', alignItems:'center', gap:12 },
     line:    { flex:1, height:1, background:'rgba(255,255,255,0.08)' },
-    orTxt:   { fontSize:12, color:'#444', fontWeight:600 },
-    link:    { background:'none', border:'none', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
+    orTxt:   { fontSize:12, color:'#555', fontWeight:600 },
+    link:    { background:'none', border:'none', color:'#990033', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
   }
 
   return (
@@ -85,11 +94,11 @@ export default function LoginPage() {
 
         {/* ── SENT ── */}
         {mode==='sent' && (
-          <div style={{background:'rgba(0,198,162,0.1)',border:'1px solid rgba(0,198,162,0.3)',borderRadius:14,padding:'24px',textAlign:'center',color:'#00c6a2'}}>
+          <div style={{background:'rgba(153,0,51,0.08)',border:'1px solid rgba(153,0,51,0.3)',borderRadius:14,padding:'24px',textAlign:'center',color:'#990033'}}>
             <div style={{fontSize:32,marginBottom:12}}>📧</div>
             <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
             <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
-              We sent a confirmation to <strong style={{color:'#00c6a2'}}>{email}</strong>.<br />
+              We sent a confirmation to <strong style={{color:'#990033'}}>{email}</strong>.<br />
               Click the link to activate your account.
             </div>
           </div>
@@ -111,7 +120,7 @@ export default function LoginPage() {
               Sign in with Email & Password
             </button>
 
-            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+            <p style={{textAlign:'center',fontSize:13,color:'#555',margin:0}}>
               New member?{' '}
               <button onClick={()=>setMode('signup')} style={s.link}>Create account</button>
             </p>
@@ -132,11 +141,26 @@ export default function LoginPage() {
                 onChange={e=>setPassword(e.target.value)}
                 onKeyDown={e=>e.key==='Enter'&&handleSignIn()} style={s.input}/>
             </div>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:-4 }}>
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberMe}
+                onChange={e => {
+                  setRememberMe(e.target.checked)
+                  if (!e.target.checked) localStorage.removeItem('cc_remembered_email')
+                }}
+                style={{ width:16, height:16, accentColor:'#00c6a2', cursor:'pointer' }}
+              />
+              <label htmlFor="remember" style={{ fontSize:13, color:'#666', cursor:'pointer', userSelect:'none' }}>
+                Remember my email
+              </label>
+            </div>
             {error && <div style={s.err}>{error}</div>}
             <button onClick={handleSignIn} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
               {loading ? 'Signing in…' : 'Sign In →'}
             </button>
-            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+            <p style={{textAlign:'center',fontSize:13,color:'#555',margin:0}}>
               <button onClick={()=>{setMode('options');setError('')}} style={s.link}>← Back</button>
               {' · '}
               <button onClick={()=>{setMode('forgot');setError('')}} style={s.link}>Forgot password</button>
@@ -160,7 +184,7 @@ export default function LoginPage() {
             <button onClick={handleForgotPassword} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
               {loading ? 'Sending…' : 'Send Reset Link →'}
             </button>
-            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+            <p style={{textAlign:'center',fontSize:13,color:'#555',margin:0}}>
               <button onClick={()=>{setMode('password');setError('')}} style={s.link}>← Back to sign in</button>
             </p>
           </>
@@ -172,7 +196,7 @@ export default function LoginPage() {
             <div style={{fontSize:32,marginBottom:12}}>📧</div>
             <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
             <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
-              We sent a password reset link to <strong style={{color:'#00c6a2'}}>{email}</strong>.<br/>
+              We sent a password reset link to <strong style={{color:'#990033'}}>{email}</strong>.<br/>
               Click the link to set a new password.
             </div>
           </div>
@@ -200,7 +224,7 @@ export default function LoginPage() {
             <button onClick={handleSignUp} disabled={loading} style={{...s.btn,opacity:loading?0.6:1}}>
               {loading ? 'Creating account…' : 'Create Account →'}
             </button>
-            <p style={{textAlign:'center',fontSize:13,color:'#444',margin:0}}>
+            <p style={{textAlign:'center',fontSize:13,color:'#555',margin:0}}>
               Already a member?{' '}
               <button onClick={()=>{setMode('password');setError('')}} style={s.link}>Sign in</button>
             </p>
@@ -211,3 +235,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

@@ -52,9 +52,17 @@ function formatSlotDisplay(slot: string): string {
   }
 }
 const levels    = ['1','2','3','4']
-const levelColor: Record<string,string> = { '1':'#f87171','2':'#fb923c','3':'#facc15','4':'#4ade80' }
-const levelBg:    Record<string,string> = { '1':'rgba(248,113,113,0.12)','2':'rgba(251,146,60,0.12)','3':'rgba(250,204,21,0.12)','4':'rgba(74,222,128,0.12)' }
+const levelColor: Record<string,string> = { '1':'#990033','2':'#000099','3':'#006633','4':'#660033' }
+const levelBg:    Record<string,string> = { '1':'rgba(153,0,51,0.12)','2':'rgba(0,0,153,0.10)','3':'rgba(0,102,51,0.10)','4':'rgba(102,0,51,0.10)' }
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Competitive','3':'Casual','4':'Beginner' }
+
+// Derive level badge from numeric rating
+function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
+  if (rating >= 5.6) return { level:'1', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Elite' }
+  if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
+  if (rating >= 2.6) return { level:'3', color:'#006633', bg:'rgba(0,102,51,0.10)', desc:'Casual' }
+  return              { level:'4', color:'#660033', bg:'rgba(102,0,51,0.10)', desc:'Beginner' }
+}
 
 function timeAgo(iso: string) {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -92,7 +100,7 @@ function LevelBadge({ level, small=false }: { level:string, small?:boolean }) {
 function Notif({ msg }: { msg: string|null }) {
   if (!msg) return null
   return (
-    <div style={{ position:'fixed', top:18, left:'50%', transform:'translateX(-50%)', background:'rgba(0,198,162,0.15)', backdropFilter:'blur(12px)', border:'1px solid rgba(0,198,162,0.4)', borderRadius:14, padding:'11px 22px', zIndex:9999, color:'#00c6a2', fontWeight:700, fontSize:14, whiteSpace:'nowrap', boxShadow:'0 4px 24px rgba(0,198,162,0.2)' }}>
+    <div style={{ position:'fixed', top:18, left:'50%', transform:'translateX(-50%)', background:'rgba(153,0,51,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(153,0,51,0.4)', borderRadius:14, padding:'11px 22px', zIndex:9999, color:'#990033', fontWeight:700, fontSize:14, whiteSpace:'nowrap', boxShadow:'0 4px 24px rgba(0,198,162,0.2)' }}>
       {msg}
     </div>
   )
@@ -118,6 +126,7 @@ export default function HomePage() {
   const [showLevelGuide, setShowLevelGuide] = useState(false)
   const [notif,       setNotif]       = useState<string|null>(null)
   const [loading,     setLoading]     = useState(true)
+  const [liveRating,   setLiveRating]   = useState<number|null>(null)
 
   // Post form state
   const [fDay,      setFDay]     = useState('')
@@ -162,6 +171,11 @@ export default function HomePage() {
         interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
       }))
       setPosts(enrichedPosts)
+
+      // Fetch live rating for header pill
+      const ratingRes = await supabase.from('ratings').select('rating').eq('player_id', userId).single()
+      if (ratingRes.data) setLiveRating(ratingRes.data.rating)
+
       setLoading(false)
     } catch (err) {
       console.error('loadData error:', err)
@@ -280,9 +294,9 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight:'100vh', background:'#0a0a0f', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div style={{ minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
         <div style={{ fontSize:32 }}>🎾</div>
-        <div style={{ color:'#00c6a2', fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
+        <div style={{ color:'#990033', fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
         <button onClick={() => { window.location.href = '/login' }} style={{ marginTop:8, background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:10, padding:'8px 20px', color:'#555', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
           Not loading? Click here
         </button>
@@ -293,16 +307,14 @@ export default function HomePage() {
   // ── Styles ────────────────────────────────────────────────────────────────
   const navBtnStyle = (active: boolean): React.CSSProperties => ({
     border:'none', borderRadius:10, padding:'8px 0',
-    background: active ? 'rgba(0,198,162,0.18)' : 'transparent',
-    color: active ? '#00c6a2' : '#555',
+    background: active ? '#990033' : 'transparent',
+    color: active ? '#ffcc66' : 'rgba(255,204,102,0.5)',
     fontWeight:700, fontSize:11, cursor:'pointer', fontFamily:'inherit',
     transition:'all 0.2s', display:'flex', flexDirection:'column', alignItems:'center', gap:2,
-    borderBottom: active ? '2px solid #00c6a2' : '2px solid transparent'
   })
 
   return (
-    <div style={{ minHeight:'100vh', background:'#0a0a0f', fontFamily:"'DM Sans',sans-serif", color:'#e8e8e8', overflowX:'hidden', position:'relative' }}>
-      <div style={{ position:'fixed', inset:0, pointerEvents:'none', zIndex:0, background:'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,198,162,0.1) 0%, transparent 60%)' }} />
+    <div style={{ minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#000', overflowX:'hidden', position:'relative' }}>
       <Notif msg={notif} />
 
       <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 16px 48px' }}>
@@ -312,34 +324,37 @@ export default function HomePage() {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3 }}>
               <span style={{ fontSize:22 }}>🎾</span>
-              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#fff' }}>Court Connections</span>
+              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#000099' }}>Court Connections</span>
             </div>
-            <div style={{ fontSize:12, color:'#555' }}>Connect with players at your level.</div>
+            <div style={{ fontSize:12, color:'#660033' }}>Connect with players at your level.</div>
           </div>
-          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-            {currentUser && (
-              <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:6, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:20, padding:'4px 10px 4px 6px', cursor:'pointer' }} onClick={() => { if(currentUser){ setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); } setView('profile') }} title="My profile">
-                  <Avatar initials={currentUser.avatar} size={22} level={currentUser.level} />
-                  <span style={{ fontSize:12, fontWeight:700, color:'#ccc' }}>{currentUser.name.split(' ')[0]}</span>
+          {currentUser && (()=>{
+            const rd = liveRating ? ratingToLevel(liveRating) : ratingToLevel(3.5)
+            return (
+              <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
+                onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
+                <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
+                <div style={{ background:'#fff', border:`1px solid ${rd.color}30`, borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:64 }}>
+                  <div style={{ fontSize:17, fontWeight:900, color:rd.color, lineHeight:1.1 }}>
+                    {liveRating ? liveRating.toFixed(1) : '--'}
+                  </div>
+                  <div style={{ fontSize:9, fontWeight:700, color:rd.color, marginTop:2, opacity:0.85 }}>
+                    L{rd.level} · {rd.desc}
+                  </div>
                 </div>
-
               </div>
-            )}
-            <div style={{ background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'4px 12px', fontSize:12, color:'#00c6a2', fontWeight:600 }}>
-              {players.length} members
-            </div>
-          </div>
+            )
+          })()}
         </div>
 
         {/* Nav */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', background:'rgba(255,255,255,0.05)', borderRadius:14, padding:4, marginBottom:22, gap:2 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', background:'#660033', borderRadius:14, padding:4, marginBottom:22, gap:2 }}>
           {([['home','🏠','Home'],['board','📋','Board'],['arena','⚔️','Arena'],['matches','📅','Schedule']] as const).map(([v,icon,label]) => (
             <button key={v} onClick={() => setView(v)} style={{ ...navBtnStyle(view===v), position:'relative' }}>
               <span style={{ fontSize:14 }}>{icon}</span>
               <span>{label}</span>
               {v==='board' && openPosts.length > 0 && (
-                <span style={{ position:'absolute', top:2, right:6, background:'#f87171', color:'#fff', borderRadius:'50%', width:15, height:15, fontSize:9, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <span style={{ position:'absolute', top:2, right:6, background:'#ffcc66', color:'#660033', borderRadius:'50%', width:15, height:15, fontSize:9, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   {openPosts.length}
                 </span>
               )}
@@ -350,16 +365,16 @@ export default function HomePage() {
         {/* ══ HOME ══ */}
         {view==='home' && (
           <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            <div style={{ background:'linear-gradient(135deg,rgba(0,198,162,0.14) 0%,rgba(0,122,255,0.09) 100%)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:20, padding:'26px 22px' }}>
-              <div style={{ fontSize:27, fontWeight:900, lineHeight:1.2, color:'#fff', marginBottom:10 }}>
-                Need players?<br /><span style={{ color:'#00c6a2' }}>No problem.</span>
+            <div style={{ background:'#f0ebe0', border:'1px solid #d4c9b8', borderRadius:20, padding:'26px 22px' }}>
+              <div style={{ fontSize:27, fontWeight:900, lineHeight:1.2, color:'#1a0a0a', marginBottom:10 }}>
+                Need players?<br /><span style={{ color:'#990033' }}>No problem.</span>
               </div>
-              <div style={{ fontSize:13, color:'#777', lineHeight:1.6, marginBottom:18 }}>
+              <div style={{ fontSize:13, color:'#6b5050', lineHeight:1.6, marginBottom:18 }}>
                 Post when you need players and get matched by level. Track your rating in The Arena.
               </div>
               <div style={{ display:'flex', gap:9 }}>
-                <button onClick={() => setView('board')} style={{ flex:1, background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 0', color:'#fff', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>📋 Game Board</button>
-                <button onClick={() => setView('arena')} style={{ flex:1, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:12, padding:'12px 0', color:'#ccc', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>⚔️ The Arena</button>
+                <button onClick={() => setView('board')} style={{ flex:1, background:'#990033', border:'none', borderRadius:12, padding:'12px 0', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Game Board</button>
+                <button onClick={() => setView('arena')} style={{ flex:1, background:'transparent', border:'1px solid #bbb', borderRadius:12, padding:'12px 0', color:'#555', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>The Arena</button>
               </div>
             </div>
 
@@ -396,21 +411,12 @@ export default function HomePage() {
               )}
             </div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:9 }}>
-              {levels.map(lvl => (
-                <button key={lvl} onClick={() => { setBoardLevel(lvl); setView('board') }} style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${levelColor[lvl]}25`, borderRadius:14, padding:'14px 6px', textAlign:'center', cursor:'pointer', fontFamily:'inherit', display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-                  <div style={{ fontSize:13, fontWeight:900, color:levelColor[lvl] }}>L{lvl}</div>
-                  <div style={{ fontSize:20, fontWeight:900, color:'#fff', lineHeight:1 }}>{players.filter(p=>p.level===lvl).length}</div>
-                  <div style={{ fontSize:9, color:'#444', fontWeight:700 }}>{levelDesc[lvl]}</div>
-                  {openByLevel[lvl]>0 && <div style={{ background:`${levelColor[lvl]}22`, color:levelColor[lvl], fontSize:9, fontWeight:800, borderRadius:6, padding:'1px 6px', marginTop:2 }}>{openByLevel[lvl]} open</div>}
-                </button>
-              ))}
-            </div>
+
 
             <div>
-              <div style={{ fontSize:12, fontWeight:800, color:'#444', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10, display:'flex', justifyContent:'space-between' }}>
+              <div style={{ fontSize:12, fontWeight:800, color:'#660033', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10, display:'flex', justifyContent:'space-between' }}>
                 <span>Open Games</span>
-                <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:'#00c6a2', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
+                <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:'#990033', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
               </div>
               {openPosts.slice(0,3).map(p => (
                 <div key={p.id} onClick={() => { setBoardLevel(p.level); setView('board') }} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}20`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:8 }}>

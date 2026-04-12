@@ -195,7 +195,7 @@ function scoreToResult(score: number): LevelResult {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const page: React.CSSProperties = { minHeight: '100vh', background: '#0a0a0f', fontFamily: "'DM Sans',sans-serif", color: '#e8e8e8', padding: '0 16px 56px' }
+const page: React.CSSProperties = { minHeight: '100vh', background: '#f5f0e8', fontFamily: "'DM Sans',sans-serif", color: '#111', padding: '0 16px 56px' }
 const inner: React.CSSProperties = { maxWidth: 460, margin: '0 auto', paddingTop: 28 }
 
 export default function OnboardingPage() {
@@ -284,18 +284,18 @@ export default function OnboardingPage() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ fontSize: 22 }}>🎾</span>
-            <span style={{ fontSize: 18, fontWeight: 900, color: '#fff' }}>Court Connections</span>
+            <span style={{ fontSize: 18, fontWeight: 900, color: '#000' }}>Court Connections</span>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff' }}>Welcome! Let's get you set up.</div>
-          <div style={{ fontSize: 13, color: '#555', marginTop: 6, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#000' }}>Welcome! Let's get you set up.</div>
+          <div style={{ fontSize: 13, color: '#666', marginTop: 6, lineHeight: 1.6 }}>
             First we'll ask your name, then run a quick 11-question assessment to place you at the right level. Takes about 3 minutes.
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Your name</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Your name</div>
           <input
-            style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '13px 14px', color: '#e8e8e8', fontSize: 15, fontFamily: 'inherit', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, padding: '13px 14px', color: '#111', fontSize: 15, fontFamily: 'inherit', outline: 'none' }}
             placeholder="e.g. Jamie Torres"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
         </div>
 
         <div style={{ background: 'rgba(0,198,162,0.06)', border: '1px solid rgba(0,198,162,0.2)', borderRadius: 14, padding: '14px 16px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#00c6a2', marginBottom: 4 }}>Why we assess instead of self-rate</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#990033', marginBottom: 4 }}>Why we assess instead of self-rate</div>
           <div style={{ fontSize: 12, color: '#666', lineHeight: 1.6 }}>
             Self-rating leads to unbalanced matches. Our 11 questions use padel-specific scenarios — wall play, shot selection, tactical positioning — to place you accurately. No ego required.
           </div>
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
             if (!name.trim()) { setNameError('Please enter your name'); return }
             setNameError(''); setStep('assessment')
           }}
-          style={{ width: '100%', background: 'linear-gradient(90deg,#00c6a2,#007aff)', border: 'none', borderRadius: 12, padding: '14px 0', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ width: '100%', background: '#990033', border: 'none', borderRadius: 12, padding: '14px 0', color: '#000', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
         >
           Start Assessment →
         </button>
@@ -330,20 +330,20 @@ export default function OnboardingPage() {
       <div style={{ ...inner, display: 'flex', flexDirection: 'column', gap: 20 }}>
         {/* Progress */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#555', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#666', marginBottom: 8 }}>
             <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Level Assessment</span>
             <span>{qIndex + 1} / {QUESTIONS.length}</span>
           </div>
           <div style={{ height: 4, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
-            <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#00c6a2,#007aff)', borderRadius: 4, transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${pct}%`, height: '100%', background: '#990033', borderRadius: 4, transition: 'width 0.3s ease' }} />
           </div>
         </div>
 
         <div>
-          <div style={{ display: 'inline-block', fontSize: 10, color: '#00c6a2', background: 'rgba(0,198,162,0.1)', border: '1px solid rgba(0,198,162,0.2)', borderRadius: 20, padding: '2px 10px', fontWeight: 700, marginBottom: 12 }}>
+          <div style={{ display: 'inline-block', fontSize: 10, color: '#990033', background: 'rgba(0,198,162,0.1)', border: '1px solid rgba(0,198,162,0.2)', borderRadius: 20, padding: '2px 10px', fontWeight: 700, marginBottom: 12 }}>
             {q.tag}
           </div>
-          <div style={{ fontSize: 17, fontWeight: 700, color: '#f0f0f0', lineHeight: 1.5 }}>{q.text}</div>
+          <div style={{ fontSize: 17, fontWeight: 700, color: '#111', lineHeight: 1.5 }}>{q.text}</div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -370,7 +370,7 @@ export default function OnboardingPage() {
           <button
             onClick={prevQ}
             disabled={qIndex === 0}
-            style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '11px 0', color: '#555', fontWeight: 700, fontSize: 14, cursor: qIndex === 0 ? 'default' : 'pointer', fontFamily: 'inherit', opacity: qIndex === 0 ? 0.4 : 1 }}
+            style={{ flex: 1, background: 'transparent', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '11px 0', color: '#666', fontWeight: 700, fontSize: 14, cursor: qIndex === 0 ? 'default' : 'pointer', fontFamily: 'inherit', opacity: qIndex === 0 ? 0.4 : 1 }}
           >
             Back
           </button>
@@ -391,16 +391,16 @@ export default function OnboardingPage() {
     <div style={page}>
       <div style={{ ...inner, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div style={{ textAlign: 'center', paddingTop: 8 }}>
-          <div style={{ fontSize: 13, color: '#555', marginBottom: 12 }}>Assessment complete · {score}/{QUESTIONS.length * 3} points</div>
+          <div style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>Assessment complete · {score}/{QUESTIONS.length * 3} points</div>
           <div style={{ display: 'inline-block', background: result.bg, color: result.color, border: `1px solid ${result.color}50`, borderRadius: 20, padding: '4px 16px', fontSize: 13, fontWeight: 800, marginBottom: 12 }}>
             {result.range}
           </div>
-          <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', marginBottom: 4 }}>{result.name}</div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: '#000', marginBottom: 4 }}>{result.name}</div>
         </div>
 
         {/* Score bar */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#555', marginBottom: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: '#666', marginBottom: 6 }}>
             <span>Score</span><span>{score} / {QUESTIONS.length * 3}</span>
           </div>
           <div style={{ height: 6, background: 'rgba(255,255,255,0.07)', borderRadius: 4, overflow: 'hidden' }}>
@@ -416,19 +416,19 @@ export default function OnboardingPage() {
 
         {/* Focus areas */}
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>What to work on</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>What to work on</div>
           {result.focus.map((f, i) => (
             <div key={i} style={{ fontSize: 13, color: '#888', padding: '9px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', lineHeight: 1.5 }}>{f}</div>
           ))}
         </div>
 
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#555', lineHeight: 1.5 }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '12px 14px', fontSize: 12, color: '#666', lineHeight: 1.5 }}>
           Your level will adjust automatically as you play matches and log results. This is just your starting point.
         </div>
 
         <button
           onClick={() => setStep('availability')}
-          style={{ width: '100%', background: 'linear-gradient(90deg,#00c6a2,#007aff)', border: 'none', borderRadius: 12, padding: '14px 0', color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ width: '100%', background: '#990033', border: 'none', borderRadius: 12, padding: '14px 0', color: '#000', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: 'inherit' }}
         >
           Continue to finish setup →
         </button>
@@ -441,12 +441,12 @@ export default function OnboardingPage() {
     <div style={page}>
       <div style={{ ...inner, display: 'flex', flexDirection: 'column', gap: 20 }}>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff' }}>One last thing, {name.split(' ')[0]}</div>
-          <div style={{ fontSize: 13, color: '#555', marginTop: 6 }}>When are you usually available to play?</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#000' }}>One last thing, {name.split(' ')[0]}</div>
+          <div style={{ fontSize: 13, color: '#666', marginTop: 6 }}>When are you usually available to play?</div>
         </div>
 
         <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#555', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#666', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
             When can you play?
           </div>
           <AvailabilityPicker value={availability} onChange={setAvailability} />
@@ -459,7 +459,7 @@ export default function OnboardingPage() {
               {name.split(' ').map((w: string) => w[0]).join('').slice(0,2).toUpperCase()}
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: '#f0f0f0' }}>{name}</div>
+              <div style={{ fontWeight: 700, fontSize: 14, color: '#111' }}>{name}</div>
               <div style={{ fontSize: 11, color: result.color, fontWeight: 700 }}>{result.name} · {result.range}</div>
             </div>
           </div>

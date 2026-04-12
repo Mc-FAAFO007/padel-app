@@ -52,16 +52,16 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
         return (
           <div key={day} style={{
             borderRadius:12, overflow:'hidden',
-            border:`1px solid ${selected ? 'rgba(0,198,162,0.3)' : 'rgba(255,255,255,0.08)'}`,
-            borderLeft:`3px solid ${selected ? '#00c6a2' : 'transparent'}`,
+            border:`1px solid ${selected ? 'rgba(153,0,51,0.3)' : '#ddd'}`,
+            borderLeft:`3px solid ${selected ? '#990033' : 'transparent'}`,
           }}>
             <button onClick={() => toggleDay(day)} style={{
               width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
               padding:'12px 14px',
-              background: selected ? 'rgba(0,198,162,0.06)' : 'rgba(255,255,255,0.03)',
+              background: selected ? 'rgba(153,0,51,0.05)' : 'rgba(0,0,0,0.02)',
               border:'none', cursor:'pointer', fontFamily:'inherit',
             }}>
-              <span style={{ fontSize:14, fontWeight:700, color: selected ? '#00c6a2' : '#e8e8e8' }}>
+              <span style={{ fontSize:14, fontWeight:700, color: selected ? '#990033' : '#111' }}>
                 {day}
               </span>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -69,7 +69,7 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
                   {PERIODS.map(p => (
                     <div key={p} style={{
                       width:6, height:6, borderRadius:'50%',
-                      background: hasPeriod(day, p) ? PERIOD_COLOR[p].dot : '#2a2a2a',
+                      background: hasPeriod(day, p) ? PERIOD_COLOR[p].dot : '#ccc',
                       transition:'background 0.15s'
                     }} />
                   ))}
@@ -94,8 +94,8 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
                       padding:'10px 0', borderRadius:9,
                       fontSize:12, fontWeight:700, cursor:'pointer',
                       fontFamily:'inherit', textAlign:'center',
-                      border:`1px solid ${on ? c.active+'80' : 'rgba(255,255,255,0.08)'}`,
-                      background: on ? c.activeBg : 'rgba(255,255,255,0.02)',
+                      border:`1px solid ${on ? c.active+'80' : '#ddd'}`,
+                      background: on ? c.activeBg : 'rgba(0,0,0,0.03)',
                       color: on ? c.active : '#555',
                       transition:'all 0.15s',
                     }}>
@@ -110,10 +110,10 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
       })}
       <div style={{
         padding:'10px 14px', borderRadius:10, marginTop:2,
-        background: totalSelected > 0 ? 'rgba(0,198,162,0.07)' : 'rgba(255,255,255,0.02)',
-        border:`1px solid ${totalSelected > 0 ? 'rgba(0,198,162,0.2)' : 'rgba(255,255,255,0.07)'}`,
+        background: totalSelected > 0 ? 'rgba(153,0,51,0.06)' : 'rgba(0,0,0,0.03)',
+        border:`1px solid ${totalSelected > 0 ? 'rgba(153,0,51,0.2)' : '#ddd'}`,
         fontSize:12, fontWeight:600,
-        color: totalSelected > 0 ? '#00c6a2' : '#555',
+        color: totalSelected > 0 ? '#990033' : '#888',
       }}>
         {totalSelected === 0
           ? 'Tap a day to select your availability'
@@ -123,3 +123,4 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
     </div>
   )
 }
+
