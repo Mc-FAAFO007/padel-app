@@ -215,10 +215,10 @@ export default function RatingsPage() {
   }
 
   const navBtn = (active: boolean) => ({
-    flex:1, background: active ? '#1a1a1a' : 'transparent',
+    flex:1, background: active ? '#990033' : 'transparent',
     border:'none', borderRadius:9, padding:'9px 0',
     fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
-    color: active ? '#00c6a2' : '#555', transition:'all 0.15s',
+    color: active ? '#ffcc66' : 'rgba(255,204,102,0.5)', transition:'all 0.15s',
   } as React.CSSProperties)
 
   if (loading) return (
@@ -546,4 +546,3 @@ export default function RatingsPage() {
     </div>
   )
 }
-
