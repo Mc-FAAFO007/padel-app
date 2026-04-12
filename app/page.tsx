@@ -16,7 +16,7 @@ const PERIOD_COLOR: Record<string,{color:string,bg:string}> = {
 }
 function slotColor(slot: string) {
   const period = slot.split(' ')[1] as string
-  return PERIOD_COLOR[period] || { color:'#00c6a2', bg:'rgba(0,198,162,0.12)' }
+  return PERIOD_COLOR[period] || { color:'#990033', bg:'rgba(0,198,162,0.12)' }
 }
 
 function formatSlotDisplay(slot: string): string {
@@ -334,11 +334,11 @@ export default function HomePage() {
               <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
                 onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
                 <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
-                <div style={{ background:'#fff', border:`1px solid ${rd.color}30`, borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:64 }}>
+                <div style={{ background:'#fff', border:`1px solid ${rd.color}30`, borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
                   <div style={{ fontSize:17, fontWeight:900, color:rd.color, lineHeight:1.1 }}>
                     {liveRating ? liveRating.toFixed(1) : '--'}
                   </div>
-                  <div style={{ fontSize:9, fontWeight:700, color:rd.color, marginTop:2, opacity:0.85 }}>
+                  <div style={{ fontSize:9, fontWeight:700, color:rd.color, marginTop:2, opacity:0.85, whiteSpace:'nowrap' }}>
                     L{rd.level} · {rd.desc}
                   </div>
                 </div>
@@ -379,9 +379,9 @@ export default function HomePage() {
             </div>
 
             {/* Level Guide */}
-            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:14, overflow:'hidden' }}>
+            <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:14, overflow:'hidden' }}>
               <button onClick={() => setShowLevelGuide(v => !v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <span style={{ fontSize:13, fontWeight:700, color:'#aaa' }}>What do the levels mean?</span>
+                <span style={{ fontSize:13, fontWeight:700, color:'#6b5050' }}>What do the levels mean?</span>
                 <span style={{ fontSize:11, color:'#555', transform: showLevelGuide ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▼</span>
               </button>
               {showLevelGuide && (
@@ -400,11 +400,11 @@ export default function HomePage() {
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                           <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
-                          <span style={{ fontSize:13, fontWeight:700, color:'#e8e8e8' }}>{l.name}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#4a3030' }}>{l.name}</span>
                         </div>
                         <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
                       </div>
-                      <div style={{ fontSize:12, color:'#888', lineHeight:1.6 }}>{l.desc}</div>
+                      <div style={{ fontSize:12, color:'#4a3030', lineHeight:1.6 }}>{l.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -419,10 +419,10 @@ export default function HomePage() {
                 <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:'#990033', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
               </div>
               {openPosts.slice(0,3).map(p => (
-                <div key={p.id} onClick={() => { setBoardLevel(p.level); setView('board') }} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}20`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:8 }}>
+                <div key={p.id} onClick={() => { setBoardLevel(p.level); setView('board') }} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}20`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:8 }}>
                   <Avatar initials={p.player_avatar} size={32} level={p.level} />
                   <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontWeight:700, fontSize:13, color:'#e8e8e8' }}>{p.player_name}</div>
+                    <div style={{ fontWeight:700, fontSize:13, color:'#4a3030' }}>{p.player_name}</div>
                     <div style={{ fontSize:11, color:'#555' }}>{p.slot}</div>
                   </div>
                   <div style={{ flexShrink:0, textAlign:'right' }}>
@@ -440,25 +440,25 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
               <div>
-                <div style={{ fontSize:17, fontWeight:900, color:'#fff' }}>Game Board</div>
-                <div style={{ fontSize:12, color:'#444', marginTop:2 }}>Players looking to fill their game</div>
+                <div style={{ fontSize:17, fontWeight:900, color:'#660033' }}>Game Board</div>
+                <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Players looking to fill their game</div>
               </div>
               {!showForm && (
-                <button onClick={() => setShowForm(true)} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'9px 15px', color:'#fff', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
+                <button onClick={() => setShowForm(true)} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'9px 15px', color:'#660033', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               )}
             </div>
 
             {/* Post form */}
             {showForm && currentUser && (
-              <div style={{ background:levelBg[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
-                <div style={{ fontWeight:800, fontSize:14, color:'#fff' }}>Post a Game Request</div>
+              <div style={{ background:'#fff', border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
+                <div style={{ fontWeight:800, fontSize:14, color:'#660033' }}>Post a Game Request</div>
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fDay ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
                       <option value="" disabled>Day</option>
                       {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
-                        <option key={d} value={d} style={{ background:'#1a1a1a', color:'#e8e8e8' }}>{d}</option>
+                        <option key={d} value={d} style={{ background:'#1a1a1a', color:'#4a3030' }}>{d}</option>
                       ))}
                     </select>
                     <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fTime ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
@@ -470,12 +470,12 @@ export default function HomePage() {
                         const h12 = h24 % 12 === 0 ? 12 : h24 % 12
                         const ampm = h24 < 12 ? 'am' : 'pm'
                         const label = `${h12}:${mins.toString().padStart(2,'0')} ${ampm}`
-                        return <option key={label} value={label} style={{ background:'#1a1a1a', color:'#e8e8e8' }}>{label}</option>
+                        return <option key={label} value={label} style={{ background:'#1a1a1a', color:'#4a3030' }}>{label}</option>
                       })}
                     </select>
                   </div>
                   {fDay && fTime && (
-                    <div style={{ marginTop:7, fontSize:12, color:'#00c6a2', fontWeight:600 }}>
+                    <div style={{ marginTop:7, fontSize:12, color:'#990033', fontWeight:600 }}>
                       📅 {fDay} at {fTime}
                     </div>
                   )}
@@ -519,24 +519,24 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
-                <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'10px 12px', color:'#ddd', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
+                <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(102,0,51,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
-                  <button onClick={() => setShowForm(false)} style={{ flex:1, background:'transparent', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-                  <button onClick={handlePostSubmit} style={{ flex:2, background:`linear-gradient(90deg,${levelColor[currentUser.level]},${levelColor[currentUser.level]}99)`, border:'none', borderRadius:10, padding:'10px 0', color:'#fff', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>Post →</button>
+                  <button onClick={() => setShowForm(false)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                  <button onClick={handlePostSubmit} style={{ flex:2, background:`linear-gradient(90deg,${levelColor[currentUser.level]},${levelColor[currentUser.level]}99)`, border:'none', borderRadius:10, padding:'10px 0', color:'#660033', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>Post →</button>
                 </div>
               </div>
             )}
 
             {/* Level tabs */}
             <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
-              <button onClick={() => setBoardLevel('All')} style={{ border:`1px solid ${boardLevel==='All'?'rgba(0,198,162,0.6)':'rgba(255,255,255,0.1)'}`, background:boardLevel==='All'?'rgba(0,198,162,0.12)':'rgba(255,255,255,0.03)', color:boardLevel==='All'?'#00c6a2':'#555', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
+              <button onClick={() => setBoardLevel('All')} style={{ border:`1px solid ${boardLevel==='All'?'#990033':'#ddd'}`, background:boardLevel==='All'?'#660033':'rgba(102,0,51,0.04)', color:boardLevel==='All'?'#ffcc66':'#888', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
                 All
-                <span style={{ background:boardLevel==='All'?'#00c6a2':'rgba(255,255,255,0.15)', color:boardLevel==='All'?'#000':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openPosts.length}</span>
+                <span style={{ background:boardLevel==='All'?'#ffcc66':'rgba(102,0,51,0.1)', color:boardLevel==='All'?'#660033':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openPosts.length}</span>
               </button>
               {levels.map(l => (
-                <button key={l} onClick={() => setBoardLevel(l)} style={{ border:`1px solid ${boardLevel===l?levelColor[l]+'60':'rgba(255,255,255,0.1)'}`, background:boardLevel===l?levelBg[l]:'rgba(255,255,255,0.03)', color:boardLevel===l?levelColor[l]:'#555', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
+                <button key={l} onClick={() => setBoardLevel(l)} style={{ border:`1px solid ${boardLevel===l?levelColor[l]+'60':'#ddd'}`, background:boardLevel===l?levelBg[l]:'rgba(102,0,51,0.03)', color:boardLevel===l?levelColor[l]:'#888', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
                   L{l} · {levelDesc[l]}
-                  {openByLevel[l]>0 && <span style={{ background:boardLevel===l?levelColor[l]:'rgba(255,255,255,0.15)', color:boardLevel===l?'#000':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openByLevel[l]}</span>}
+                  {openByLevel[l]>0 && <span style={{ background:boardLevel===l?levelColor[l]:'rgba(102,0,51,0.1)', color:boardLevel===l?'#fff':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openByLevel[l]}</span>}
                 </button>
               ))}
             </div>
@@ -545,8 +545,8 @@ export default function HomePage() {
             {boardPosts.length===0 ? (
               <div style={{ textAlign:'center', padding:'40px 0' }}>
                 <div style={{ fontSize:30 }}>📋</div>
-                <div style={{ color:'#444', fontWeight:700, marginTop:10 }}>{boardLevel==='All'?'No games posted yet':`No posts for L${boardLevel} yet`}</div>
-                <div style={{ fontSize:12, color:'#333', marginTop:5 }}>Be the first to post a game!</div>
+                <div style={{ color:'#660033', fontWeight:700, marginTop:10 }}>{boardLevel==='All'?'No games posted yet':`No posts for L${boardLevel} yet`}</div>
+                <div style={{ fontSize:12, color:'#888', marginTop:5 }}>Be the first to post a game!</div>
               </div>
             ) : boardPosts.map(post => {
               const isOwner   = currentUser?.id === post.player_id
@@ -555,12 +555,12 @@ export default function HomePage() {
               const full      = spotsLeft === 0
               const c         = levelColor[post.level]
               return (
-                <div key={post.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
+                <div key={post.id} style={{ background:'#fff', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
                   <div style={{ display:'flex', alignItems:'flex-start', gap:11 }}>
                     <Avatar initials={post.player_avatar} size={38} level={post.level} />
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
-                        <span style={{ fontWeight:800, fontSize:14, color:'#f0f0f0' }}>{post.player_name}</span>
+                        <span style={{ fontWeight:800, fontSize:14, color:'#660033' }}>{post.player_name}</span>
                         <LevelBadge level={post.level} small />
                       </div>
                       <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' }}>
@@ -574,11 +574,11 @@ export default function HomePage() {
                   </div>
                   {/* Time display */}
                   <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
-                    <span style={{ background:'rgba(0,122,255,0.12)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
+                    <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
                       📅 {formatSlotDisplay(post.slot)}
                     </span>
                   </div>
-                  {post.note && <div style={{ fontSize:13, color:'#888', lineHeight:1.5, fontStyle:'italic' }}>"{post.note}"</div>}
+                  {post.note && <div style={{ fontSize:13, color:'#6b5050', lineHeight:1.5, fontStyle:'italic' }}>"{post.note}"</div>}
 
                   {/* Player slots */}
                   {(()=>{
@@ -592,23 +592,23 @@ export default function HomePage() {
                     const levelAllowed = currentUser && allowedLevels.includes(currentUser.level)
                     return (
                       <div>
-                        <div style={{ fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
+                        <div style={{ fontSize:10, fontWeight:700, color:'#660033', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
                         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(95px,1fr))', gap:7 }}>
                           {filledSlots.map((p:any, i:number) => p && (
-                            <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}18`:'rgba(74,222,128,0.08)', border:`1px solid ${i===0?levelColor[p.level]+'35':'rgba(74,222,128,0.25)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
+                            <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[p.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
                               <Avatar initials={p.avatar} size={24} level={p.level} />
                               <div style={{ minWidth:0 }}>
-                                <div style={{ fontSize:11, fontWeight:700, color:'#e8e8e8', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name.split(' ')[0]}</div>
-                                <div style={{ fontSize:9, color:i===0?levelColor[p.level]:'#4ade80', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
+                                <div style={{ fontSize:11, fontWeight:700, color:'#4a3030', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name.split(' ')[0]}</div>
+                                <div style={{ fontSize:9, color:i===0?levelColor[p.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
                               </div>
                             </div>
                           ))}
                           {Array.from({length:emptySlots}).map((_,i)=>(
                             <button key={`empty-${i}`}
                               onClick={()=>canJoin&&levelAllowed?handleInterest(post.id):!levelAllowed&&currentUser?showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`):null}
-                              style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${canJoin&&levelAllowed?'rgba(0,198,162,0.35)':'rgba(255,255,255,0.07)'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
-                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#00c6a2':'#333' }}>{canJoin&&levelAllowed?'+':'○'}</span>
-                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#00c6a2':'#444' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
+                              style={{ background:'#fff', border:`1px solid ${canJoin&&levelAllowed?'rgba(153,0,51,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
+                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#990033':'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
+                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#990033':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
                             </button>
                           ))}
                         </div>
@@ -616,7 +616,7 @@ export default function HomePage() {
                     )
                   })()}
                   {alreadyIn && !isOwner && (
-                    <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#f87171', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                    <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
                       Cancel my spot
                     </button>
                   )}
@@ -630,31 +630,31 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:16, paddingTop:8 }}>
             <div style={{ textAlign:'center', paddingBottom:4 }}>
               <div style={{ fontSize:32, marginBottom:10 }}>⚔️</div>
-              <div style={{ fontSize:20, fontWeight:900, color:'#fff', marginBottom:6 }}>The Arena</div>
-              <div style={{ fontSize:12, color:'#555' }}>Ratings · Leaderboard · Match Log</div>
+              <div style={{ fontSize:20, fontWeight:900, color:'#660033', marginBottom:6 }}>The Arena</div>
+              <div style={{ fontSize:12, color:'#990033', fontWeight:600 }}>Ratings · Leaderboard · Match Log</div>
             </div>
-            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'18px 16px' }}>
-              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8 }}>
-                Every match counts — <span style={{ color:'#e8e8e8', fontWeight:600 }}>yes, even that one you'd rather forget.</span>
-                {' '}The Arena is your club's live rating system. Log your results, track your rating on the <span style={{ color:'#00c6a2', fontWeight:700 }}>1.0–7.0 scale</span>, and see exactly where you stand on the leaderboard.
+            <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px 16px' }}>
+              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8 }}>
+                Every match counts — <span style={{ color:'#4a3030', fontWeight:600 }}>yes, even that one you'd rather forget.</span>
+                {' '}The Arena is your club's live rating system. Log your results, track your rating on the <span style={{ color:'#990033', fontWeight:700 }}>1.0–7.0 scale</span>, and see exactly where you stand on the leaderboard.
               </div>
-              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8, marginTop:12 }}>
-                The more you play, the sharper your rating gets — which means better matchups, more competitive games, and <span style={{ color:'#e8e8e8', fontWeight:600 }}>no more being destroyed by someone who "said they were a beginner".</span>
+              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8, marginTop:12 }}>
+                The more you play, the sharper your rating gets — which means better matchups, more competitive games, and <span style={{ color:'#4a3030', fontWeight:600 }}>no more being destroyed by someone who "said they were a beginner".</span>
               </div>
-              <div style={{ fontSize:14, color:'#aaa', lineHeight:1.8, marginTop:12 }}>
-                Fair matches. Happy players. <span style={{ color:'#00c6a2', fontWeight:700 }}>Zero excuses.</span>
+              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8, marginTop:12 }}>
+                Fair matches. Happy players. <span style={{ color:'#990033', fontWeight:700 }}>Zero excuses.</span>
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
               {[['🏆','Leaderboard','See club rankings'],['🎾','Log Match','Record results'],['📈','My Results','Track your rating']].map(([icon,title,desc]) => (
-                <div key={title as string} style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 10px', textAlign:'center' }}>
+                <div key={title as string} style={{ background:'#fff', border:'1px solid rgba(102,0,51,0.12)', borderRadius:12, padding:'12px 10px', textAlign:'center' }}>
                   <div style={{ fontSize:20, marginBottom:6 }}>{icon}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#e8e8e8', marginBottom:3 }}>{title}</div>
-                  <div style={{ fontSize:10, color:'#555', lineHeight:1.4 }}>{desc}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'#4a3030', marginBottom:3 }}>{title}</div>
+                  <div style={{ fontSize:10, color:'#888', lineHeight:1.4 }}>{desc}</div>
                 </div>
               ))}
             </div>
-            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'14px 0', color:'#660033', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
               Enter The Arena →
             </button>
           </div>
@@ -677,8 +677,8 @@ export default function HomePage() {
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                 <Avatar initials={currentUser.avatar} size={46} level={currentUser.level} />
                 <div>
-                  <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>{currentUser.name}'s Schedule</div>
-                  <div style={{ fontSize:12, color:'#555' }}>{myPosts.length + joinedPosts.length} active games</div>
+                  <div style={{ fontSize:17, fontWeight:800, color:'#660033' }}>{currentUser.name}'s Schedule</div>
+                  <div style={{ fontSize:12, color:'#888' }}>{myPosts.length + joinedPosts.length} active games</div>
                 </div>
               </div>
 
@@ -688,19 +688,19 @@ export default function HomePage() {
                   Games I posted ({myPosts.length})
                 </div>
                 {myPosts.length === 0 ? (
-                  <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', textAlign:'center' }}>
+                  <div style={{ background:'rgba(0,0,0,0.02)', border:'1px solid rgba(102,0,51,0.12)', borderRadius:14, padding:'20px', textAlign:'center' }}>
                     <div style={{ fontSize:24, marginBottom:8 }}>📋</div>
-                    <div style={{ fontSize:13, color:'#555' }}>You haven't posted any games yet</div>
-                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:10, padding:'8px 18px', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Post a game →</button>
+                    <div style={{ fontSize:13, color:'#6b5050' }}>You haven't posted any games yet</div>
+                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:10, padding:'8px 18px', color:'#990033', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Post a game →</button>
                   </div>
                 ) : myPosts.map(p => {
                   const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
                   const full = spotsLeft === 0
                   return (
-                    <div key={p.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
+                    <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                         <div>
-                          <span style={{ background:'rgba(0,122,255,0.12)', color:'#60a5fa', border:'1px solid rgba(0,122,255,0.2)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>🕐 {p.slot}</span>
+                          <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>🕐 {p.slot}</span>
                         </div>
                         <span style={{ fontSize:12, fontWeight:700, color: full ? '#00c6a2' : '#888' }}>
                           {full ? '✓ Full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} left`}
@@ -726,20 +726,20 @@ export default function HomePage() {
                   Games I joined ({joinedPosts.length})
                 </div>
                 {joinedPosts.length === 0 ? (
-                  <div style={{ background:'rgba(255,255,255,0.02)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:14, padding:'20px', textAlign:'center' }}>
+                  <div style={{ background:'rgba(0,0,0,0.02)', border:'1px solid rgba(102,0,51,0.12)', borderRadius:14, padding:'20px', textAlign:'center' }}>
                     <div style={{ fontSize:24, marginBottom:8 }}>🎾</div>
-                    <div style={{ fontSize:13, color:'#555' }}>You haven't joined any games yet</div>
-                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(0,198,162,0.1)', border:'1px solid rgba(0,198,162,0.3)', borderRadius:10, padding:'8px 18px', color:'#00c6a2', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
+                    <div style={{ fontSize:13, color:'#6b5050' }}>You haven't joined any games yet</div>
+                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:10, padding:'8px 18px', color:'#990033', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
                   </div>
                 ) : joinedPosts.map(p => {
                   const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
                   const full = spotsLeft === 0
                   return (
-                    <div key={p.id} style={{ background:'rgba(255,255,255,0.03)', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
+                    <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
                       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <Avatar initials={p.player_avatar} size={32} level={p.level} />
                         <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:700, fontSize:13, color:'#e8e8e8' }}>{p.player_name}'s game</div>
+                          <div style={{ fontWeight:700, fontSize:13, color:'#4a3030' }}>{p.player_name}'s game</div>
                           <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{p.slot}</div>
                         </div>
                         <LevelBadge level={p.level} small />
@@ -765,30 +765,30 @@ export default function HomePage() {
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
               <div>
-                <div style={{ fontSize:18, fontWeight:900, color:'#fff' }}>{currentUser.name}</div>
+                <div style={{ fontSize:18, fontWeight:900, color:'#660033' }}>{currentUser.name}</div>
                 <div style={{ fontSize:12, color:'#555', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
               </div>
             </div>
 
-            <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'18px' }}>
-              <div style={{ fontSize:13, fontWeight:800, color:'#00c6a2', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
+            <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
+              <div style={{ fontSize:13, fontWeight:800, color:'#990033', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
 
               <div style={{ marginBottom:14 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Name</div>
                 <input
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
-                  style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'11px 13px', color:'#e8e8e8', fontSize:14, fontFamily:'inherit', outline:'none' }}
+                  style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid #ddd', borderRadius:10, padding:'11px 13px', color:'#4a3030', fontSize:14, fontFamily:'inherit', outline:'none' }}
                 />
               </div>
 
               <div style={{ marginBottom:14 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <span style={{ fontSize:13, color:'#888' }}>Assigned by assessment</span>
+                <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                  <span style={{ fontSize:13, color:'#6b5050' }}>Assigned by assessment</span>
                   <span style={{ background:levelBg[currentUser.level], color:levelColor[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}40`, borderRadius:20, padding:'3px 12px', fontSize:12, fontWeight:800 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</span>
                 </div>
-                <div style={{ fontSize:11, color:'#444', marginTop:6 }}>To change your level, contact your club admin.</div>
+                <div style={{ fontSize:11, color:'#888', marginTop:6 }}>To change your level, contact your club admin.</div>
               </div>
 
               <div style={{ marginBottom:18 }}>
@@ -822,8 +822,8 @@ export default function HomePage() {
                 }}
                 style={{
                   width:'100%',
-                  background: editLoading ? 'rgba(255,255,255,0.06)' : 'linear-gradient(90deg,#00c6a2,#007aff)',
-                  border:'none', borderRadius:12, padding:'13px 0', color:'#fff',
+                  background: editLoading ? 'rgba(102,0,51,0.1)' : '#660033',
+                  border:'none', borderRadius:12, padding:'13px 0', color:'#660033',
                   fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
                   opacity: editLoading ? 0.6 : 1
                 }}

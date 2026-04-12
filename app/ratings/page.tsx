@@ -6,11 +6,11 @@ import type { Rating, Match } from '@/lib/types'
 
 // ─── Rating Engine ────────────────────────────────────────────────────────────
 const BANDS = [
-  { label:'Beginner',        min:1.0, max:2.5, color:'#94a3b8', bg:'rgba(148,163,184,0.12)' },
-  { label:'Intermediate',    min:2.6, max:4.0, color:'#4ade80', bg:'rgba(74,222,128,0.12)'  },
-  { label:'Advanced',        min:4.1, max:5.5, color:'#facc15', bg:'rgba(250,204,21,0.12)'  },
-  { label:'Competitive',     min:5.6, max:6.5, color:'#fb923c', bg:'rgba(251,146,60,0.12)'  },
-  { label:'Elite',           min:6.6, max:7.0, color:'#f87171', bg:'rgba(248,113,113,0.12)' },
+  { label:'Beginner',        min:1.0, max:2.5, color:'#660033', bg:'rgba(102,0,51,0.10)'  },
+  { label:'Intermediate',    min:2.6, max:4.0, color:'#006633', bg:'rgba(0,102,51,0.10)'  },
+  { label:'Advanced',        min:4.1, max:5.5, color:'#990033', bg:'rgba(153,0,51,0.10)'  },
+  { label:'Competitive',     min:5.6, max:6.5, color:'#000099', bg:'rgba(0,0,153,0.10)'   },
+  { label:'Elite',           min:6.6, max:7.0, color:'#660033', bg:'rgba(102,0,51,0.15)'  },
 ]
 
 function getBand(r: number) {
@@ -18,10 +18,10 @@ function getBand(r: number) {
 }
 
 function getConf(n: number): { label: string; color: string; bg: string } {
-  if (n < 5)  return { label:'NC', color:'#888',    bg:'rgba(136,136,136,0.15)' }
-  if (n < 10) return { label:'LC', color:'#facc15', bg:'rgba(250,204,21,0.15)'  }
-  if (n < 20) return { label:'MC', color:'#60a5fa', bg:'rgba(96,165,250,0.15)'  }
-  return             { label:'HC', color:'#00c6a2', bg:'rgba(0,198,162,0.15)'   }
+  if (n < 5)  return { label:'NC', color:'#888',    bg:'rgba(136,136,136,0.12)' }
+  if (n < 10) return { label:'LC', color:'#660033', bg:'rgba(102,0,51,0.10)'    }
+  if (n < 20) return { label:'MC', color:'#000099', bg:'rgba(0,0,153,0.10)'     }
+  return             { label:'HC', color:'#006633', bg:'rgba(0,102,51,0.10)'    }
 }
 
 function getK(n: number) { return n < 5 ? 0.4 : n < 10 ? 0.3 : n < 20 ? 0.22 : 0.16 }
@@ -71,7 +71,7 @@ function Notif({ msg }: { msg: string | null }) {
       position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
       background: 'rgba(0,198,162,0.15)', backdropFilter: 'blur(12px)',
       border: '1px solid rgba(0,198,162,0.4)', borderRadius: 14,
-      padding: '11px 22px', zIndex: 9999, color: '#00c6a2',
+      padding: '11px 22px', zIndex: 9999, color: '#990033',
       fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap',
     }}>{msg}</div>
   )
@@ -209,9 +209,9 @@ export default function RatingsPage() {
   }
 
   const s: Record<string, React.CSSProperties> = {
-    page:  { minHeight:'100vh', background:'#0a0a0f', fontFamily:"'DM Sans',sans-serif", color:'#e8e8e8', overflowX:'hidden' },
+    page:  { minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#660033', overflowX:'hidden' },
     inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 56px' },
-    lbl:   { fontSize:10, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 },
+    lbl:   { fontSize:10, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 },
   }
 
   const navBtn = (active: boolean) => ({
@@ -223,7 +223,7 @@ export default function RatingsPage() {
 
   if (loading) return (
     <div style={{ ...s.page, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ color:'#00c6a2', fontSize:14, fontWeight:700 }}>Loading ratings…</div>
+      <div style={{ color:'#990033', fontSize:14, fontWeight:700 }}>Loading ratings…</div>
     </div>
   )
 
@@ -241,16 +241,16 @@ export default function RatingsPage() {
         {/* Header */}
         <div style={{ padding:'22px 0 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ fontSize:20, fontWeight:900, color:'#fff' }}>The Arena</div>
-            <div style={{ fontSize:12, color:'#555', marginTop:2 }}>Ratings · Matches · Leaderboard</div>
+            <div style={{ fontSize:20, fontWeight:900, color:'#660033' }}>The Arena</div>
+            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Ratings · Matches · Leaderboard</div>
           </div>
-          <button onClick={() => router.push('/')} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'7px 14px', color:'#888', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+          <button onClick={() => router.push('/')} style={{ background:'#f0ebe0', border:'1px solid #d4c9b8', borderRadius:10, padding:'7px 14px', color:'#660033', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
             ← App
           </button>
         </div>
 
         {/* Nav */}
-        <div style={{ display:'flex', background:'rgba(255,255,255,0.05)', borderRadius:12, padding:3, marginBottom:20, gap:2 }}>
+        <div style={{ display:'flex', background:'#660033', borderRadius:12, padding:3, marginBottom:20, gap:2 }}>
           <button style={navBtn(view==='leaderboard')} onClick={() => setView('leaderboard')}>Leaderboard</button>
           <button style={navBtn(view==='log')}         onClick={() => setView('log')}>Log Match</button>
           <button style={navBtn(view==='my')}          onClick={() => setView('my')}>My Results</button>
@@ -279,13 +279,13 @@ export default function RatingsPage() {
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
                       <ConfBadge n={r.match_count} />
-                      <span style={{ fontSize:11, color:'#555' }}>{r.match_count} match{r.match_count !== 1 ? 'es' : ''}</span>
+                      <span style={{ fontSize:11, color:'#888' }}>{r.match_count} match{r.match_count !== 1 ? 'es' : ''}</span>
                       <span style={{ fontSize:11, color: b.color, fontWeight:700 }}>{b.label}</span>
                     </div>
                   </div>
                   <div style={{ textAlign:'right' }}>
-                    <div style={{ fontSize:22, fontWeight:900, color:'#00c6a2' }}>{r.rating.toFixed(1)}</div>
-                    <div style={{ height:4, width:60, background:'rgba(255,255,255,0.07)', borderRadius:4, overflow:'hidden', marginTop:4 }}>
+                    <div style={{ fontSize:22, fontWeight:900, color:'#990033' }}>{r.rating.toFixed(1)}</div>
+                    <div style={{ height:4, width:60, background:'#e8e0d5', borderRadius:4, overflow:'hidden', marginTop:4 }}>
                       <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4 }} />
                     </div>
                   </div>
@@ -293,7 +293,7 @@ export default function RatingsPage() {
               )
             })}
             {ratings.length === 0 && (
-              <div style={{ textAlign:'center', padding:'40px 0', color:'#555' }}>No ratings yet — log a match to start!</div>
+              <div style={{ textAlign:'center', padding:'40px 0', color:'#888' }}>No ratings yet — log a match to start!</div>
             )}
           </div>
         )}
@@ -304,25 +304,25 @@ export default function RatingsPage() {
 
             {/* Team A */}
             <div>
-              <div style={{ ...s.lbl, color:'#4ade80', marginBottom:8 }}>Team A — Winners</div>
+              <div style={{ ...s.lbl, color:'#006633', marginBottom:8 }}>Team A — Winners</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                 {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
                   <button key={slot} onClick={() => setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(0,198,162,0.6)':sel?'rgba(74,222,128,0.4)':'rgba(255,255,255,0.08)'}`,
-                    background: pickingFor===slot?'rgba(0,198,162,0.1)':sel?'rgba(74,222,128,0.07)':'rgba(255,255,255,0.03)',
+                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(0,102,51,0.4)':'#ddd'}`,
+                    background: pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)',
                     cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
                   }}>
                     {sel ? (
                       <>
                         <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#e8e8e8' }}>{sel.player_name.split(' ')[0]}</div>
-                          <div style={{ fontSize:10, color:'#555' }}>{sel.rating.toFixed(1)}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#660033' }}>{sel.player_name.split(' ')[0]}</div>
+                          <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                         </div>
-                        <span onClick={e => { e.stopPropagation(); slot==='a1'?setSelA1(null):setSelA2(null) }} style={{ color:'#555', fontSize:14, cursor:'pointer' }}>✕</span>
+                        <span onClick={e => { e.stopPropagation(); slot==='a1'?setSelA1(null):setSelA2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                       </>
                     ) : (
-                      <div style={{ fontSize:12, color: pickingFor===slot?'#00c6a2':'rgba(74,222,128,0.4)', fontWeight:700 }}>
+                      <div style={{ fontSize:12, color: pickingFor===slot?'#990033':'rgba(0,102,51,0.5)', fontWeight:700 }}>
                         {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`}
                       </div>
                     )}
@@ -333,25 +333,25 @@ export default function RatingsPage() {
 
             {/* Team B */}
             <div>
-              <div style={{ ...s.lbl, color:'#f87171', marginBottom:8 }}>Team B — Losers</div>
+              <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                 {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
                   <button key={slot} onClick={() => setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(0,198,162,0.6)':sel?'rgba(248,113,113,0.4)':'rgba(255,255,255,0.08)'}`,
-                    background: pickingFor===slot?'rgba(0,198,162,0.1)':sel?'rgba(248,113,113,0.07)':'rgba(255,255,255,0.03)',
+                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(153,0,51,0.4)':'#ddd'}`,
+                    background: pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)',
                     cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
                   }}>
                     {sel ? (
                       <>
                         <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#e8e8e8' }}>{sel.player_name.split(' ')[0]}</div>
-                          <div style={{ fontSize:10, color:'#555' }}>{sel.rating.toFixed(1)}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#660033' }}>{sel.player_name.split(' ')[0]}</div>
+                          <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                         </div>
-                        <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#555', fontSize:14, cursor:'pointer' }}>✕</span>
+                        <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                       </>
                     ) : (
-                      <div style={{ fontSize:12, color: pickingFor===slot?'#00c6a2':'rgba(248,113,113,0.4)', fontWeight:700 }}>
+                      <div style={{ fontSize:12, color: pickingFor===slot?'#990033':'rgba(153,0,51,0.4)', fontWeight:700 }}>
                         {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`}
                       </div>
                     )}
@@ -362,19 +362,19 @@ export default function RatingsPage() {
 
             {/* Player picker list */}
             {pickingFor && (
-              <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'10px 12px' }}>
+              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
                 <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                   {ratings.filter(r => ![selA1,selA2,selB1,selB2].find(p=>p?.player_id===r.player_id)).map(r => (
                     <button key={r.id} onClick={() => assignPlayer(r)} style={{
                       display:'flex', alignItems:'center', gap:10, padding:'8px 10px',
-                      background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.08)',
+                      background:'#fff', border:'1px solid #e0d8cc',
                       borderRadius:10, cursor:'pointer', fontFamily:'inherit',
                     }}>
                       <Avatar initials={r.avatar} size={30} rating={r.rating} />
                       <div style={{ flex:1, textAlign:'left' }}>
-                        <div style={{ fontSize:13, fontWeight:700, color:'#e8e8e8' }}>{r.player_name}</div>
-                        <div style={{ fontSize:11, color:'#555' }}>{getBand(r.rating).label} · {r.rating.toFixed(1)}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:'#660033' }}>{r.player_name}</div>
+                        <div style={{ fontSize:11, color:'#888' }}>{getBand(r.rating).label} · {r.rating.toFixed(1)}</div>
                       </div>
                       <ConfBadge n={r.match_count} />
                     </button>
@@ -389,14 +389,14 @@ export default function RatingsPage() {
                 <div style={s.lbl}>Set scores</div>
                 {[['Set 1 *', s1a, setS1a, s1b, setS1b], ['Set 2', s2a, setS2a, s2b, setS2b], ['Set 3', s3a, setS3a, s3b, setS3b]].map(([label, va, sa, vb, sb]: any) => (
                   <div key={label as string} style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, alignItems:'center', marginBottom:8 }}>
-                    <div style={{ fontSize:11, color:'#555', fontWeight:700 }}>{label}</div>
+                    <div style={{ fontSize:11, color:'#888', fontWeight:700 }}>{label}</div>
                     <input type="number" min="0" max="7" placeholder="—" value={va}
                       onChange={e => sa(e.target.value)}
-                      style={{ background:'rgba(74,222,128,0.08)', border:'1px solid rgba(74,222,128,0.25)', borderRadius:9, padding:'9px 0', color:'#4ade80', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
-                    <div style={{ textAlign:'center', color:'#555', fontWeight:700, fontSize:13 }}>–</div>
+                      style={{ background:'rgba(0,102,51,0.07)', border:'1px solid rgba(0,102,51,0.3)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
+                    <div style={{ textAlign:'center', color:'#888', fontWeight:700, fontSize:13 }}>–</div>
                     <input type="number" min="0" max="7" placeholder="—" value={vb}
                       onChange={e => sb(e.target.value)}
-                      style={{ background:'rgba(248,113,113,0.08)', border:'1px solid rgba(248,113,113,0.25)', borderRadius:9, padding:'9px 0', color:'#f87171', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
+                      style={{ background:'rgba(153,0,51,0.07)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
                   </div>
                 ))}
               </div>
@@ -404,8 +404,8 @@ export default function RatingsPage() {
 
             {/* Rating preview */}
             {preview && (
-              <div style={{ background:'rgba(0,198,162,0.07)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:12, padding:'12px 14px' }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#00c6a2', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+              <div style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:12, padding:'12px 14px' }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#990033', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
                   Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
                 </div>
                 {[
@@ -420,9 +420,9 @@ export default function RatingsPage() {
                     <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                         <Avatar initials={p.avatar} size={22} rating={p.rating} />
-                        <span style={{ fontSize:12, color:'#aaa' }}>{p.player_name.split(' ')[0]}</span>
+                        <span style={{ fontSize:12, color:'#6b5050' }}>{p.player_name.split(' ')[0]}</span>
                       </div>
-                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#4ade80' : '#f87171' }}>
+                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
                         {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
                       </span>
                     </div>
@@ -433,8 +433,8 @@ export default function RatingsPage() {
 
             {selA1 && selA2 && selB1 && selB2 && (
               <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
-                width:'100%', background: (!s1a||!s1b||submitting) ? 'rgba(255,255,255,0.06)' : 'linear-gradient(90deg,#00c6a2,#007aff)',
-                border:'none', borderRadius:12, padding:'14px 0', color: (!s1a||!s1b||submitting) ? '#444' : '#fff',
+                width:'100%', background: (!s1a||!s1b||submitting) ? 'rgba(102,0,51,0.08)' : '#660033',
+                border:'none', borderRadius:12, padding:'14px 0', color: (!s1a||!s1b||submitting) ? '#aaa' : '#ffcc66',
                 fontWeight:800, fontSize:15, cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer', fontFamily:'inherit',
               }}>
                 {submitting ? 'Logging…' : 'Confirm & Log Match →'}
@@ -449,22 +449,22 @@ export default function RatingsPage() {
             {currentUser ? (
               <>
                 {/* My rating card */}
-                <div style={{ background:'rgba(0,198,162,0.07)', border:'1px solid rgba(0,198,162,0.2)', borderRadius:16, padding:'16px', display:'flex', alignItems:'center', gap:16 }}>
-                  <div style={{ fontSize:40, fontWeight:900, color:'#00c6a2', lineHeight:1 }}>
+                <div style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:16, padding:'16px', display:'flex', alignItems:'center', gap:16 }}>
+                  <div style={{ fontSize:40, fontWeight:900, color:'#990033', lineHeight:1 }}>
                     {currentUser.rating.toFixed(1)}
                   </div>
                   <div>
-                    <div style={{ fontSize:12, color:'#555', marginBottom:3 }}>Your current rating</div>
-                    <div style={{ fontSize:16, fontWeight:800, color:'#fff' }}>{currentUser.player_name}</div>
+                    <div style={{ fontSize:12, color:'#888', marginBottom:3 }}>Your current rating</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#660033' }}>{currentUser.player_name}</div>
                     <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:6 }}>
                       <ConfBadge n={currentUser.match_count} />
-                      <span style={{ fontSize:11, color:'#555' }}>{currentUser.match_count} matches · rank #{myRank}</span>
+                      <span style={{ fontSize:11, color:'#888' }}>{currentUser.match_count} matches · rank #{myRank}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Band indicator */}
-                <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'12px 14px' }}>
+                <div style={{ background:'#fff', border:'1px solid rgba(102,0,51,0.12)', borderRadius:12, padding:'12px 14px' }}>
                   <div style={{ ...s.lbl, marginBottom:8 }}>Rating bands</div>
                   {BANDS.map(b => {
                     const active = currentUser.rating >= b.min && currentUser.rating <= b.max
@@ -481,7 +481,7 @@ export default function RatingsPage() {
                 {/* Match history */}
                 <div style={s.lbl}>Recent matches ({myHistory.length})</div>
                 {myHistory.length === 0 ? (
-                  <div style={{ textAlign:'center', padding:'30px 0', color:'#555', fontSize:13 }}>No matches logged yet</div>
+                  <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet</div>
                 ) : myHistory.map(m => {
                   const onA = [m.team_a1_id, m.team_a2_id].includes(userId!)
                   const won = onA
@@ -501,26 +501,26 @@ export default function RatingsPage() {
 
                   return (
                     <div key={m.id} style={{
-                      background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)',
-                      borderLeft:`3px solid ${won?'#4ade80':'#f87171'}`, borderRadius:12, padding:'12px 14px', marginBottom:6,
+                      background:'#fff', border:'1px solid rgba(102,0,51,0.12)',
+                      borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'12px 14px', marginBottom:6,
                     }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                        <div style={{ fontSize:11, color:'#555' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-                        <div style={{ fontSize:13, fontWeight:700, color: won ? '#4ade80' : '#f87171' }}>
+                        <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
                           {won ? 'W' : 'L'} · {sets}
                         </div>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: won?'rgba(74,222,128,0.07)':'rgba(248,113,113,0.06)', border:`1px solid ${won?'rgba(74,222,128,0.2)':'rgba(248,113,113,0.15)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color: won?'#4ade80':'#f87171', textTransform:'uppercase', marginBottom:3 }}>{won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#aaa', lineHeight:1.5 }}>You<br/>{partner.split(' ')[0]}</div>
+                        <div style={{ padding:'7px 9px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color: won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#6b5050', lineHeight:1.5 }}>You<br/>{partner.split(' ')[0]}</div>
                         </div>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: !won?'rgba(74,222,128,0.07)':'rgba(248,113,113,0.06)', border:`1px solid ${!won?'rgba(74,222,128,0.2)':'rgba(248,113,113,0.15)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color: !won?'#4ade80':'#f87171', textTransform:'uppercase', marginBottom:3 }}>{!won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#aaa', lineHeight:1.5 }}>{opp1.split(' ')[0]}<br/>{opp2.split(' ')[0]}</div>
+                        <div style={{ padding:'7px 9px', borderRadius:8, background: !won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color: !won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{!won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#6b5050', lineHeight:1.5 }}>{opp1.split(' ')[0]}<br/>{opp2.split(' ')[0]}</div>
                         </div>
                       </div>
-                      <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#4ade80' : '#f87171' }}>
+                      <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#006633' : '#990033' }}>
                         {before.toFixed(1)} → {after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)} rating)
                       </div>
                     </div>
@@ -530,9 +530,9 @@ export default function RatingsPage() {
             ) : (
               <div style={{ textAlign:'center', padding:'40px 20px' }}>
                 <div style={{ fontSize:32, marginBottom:12 }}>🎾</div>
-                <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:8 }}>You're not in the ratings yet</div>
-                <div style={{ fontSize:13, color:'#555', marginBottom:20 }}>Log a match to get your first rating</div>
-                <button onClick={() => setView('log')} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 28px', color:'#fff', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
+                <div style={{ fontSize:15, fontWeight:700, color:'#660033', marginBottom:8 }}>You're not in the ratings yet</div>
+                <div style={{ fontSize:13, color:'#888', marginBottom:20 }}>Log a match to get your first rating</div>
+                <button onClick={() => setView('log')} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 28px', color:'#660033', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
                   Log a match →
                 </button>
               </div>
@@ -544,3 +544,4 @@ export default function RatingsPage() {
     </div>
   )
 }
+
