@@ -100,10 +100,10 @@ const QUESTIONS = [
     tag: 'Match history — Padel',
     text: 'What is your padel match experience?',
     options: [
-      { text: 'Under 10 matches ever played', pts: 0 },
-      { text: '10–50 matches, mostly casual club games', pts: 1 },
-      { text: '50–200 matches including some club tournaments', pts: 2 },
-      { text: '200+ matches and/or official FIP/WPR registered tournament results', pts: 3 },
+      { text: 'Under 5 matches ever played', pts: 0 },
+      { text: '5–20 matches, mostly casual club games', pts: 1 },
+      { text: '20–50 matches including some club tournaments', pts: 2 },
+      { text: '50+ matches and/or official FIP/WPR registered tournament results', pts: 3 },
     ],
   },
   {
