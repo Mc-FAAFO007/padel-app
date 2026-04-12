@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
+  const router = useRouter()
   // Sign out any stale session when landing on login page
   useEffect(() => {
     supabase.auth.signOut()
@@ -39,9 +41,13 @@ export default function LoginPage() {
     } else {
       localStorage.removeItem('cc_remembered_email')
     }
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
     setLoading(false)
-    if (error) setError(error.message)
+    if (error) { setError(error.message); return }
+    if (data.user) {
+      const { data: profile } = await supabase.from('profiles').select('id').eq('id', data.user.id).single()
+      router.push(profile ? '/' : '/onboarding')
+    }
   }
 
   async function handleForgotPassword() {
