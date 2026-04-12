@@ -71,18 +71,18 @@ export default function LoginPage() {
   const s: Record<string, React.CSSProperties> = {
     page:    { minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
     card:    { width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:20 },
-    logo:    { display:'flex', alignItems:'center', gap:10, justifyContent:'center', marginBottom:4 },
-    logoTxt: { fontSize:28, fontWeight:900, color:'#000099', letterSpacing:-0.5 },
-    sub:     { fontSize:14, color:'#666', textAlign:'center', marginTop:-12 },
+    logo:    { justifyContent:'center', marginBottom:4, textAlign:'center' },
+    logoTxt: { fontSize:28, fontWeight:900, color:'#660033', letterSpacing:-0.5 },
+    sub:     { fontSize:14, color:'#990033', textAlign:'center', marginTop:-12 },
     label:   { fontSize:11, fontWeight:700, color:'#666', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
-    input:   { width:'100%', boxSizing:'border-box', background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#000', fontSize:15, fontFamily:'inherit', outline:'none' },
-    btn:     { width:'100%', background:'#990033', border:'none', borderRadius:12, padding:'14px 0', color:'#fff', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    input:   { width:'100%', boxSizing:'border-box', background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#660033', fontSize:15, fontFamily:'inherit', outline:'none' },
+    btn:     { width:'100%', background:'#660033', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
     gBtn:    { width:'100%', background:'#fff', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#111', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:10 },
-    outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#aaa', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
-    err:     { background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)', borderRadius:10, padding:'10px 14px', color:'#f87171', fontSize:13 },
+    outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(102,0,51,0.3)', borderRadius:12, padding:'13px 0', color:'#660033', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    err:     { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:10, padding:'10px 14px', color:'#990033', fontSize:13 },
     divider: { display:'flex', alignItems:'center', gap:12 },
-    line:    { flex:1, height:1, background:'rgba(255,255,255,0.08)' },
-    orTxt:   { fontSize:12, color:'#555', fontWeight:600 },
+    line:    { flex:1, height:1, background:'rgba(102,0,51,0.15)' },
+    orTxt:   { fontSize:12, color:'#888', fontWeight:600 },
     link:    { background:'none', border:'none', color:'#990033', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
   }
 
@@ -90,7 +90,6 @@ export default function LoginPage() {
     <div style={s.page}>
       <div style={s.card}>
         <div style={s.logo}>
-          <span style={{fontSize:28}}>🎾</span>
           <span style={s.logoTxt}>Court Connections</span>
         </div>
         <p style={s.sub}>Club member login</p>
