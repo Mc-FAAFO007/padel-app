@@ -532,10 +532,21 @@ export default function RatingsPage() {
 
                 const rowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:2 }
                 const tbRowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:8 }
-                const winInput = { background:'rgba(0,102,51,0.07)', border:'1px solid rgba(0,102,51,0.3)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                const loseInput = { background:'rgba(153,0,51,0.07)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                const tbWinInput = { background:'rgba(0,0,153,0.07)', border:'1px solid rgba(0,0,153,0.25)', borderRadius:8, padding:'6px 0', color:'#000099', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                const tbLoseInput = { background:'rgba(153,0,51,0.07)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:8, padding:'6px 0', color:'#990033', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                // Dynamic input style — green for higher score, red for lower, grey when empty/equal
+                function inputStyle(myVal: string, oppVal: string) {
+                  const me = parseInt(myVal)||0, opp = parseInt(oppVal)||0
+                  const hasVal = myVal !== '' && oppVal !== ''
+                  if (!hasVal || me === opp) return { background:'rgba(0,0,0,0.03)', border:'1px solid #ddd', borderRadius:9, padding:'9px 0', color:'#888', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                  if (me > opp) return { background:'rgba(0,102,51,0.08)', border:'1px solid rgba(0,102,51,0.35)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                  return { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.35)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                }
+                function tbInputStyle(myVal: string, oppVal: string) {
+                  const me = parseInt(myVal)||0, opp = parseInt(oppVal)||0
+                  const hasVal = myVal !== '' && oppVal !== ''
+                  if (!hasVal || me === opp) return { background:'rgba(0,0,0,0.03)', border:'1px solid #ddd', borderRadius:8, padding:'6px 0', color:'#888', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                  if (me > opp) return { background:'rgba(0,102,51,0.08)', border:'1px solid rgba(0,102,51,0.35)', borderRadius:8, padding:'6px 0', color:'#006633', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                  return { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.35)', borderRadius:8, padding:'6px 0', color:'#990033', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
+                }
                 const dashStyle = { textAlign:'center' as const, color:'#888', fontWeight:700, fontSize:13 }
 
                 return (
@@ -545,16 +556,16 @@ export default function RatingsPage() {
                     {/* Set 1 */}
                     <div style={rowStyle}>
                       <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 1</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s1a} onChange={e=>setS1a(e.target.value)} style={winInput} />
+                      <input type="number" min="0" max="7" placeholder="—" value={s1a} onChange={e=>setS1a(e.target.value)} style={inputStyle(s1a, s1b)} />
                       <div style={dashStyle}>–</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s1b} onChange={e=>setS1b(e.target.value)} style={loseInput} />
+                      <input type="number" min="0" max="7" placeholder="—" value={s1b} onChange={e=>setS1b(e.target.value)} style={inputStyle(s1b, s1a)} />
                     </div>
                     {tb1 && (
                       <div style={tbRowStyle}>
-                        <div style={{ fontSize:10, color:'#000099', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                        <input type="number" min="0" placeholder="—" value={tb1a} onChange={e=>setTb1a(e.target.value)} style={tbWinInput} />
+                        <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
+                        <input type="number" min="0" placeholder="—" value={tb1a} onChange={e=>setTb1a(e.target.value)} style={tbInputStyle(tb1a, tb1b)} />
                         <div style={{...dashStyle, fontSize:11}}>–</div>
-                        <input type="number" min="0" placeholder="—" value={tb1b} onChange={e=>setTb1b(e.target.value)} style={tbLoseInput} />
+                        <input type="number" min="0" placeholder="—" value={tb1b} onChange={e=>setTb1b(e.target.value)} style={tbInputStyle(tb1b, tb1a)} />
                       </div>
                     )}
                     {!tb1 && <div style={{marginBottom:8}}/>}
@@ -562,16 +573,16 @@ export default function RatingsPage() {
                     {/* Set 2 */}
                     <div style={rowStyle}>
                       <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 2</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s2a} onChange={e=>setS2a(e.target.value)} style={winInput} />
+                      <input type="number" min="0" max="7" placeholder="—" value={s2a} onChange={e=>setS2a(e.target.value)} style={inputStyle(s2a, s2b)} />
                       <div style={dashStyle}>–</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s2b} onChange={e=>setS2b(e.target.value)} style={loseInput} />
+                      <input type="number" min="0" max="7" placeholder="—" value={s2b} onChange={e=>setS2b(e.target.value)} style={inputStyle(s2b, s2a)} />
                     </div>
                     {tb2 && (
                       <div style={tbRowStyle}>
-                        <div style={{ fontSize:10, color:'#000099', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                        <input type="number" min="0" placeholder="—" value={tb2a} onChange={e=>setTb2a(e.target.value)} style={tbWinInput} />
+                        <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
+                        <input type="number" min="0" placeholder="—" value={tb2a} onChange={e=>setTb2a(e.target.value)} style={tbInputStyle(tb2a, tb2b)} />
                         <div style={{...dashStyle, fontSize:11}}>–</div>
-                        <input type="number" min="0" placeholder="—" value={tb2b} onChange={e=>setTb2b(e.target.value)} style={tbLoseInput} />
+                        <input type="number" min="0" placeholder="—" value={tb2b} onChange={e=>setTb2b(e.target.value)} style={tbInputStyle(tb2b, tb2a)} />
                       </div>
                     )}
                     {!tb2 && <div style={{marginBottom:8}}/>}
@@ -581,16 +592,16 @@ export default function RatingsPage() {
                       <>
                         <div style={rowStyle}>
                           <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 3</div>
-                          <input type="number" min="0" max="7" placeholder="—" value={s3a} onChange={e=>setS3a(e.target.value)} style={winInput} />
+                          <input type="number" min="0" max="7" placeholder="—" value={s3a} onChange={e=>setS3a(e.target.value)} style={inputStyle(s3a, s3b)} />
                           <div style={dashStyle}>–</div>
-                          <input type="number" min="0" max="7" placeholder="—" value={s3b} onChange={e=>setS3b(e.target.value)} style={loseInput} />
+                          <input type="number" min="0" max="7" placeholder="—" value={s3b} onChange={e=>setS3b(e.target.value)} style={inputStyle(s3b, s3a)} />
                         </div>
                         {tb3 && (
                           <div style={tbRowStyle}>
-                            <div style={{ fontSize:10, color:'#000099', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                            <input type="number" min="0" placeholder="—" value={tb3a} onChange={e=>setTb3a(e.target.value)} style={tbWinInput} />
+                            <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
+                            <input type="number" min="0" placeholder="—" value={tb3a} onChange={e=>setTb3a(e.target.value)} style={tbInputStyle(tb3a, tb3b)} />
                             <div style={{...dashStyle, fontSize:11}}>–</div>
-                            <input type="number" min="0" placeholder="—" value={tb3b} onChange={e=>setTb3b(e.target.value)} style={tbLoseInput} />
+                            <input type="number" min="0" placeholder="—" value={tb3b} onChange={e=>setTb3b(e.target.value)} style={tbInputStyle(tb3b, tb3a)} />
                           </div>
                         )}
                         {!tb3 && <div style={{marginBottom:8}}/>}
