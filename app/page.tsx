@@ -134,6 +134,9 @@ export default function HomePage() {
   const [fDuration, setFDuration] = useState('')
   const [fSpots,    setFSpots]   = useState(2)
   const [fNote,     setFNote]    = useState('')
+  const [editingPost, setEditingPost] = useState<number|null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<number|null>(null)
+  const [addingMember, setAddingMember] = useState<number|null>(null)
 
   function showNotif(msg: string) {
     setNotif(msg)
@@ -232,19 +235,35 @@ export default function HomePage() {
     if (!currentUser || !fDay || !fTime || !fDuration) { showNotif('Pick a day, time and duration'); return }
     if (fLevels.length === 0) { showNotif('Select at least one level'); return }
     const fSlot = `${fDay} ${fTime} · ${fDuration}`
-    const { error } = await supabase.from('posts').insert({
-      player_id: currentUser.id,
-      player_name: currentUser.name,
-      player_avatar: currentUser.avatar,
-      level: fLevels[0],
-      allowed_levels: fLevels,
-      slot: fSlot,
-      spots_needed: fSpots,
-      note: fNote.trim(),
-    })
-    if (error) { showNotif('Error posting: ' + error.message); return }
+    if (editingPost) {
+      const { error } = await supabase.from('posts').update({
+        level: fLevels[0], allowed_levels: fLevels,
+        slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
+      }).eq('id', editingPost)
+      if (error) { showNotif('Error updating: ' + error.message); return }
+      showNotif('Game updated!')
+      setEditingPost(null)
+    } else {
+      const { error } = await supabase.from('posts').insert({
+        player_id: currentUser.id,
+        player_name: currentUser.name,
+        player_avatar: currentUser.avatar,
+        level: fLevels[0], allowed_levels: fLevels,
+        slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
+      })
+      if (error) { showNotif('Error posting: ' + error.message); return }
+      showNotif('Game posted!')
+    }
     setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote(''); setFLevels([])
-    showNotif('Game posted! 🎾')
+    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
+  }
+
+  async function handleAddMember(postId: number, playerId: string) {
+    const already = posts.find(p => p.id === postId)?.interested_ids.includes(playerId)
+    if (already) { showNotif('Player already in this game'); return }
+    await supabase.from('post_interests').insert({ post_id: postId, player_id: playerId })
+    setAddingMember(null)
+    showNotif('Player added!')
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
@@ -267,7 +286,12 @@ export default function HomePage() {
   }
 
   async function handleDeletePost(postId: number) {
+    setDeleteConfirm(postId)
+  }
+
+  async function confirmDeletePost(postId: number) {
     await supabase.from('posts').delete().eq('id', postId)
+    setDeleteConfirm(null)
     showNotif('Post removed')
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
@@ -442,14 +466,17 @@ export default function HomePage() {
                 <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Players looking to fill their game</div>
               </div>
               {!showForm && (
-                <button onClick={() => setShowForm(true)} style={{ background:'#660033', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
+                <button onClick={() => {
+                  setShowForm(true)
+                  if (currentUser && fLevels.length === 0) setFLevels([currentUser.level])
+                }} style={{ background:'#660033', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               )}
             </div>
 
             {/* Post form */}
             {showForm && currentUser && (
               <div style={{ background:'#fff', border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
-                <div style={{ fontWeight:800, fontSize:14, color:'#660033' }}>Post a Game Request</div>
+                <div style={{ fontWeight:800, fontSize:14, color:'#660033' }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
@@ -519,8 +546,8 @@ export default function HomePage() {
                 </div>
                 <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(102,0,51,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
-                  <button onClick={() => setShowForm(false)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-                  <button onClick={handlePostSubmit} style={{ flex:2, background:'#660033', border:'none', borderRadius:10, padding:'10px 0', color:'#ffcc66', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>Post →</button>
+                  <button onClick={() => { setShowForm(false); setEditingPost(null) }} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                  <button onClick={handlePostSubmit} style={{ flex:2, background:'#660033', border:'none', borderRadius:10, padding:'10px 0', color:'#ffcc66', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{editingPost ? 'Save Changes →' : 'Post →'}</button>
                 </div>
               </div>
             )}
@@ -568,7 +595,26 @@ export default function HomePage() {
                         <span style={{ fontSize:10, color:'#555' }}>{timeAgo(post.created_at)}</span>
                       </div>
                     </div>
-                    {isOwner && <button onClick={() => handleDeletePost(post.id)} style={{ background:'none', border:'none', color:'#444', cursor:'pointer', fontSize:16, padding:'2px 4px', lineHeight:1 }}>✕</button>}
+                    {isOwner && (
+                      <div style={{ display:'flex', gap:5 }}>
+                        <button onClick={() => {
+                          const slot = post.slot
+                          const dotIdx = slot.indexOf(' · ')
+                          const timePart = dotIdx > -1 ? slot.slice(0, dotIdx) : slot
+                          const durPart = dotIdx > -1 ? slot.slice(dotIdx + 3) : ''
+                          const parts = timePart.split(' ')
+                          setFDay(parts[0] || '')
+                          setFTime(parts.slice(1).join(' ') || '')
+                          setFDuration(durPart || '')
+                          setFSpots(post.spots_needed)
+                          setFNote(post.note || '')
+                          setFLevels(post.allowed_levels || [post.level])
+                          setEditingPost(post.id)
+                          setShowForm(true)
+                        }} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
+                        <button onClick={() => handleDeletePost(post.id)} style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:7, padding:'3px 8px', color:'#990033', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+                      </div>
+                    )}
                   </div>
                   {/* Time display */}
                   <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
@@ -847,6 +893,50 @@ export default function HomePage() {
         )}
 
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteConfirm && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
+          <div style={{ background:'#f5f0e8', borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ fontSize:17, fontWeight:800, color:'#660033' }}>Delete this game?</div>
+            <div style={{ fontSize:13, color:'#888', lineHeight:1.5 }}>This will remove the post and all interested players will be notified it is no longer available.</div>
+            <div style={{ display:'flex', gap:10 }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:12, padding:'12px 0', color:'#666', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+              <button onClick={() => confirmDeletePost(deleteConfirm)} style={{ flex:1, background:'#990033', border:'none', borderRadius:12, padding:'12px 0', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add member modal */}
+      {addingMember && currentUser && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
+          <div style={{ background:'#f5f0e8', borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:14 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:17, fontWeight:800, color:'#660033' }}>Add a member</div>
+              <button onClick={() => setAddingMember(null)} style={{ background:'none', border:'none', color:'#888', fontSize:18, cursor:'pointer' }}>✕</button>
+            </div>
+            <div style={{ fontSize:12, color:'#888' }}>Select a player to add to this game</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:300, overflowY:'auto' }}>
+              {players
+                .filter(p => p.id !== currentUser.id && !posts.find(post => post.id === addingMember)?.interested_ids.includes(p.id))
+                .map(p => (
+                  <button key={p.id} onClick={() => handleAddMember(addingMember, p.id)}
+                    style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'#fff', border:'1px solid rgba(102,0,51,0.15)', borderRadius:12, cursor:'pointer', fontFamily:'inherit', textAlign:'left' }}>
+                    <Avatar initials={p.avatar} size={34} level={p.level} />
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight:700, color:'#660033' }}>{p.name}</div>
+                      <div style={{ fontSize:11, color:'#888', marginTop:1 }}>L{p.level} · {levelDesc[p.level]}</div>
+                    </div>
+                    <span style={{ fontSize:12, color:'#000099', fontWeight:700 }}>+ Add</span>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
