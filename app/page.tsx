@@ -466,7 +466,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ flexShrink:0, textAlign:'right' }}>
                     <LevelBadge level={p.level} small />
-                    <div style={{ fontSize:10, color:'#4ade80', fontWeight:700, marginTop:3 }}>{p.spots_needed - p.interested_ids.length} spot{(p.spots_needed - p.interested_ids.length)!==1?'s':''} open</div>
+                    <div style={{ fontSize:10, color:'#4ade80', fontWeight:700, marginTop:3 }}>{Math.max(0, 3 - p.interested_ids.length)} spot{Math.max(0, 3 - p.interested_ids.length)!==1?'s':''} open</div>
                   </div>
                 </div>
               ))}
