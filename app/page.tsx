@@ -764,15 +764,16 @@ export default function HomePage() {
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-              {[['🏆','Leaderboard','See club rankings'],['🎾','Log Match','Record results'],['📈','My Results','Track your rating']].map(([icon,title,desc]) => (
-                <div key={title as string} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'12px 10px', textAlign:'center' }}>
+              {([['🏆','Leaderboard','See club rankings','leaderboard'],['🎾','Log Match','Record results','log'],['📈','My Results','Track your rating','my']] as const).map(([icon,title,desc,tab]) => (
+                <button key={title} onClick={() => { sessionStorage.setItem('arenaTab', tab); router.push('/ratings') }}
+                  style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'12px 10px', textAlign:'center', cursor:'pointer', fontFamily:'inherit' }}>
                   <div style={{ fontSize:20, marginBottom:6 }}>{icon}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#4a3030', marginBottom:3 }}>{title}</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:'#014a09', marginBottom:3 }}>{title}</div>
                   <div style={{ fontSize:10, color:'#888', lineHeight:1.4 }}>{desc}</div>
-                </div>
+                </button>
               ))}
             </div>
-            <button onClick={() => router.push('/ratings')} style={{ width:'100%', background:'#014a09', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+            <button onClick={() => { sessionStorage.removeItem('arenaTab'); router.push('/ratings') }} style={{ width:'100%', background:'#014a09', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
               Enter The Arena →
             </button>
           </div>

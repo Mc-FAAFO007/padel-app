@@ -138,7 +138,14 @@ export default function RatingsPage() {
     setLoading(false)
   }, [router])
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    loadData()
+    const tab = sessionStorage.getItem('arenaTab')
+    if (tab === 'log' || tab === 'my' || tab === 'leaderboard') {
+      setView(tab as 'leaderboard'|'log'|'my')
+      sessionStorage.removeItem('arenaTab')
+    }
+  }, [loadData])
 
   // ── Rating preview calc ───────────────────────────────────────────────────
   function calcPreview() {
