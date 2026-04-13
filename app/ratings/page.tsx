@@ -130,7 +130,11 @@ export default function RatingsPage() {
     setRatings(all)
     setHistory(matchesRes.data || [])
     const me = all.find(r => r.player_id === session.user.id)
-    if (me) setCurrentUser(me)
+    if (me) {
+      setCurrentUser(me)
+      // Pre-fill current user as Team A Player 1
+      setSelA1(me)
+    }
     setLoading(false)
   }, [router])
 
@@ -322,52 +326,57 @@ export default function RatingsPage() {
             <div>
               <div style={{ ...s.lbl, color:'#006633', marginBottom:8 }}>Team A — Winners</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
-                  <button key={slot} onClick={() => setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(2,107,13,0.6)':sel?'rgba(0,102,51,0.4)':'#ddd'}`,
-                    background: pickingFor===slot?'rgba(2,107,13,0.08)':sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)',
-                    cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
-                  }}>
-                    {sel ? (
-                      <>
-                        <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
-                        <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}</div>
-                          <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
+                {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => {
+                  const isLocked = slot === 'a1'
+                  return (
+                    <button key={slot} onClick={() => !isLocked && setPickingFor(pickingFor === slot ? null : slot)} style={{
+                      padding:'10px 12px', borderRadius:11,
+                      border:`1px solid ${isLocked?'rgba(1,74,9,0.4)':pickingFor===slot?'rgba(2,107,13,0.6)':sel?'rgba(0,102,51,0.4)':'#ddd'}`,
+                      background: isLocked?'rgba(1,74,9,0.06)':pickingFor===slot?'rgba(2,107,13,0.08)':sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)',
+                      cursor: isLocked?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
+                    }}>
+                      {sel ? (
+                        <>
+                          <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
+                          <div style={{ flex:1, textAlign:'left' }}>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}{isLocked?' (you)':''}</div>
+                            <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
+                          </div>
+                          {!isLocked && <span onClick={e => { e.stopPropagation(); setSelA2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>}
+                          {isLocked && <span style={{ fontSize:9, color:'#014a09', fontWeight:700, background:'rgba(1,74,9,0.1)', borderRadius:6, padding:'2px 5px' }}>YOU</span>}
+                        </>
+                      ) : (
+                        <div style={{ fontSize:12, color: pickingFor===slot?'#026b0d':'rgba(0,102,51,0.5)', fontWeight:700 }}>
+                          {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`}
                         </div>
-                        <span onClick={e => { e.stopPropagation(); slot==='a1'?setSelA1(null):setSelA2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
-                      </>
-                    ) : (
-                      <div style={{ fontSize:12, color: pickingFor===slot?'#026b0d':'rgba(0,102,51,0.5)', fontWeight:700 }}>
-                        {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`}
-                      </div>
-                    )}
-                  </button>
-                ))}
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
             {/* Team B */}
             <div>
-              <div style={{ ...s.lbl, color:'#026b0d', marginBottom:8 }}>Team B — Losers</div>
+              <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                 {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
                   <button key={slot} onClick={() => setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(2,107,13,0.6)':sel?'rgba(2,107,13,0.4)':'#ddd'}`,
-                    background: pickingFor===slot?'rgba(2,107,13,0.08)':sel?'rgba(2,107,13,0.07)':'rgba(0,0,0,0.02)',
+                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(153,0,51,0.4)':'#ddd'}`,
+                    background: pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)',
                     cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
                   }}>
                     {sel ? (
                       <>
                         <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name.split(' ')[0]}</div>
                           <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                         </div>
                         <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                       </>
                     ) : (
-                      <div style={{ fontSize:12, color: pickingFor===slot?'#026b0d':'rgba(2,107,13,0.4)', fontWeight:700 }}>
+                      <div style={{ fontSize:12, color: pickingFor===slot?'#990033':'rgba(153,0,51,0.5)', fontWeight:700 }}>
                         {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`}
                       </div>
                     )}
