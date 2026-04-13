@@ -549,9 +549,38 @@ export default function RatingsPage() {
                 }
                 const dashStyle = { textAlign:'center' as const, color:'#888', fontWeight:700, fontSize:13 }
 
+                // Reactive team names based on who's winning overall
+                const aWins = [
+                  set1done && s1aWon > s1bWon,
+                  set2done && s2aWon > s2bWon,
+                  s3a !== '' && s3b !== '' && (parseInt(s3a)||0) > (parseInt(s3b)||0)
+                ].filter(Boolean).length
+                const bWins = [
+                  set1done && s1bWon > s1aWon,
+                  set2done && s2bWon > s2aWon,
+                  s3a !== '' && s3b !== '' && (parseInt(s3b)||0) > (parseInt(s3a)||0)
+                ].filter(Boolean).length
+                const aLeading = aWins > bWins
+                const bLeading = bWins > aWins
+                const tied = set1done && aWins === bWins
+
                 return (
                   <div>
-                    <div style={s.lbl}>Set scores</div>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:8 }}>Scores</div>
+
+                    {/* Team name headers — reactive colours */}
+                    <div style={{ display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:6 }}>
+                      <div />
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:800,
+                        color: aLeading ? '#006633' : bLeading ? '#990033' : '#888' }}>
+                        {selA1?.player_name.split(' ')[0]} & {selA2?.player_name.split(' ')[0]}
+                      </div>
+                      <div />
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:800,
+                        color: bLeading ? '#006633' : aLeading ? '#990033' : '#888' }}>
+                        {selB1?.player_name.split(' ')[0]} & {selB2?.player_name.split(' ')[0]}
+                      </div>
+                    </div>
 
                     {/* Set 1 */}
                     <div style={rowStyle}>
