@@ -453,13 +453,13 @@ export default function HomePage() {
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fDay ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                    <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color: fDay ? '#660033' : '#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
                       <option value="" disabled>Day</option>
                       {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
                         <option key={d} value={d} style={{ background:'#1a1a1a', color:'#4a3030' }}>{d}</option>
                       ))}
                     </select>
-                    <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'10px 12px', color: fTime ? '#e8e8e8' : '#555', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                    <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color: fTime ? '#660033' : '#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
                       <option value="" disabled>Time</option>
                       {Array.from({ length: 31 }, (_, i) => {
                         const totalMins = 7 * 60 + i * 30
@@ -483,9 +483,9 @@ export default function HomePage() {
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {['60 min','90 min'].map(d => (
                       <button key={d} onClick={() => setFDuration(d)} style={{
-                        border:`1px solid ${fDuration===d?'rgba(0,198,162,0.5)':'rgba(255,255,255,0.1)'}`,
-                        background: fDuration===d?'rgba(0,198,162,0.12)':'rgba(255,255,255,0.03)',
-                        color: fDuration===d?'#00c6a2':'#555',
+                        border:`1px solid ${fDuration===d?'#990033':'#ddd'}`,
+                        background: fDuration===d?'#660033':'rgba(0,0,0,0.02)',
+                        color: fDuration===d?'#ffcc66':'#888',
                         borderRadius:10, padding:'11px 0', fontSize:13, fontWeight:700,
                         cursor:'pointer', fontFamily:'inherit',
                       }}>{d}</button>
@@ -497,9 +497,9 @@ export default function HomePage() {
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {levels.map(l => (
                       <button key={l} onClick={() => setFLevels(prev => prev.includes(l) ? prev.filter(x=>x!==l) : [...prev,l])} style={{
-                        border:`1px solid ${fLevels.includes(l)?levelColor[l]+'60':'rgba(255,255,255,0.1)'}`,
-                        background: fLevels.includes(l)?levelBg[l]:'rgba(255,255,255,0.03)',
-                        color: fLevels.includes(l)?levelColor[l]:'#555',
+                        border:`1px solid ${fLevels.includes(l)?levelColor[l]+'80':'rgba(102,0,51,0.15)'}`,
+                        background: fLevels.includes(l)?levelBg[l]:'rgba(0,0,0,0.02)',
+                        color: fLevels.includes(l)?levelColor[l]:'#888',
                         borderRadius:10, padding:'10px 0', fontWeight:700, cursor:'pointer', fontFamily:'inherit',
                         display:'flex', flexDirection:'column', alignItems:'center', gap:2,
                       }}>
@@ -513,7 +513,7 @@ export default function HomePage() {
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
                   <div style={{ display:'flex', gap:8 }}>
                     {[1,2,3].map(n => (
-                      <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?`${levelColor[currentUser.level]}50`:'rgba(255,255,255,0.1)'}`, background:fSpots===n?levelBg[currentUser.level]:'transparent', color:fSpots===n?levelColor[currentUser.level]:'#555', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
+                      <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?'#990033':'#ddd'}`, background:fSpots===n?'#660033':'transparent', color:fSpots===n?'#ffcc66':'#888', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
                     ))}
                   </div>
                 </div>
@@ -821,12 +821,24 @@ export default function HomePage() {
                 style={{
                   width:'100%',
                   background: editLoading ? 'rgba(102,0,51,0.1)' : '#660033',
-                  border:'none', borderRadius:12, padding:'13px 0', color:'#660033',
+                  border:'none', borderRadius:12, padding:'13px 0', color:'#ffcc66',
                   fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
                   opacity: editLoading ? 0.6 : 1
                 }}
               >
                 {editLoading ? 'Saving…' : 'Save Changes'}
+              </button>
+
+              <button
+                onClick={handleSignOut}
+                style={{
+                  width:'100%', background:'transparent',
+                  border:'1px solid rgba(153,0,51,0.3)', borderRadius:12, padding:'13px 0',
+                  color:'#990033', fontWeight:700, fontSize:14,
+                  cursor:'pointer', fontFamily:'inherit', marginTop:8
+                }}
+              >
+                Sign Out
               </button>
             </div>
 
@@ -838,4 +850,3 @@ export default function HomePage() {
     </div>
   )
 }
-
