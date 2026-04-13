@@ -484,8 +484,14 @@ export default function HomePage() {
               </div>
               {!showForm && (
                 <button onClick={() => {
+                  // Reset all form fields fresh each time
+                  setFDay(''); setFTime(''); setFDuration('')
+                  setFSpots(3); setFNote(''); setFInvited([])
+                  setFPlayerSearch(''); setShowPlayerSearch(false)
+                  setEditingPost(null)
+                  // Auto-select current user's level
+                  if (currentUser) setFLevels([currentUser.level])
                   setShowForm(true)
-                  if (currentUser && fLevels.length === 0) setFLevels([currentUser.level])
                 }} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               )}
             </div>
