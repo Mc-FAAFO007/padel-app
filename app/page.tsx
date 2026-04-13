@@ -788,8 +788,12 @@ export default function HomePage() {
           )
 
           const myPosts = posts.filter(p => p.player_id === currentUser.id)
-          const joinedPosts = posts.filter(p => p.interested_ids.includes(currentUser.id))
-          const schedulePosts = [...myPosts, ...joinedPosts.filter(p => p.player_id !== currentUser.id)]
+          // Check both currentUser.id (profile id) and any matching player_id
+          const joinedPosts = posts.filter(p =>
+            p.player_id !== currentUser.id &&
+            p.interested_ids.some((id: string) => id === currentUser.id)
+          )
+          const schedulePosts = [...myPosts, ...joinedPosts]
 
           function ScheduleCard({ post: p, isOwner }: { post: any, isOwner: boolean }) {
             const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
