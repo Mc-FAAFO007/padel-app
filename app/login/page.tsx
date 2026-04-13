@@ -28,7 +28,10 @@ export default function LoginPage() {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `https://padel-app-sigma-seven.vercel.app/auth/confirm` }
+      options: {
+        redirectTo: `https://padel-app-sigma-seven.vercel.app/auth/confirm`,
+        queryParams: { prompt: 'select_account' }
+      }
     })
     if (error) { setError(error.message); setLoading(false) }
   }
