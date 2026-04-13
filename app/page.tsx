@@ -875,6 +875,21 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
+                {/* Log score button — only show when game is full (4 players) */}
+                {filledSlots.length === 4 && (
+                  <button onClick={() => {
+                    // Pre-fill teams in Arena Log Match from this game's players
+                    const gamePlayers = filledSlots.map((pl:any) => pl.id)
+                    sessionStorage.setItem('arenaTab', 'log')
+                    sessionStorage.setItem('prefillGame', JSON.stringify({
+                      postId: p.id,
+                      playerIds: gamePlayers,
+                    }))
+                    router.push('/ratings')
+                  }} style={{ background:'#014a09', border:'none', borderRadius:10, padding:'10px 0', cursor:'pointer', color:'#ffcc66', fontWeight:800, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                    Log Match Score →
+                  </button>
+                )}
                 {!isOwner && (
                   <button onClick={() => handleInterest(p.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
                     Cancel my spot

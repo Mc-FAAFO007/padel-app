@@ -147,6 +147,32 @@ export default function RatingsPage() {
     }
   }, [loadData])
 
+  // Pre-fill teams from schedule game once ratings are loaded
+  useEffect(() => {
+    const prefill = sessionStorage.getItem('prefillGame')
+    if (!prefill || ratings.length === 0) return
+    sessionStorage.removeItem('prefillGame')
+    try {
+      const { playerIds } = JSON.parse(prefill)
+      if (!playerIds || playerIds.length < 4) return
+      // Map player IDs to rating objects
+      const ratingPlayers = playerIds.map((id: string) => ratings.find(r => r.player_id === id)).filter(Boolean)
+      if (ratingPlayers.length >= 4) {
+        setSelA1(ratingPlayers[0])
+        setSelA2(ratingPlayers[1])
+        setSelB1(ratingPlayers[2])
+        setSelB2(ratingPlayers[3])
+        setPickingFor(null)
+      } else if (ratingPlayers.length >= 2) {
+        // Partial — fill what we have
+        if (ratingPlayers[0]) setSelA1(ratingPlayers[0])
+        if (ratingPlayers[1]) setSelA2(ratingPlayers[1])
+        if (ratingPlayers[2]) setSelB1(ratingPlayers[2])
+        if (ratingPlayers[3]) setSelB2(ratingPlayers[3])
+      }
+    } catch(e) { console.error('prefill parse error', e) }
+  }, [ratings])
+
   // ── Rating preview calc ───────────────────────────────────────────────────
   function calcPreview() {
     if (!selA1 || !selA2 || !selB1 || !selB2) return null
