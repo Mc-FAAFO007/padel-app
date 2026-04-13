@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -367,87 +368,123 @@ export default function RatingsPage() {
         )}
 
         {/* ══ LOG MATCH ══ */}
-        {view === 'log' && (
+        {view === 'log' && (()=>{
+          // When players are locked from schedule, show drag-to-team UI
+          const isFromSchedule = lockedPlayers.length > 0
+          // poolPlayers = unassigned players when coming from schedule
+          const allFour = [selA1,selA2,selB1,selB2].filter(Boolean) as Rating[]
+          const assignedIds = allFour.map(p=>p.player_id)
+          // For schedule flow: start with all 4 in pool, unassigned
+          const [pool, setPool] = React.useState<Rating[]>([])
+          const [initialized, setInitialized] = React.useState(false)
+
+          React.useEffect(()=>{
+            if (isFromSchedule && !initialized && allFour.length === 4) {
+              setPool(allFour)
+              setSelA1(null); setSelA2(null); setSelB1(null); setSelB2(null)
+              setInitialized(true)
+            }
+          },[isFromSchedule, allFour.length])
+
+          function assignToTeam(player: Rating, team: 'a'|'b') {
+            const teamSlots = team==='a' ? [selA1,selA2] : [selB1,selB2]
+            const setSlots = team==='a' ? [setSelA1,setSelA2] : [setSelB1,setSelB2]
+            const emptyIdx = teamSlots.findIndex(s=>!s)
+            if (emptyIdx === -1) return // team full
+            setSlots[emptyIdx](player)
+            setPool(prev => prev.filter(p=>p.player_id !== player.player_id))
+          }
+
+          function removeFromTeam(player: Rating, slot: 'a1'|'a2'|'b1'|'b2') {
+            if (slot==='a1') setSelA1(null)
+            else if (slot==='a2') setSelA2(null)
+            else if (slot==='b1') setSelB1(null)
+            else setSelB2(null)
+            if (isFromSchedule) setPool(prev => [...prev, player])
+          }
+
+          return (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-            {/* Team A */}
+            {/* Player pool — only shown in schedule flow when players need assigning */}
+            {isFromSchedule && pool.length > 0 && (
+              <div>
+                <div style={{ ...s.lbl, marginBottom:8 }}>Tap to assign players to a team</div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                  {pool.map(r => (
+                    <div key={r.player_id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8 }}>
+                      <Avatar initials={r.avatar} size={28} rating={r.rating} />
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name.split(' ')[0]}</div>
+                        <div style={{ fontSize:10, color:'#888' }}>{r.rating.toFixed(1)}</div>
+                      </div>
+                      <div style={{ display:'flex', gap:5 }}>
+                        <button onClick={()=>assignToTeam(r,'a')} disabled={!!(selA1&&selA2)} style={{ background: selA1&&selA2?'#eee':'rgba(0,102,51,0.1)', border:`1px solid ${selA1&&selA2?'#ddd':'rgba(0,102,51,0.3)'}`, borderRadius:7, padding:'4px 8px', color: selA1&&selA2?'#bbb':'#006633', fontSize:10, fontWeight:700, cursor: selA1&&selA2?'default':'pointer', fontFamily:'inherit' }}>W</button>
+                        <button onClick={()=>assignToTeam(r,'b')} disabled={!!(selB1&&selB2)} style={{ background: selB1&&selB2?'#eee':'rgba(153,0,51,0.08)', border:`1px solid ${selB1&&selB2?'#ddd':'rgba(153,0,51,0.3)'}`, borderRadius:7, padding:'4px 8px', color: selB1&&selB2?'#bbb':'#990033', fontSize:10, fontWeight:700, cursor: selB1&&selB2?'default':'pointer', fontFamily:'inherit' }}>L</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Team A — Winners */}
             <div>
               <div style={{ ...s.lbl, color:'#006633', marginBottom:8 }}>Team A — Winners</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => {
-                  const isYou = slot === 'a1'
-                  const isFullyLocked = lockedPlayers.length > 0
-                  const isLocked = isYou || isFullyLocked
-                  return (
-                    <button key={slot} onClick={() => !isLocked && setPickingFor(pickingFor === slot ? null : slot)} style={{
-                      padding:'10px 12px', borderRadius:11,
-                      border:`1px solid ${isLocked?'rgba(1,74,9,0.4)':pickingFor===slot?'rgba(2,107,13,0.6)':sel?'rgba(0,102,51,0.4)':'#ddd'}`,
-                      background: isLocked?'rgba(1,74,9,0.06)':pickingFor===slot?'rgba(2,107,13,0.08)':sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)',
-                      cursor: isLocked?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
-                    }}>
-                      {sel ? (
-                        <>
-                          <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
-                          <div style={{ flex:1, textAlign:'left' }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}{isYou?' (you)':''}</div>
-                            <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
-                          </div>
-                          {!isLocked && <span onClick={e => { e.stopPropagation(); setSelA2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>}
-                          {isLocked && <span style={{ fontSize:9, color:'#014a09', fontWeight:700, background:'rgba(1,74,9,0.1)', borderRadius:6, padding:'2px 5px' }}>{isYou?'YOU':'SET'}</span>}
-                        </>
-                      ) : (
-                        <div style={{ fontSize:12, color: pickingFor===slot?'#026b0d':'rgba(0,102,51,0.5)', fontWeight:700 }}>
-                          {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`}
-                        </div>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Team B */}
-            <div>
-              <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                  <button key={slot} onClick={() => lockedPlayers.length === 0 && setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11,
-                    border:`1px solid ${lockedPlayers.length>0?'rgba(153,0,51,0.4)':pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(153,0,51,0.4)':'#ddd'}`,
-                    background: lockedPlayers.length>0?'rgba(153,0,51,0.07)':pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)',
-                    cursor: lockedPlayers.length>0?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
-                  }}>
+                {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
+                  <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(0,102,51,0.4)':'rgba(0,102,51,0.15)'}`, background:sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52 }}>
                     {sel ? (
                       <>
                         <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
-                        <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name.split(' ')[0]}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}</div>
                           <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                         </div>
-                        {lockedPlayers.length === 0 && <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>}
-                        {lockedPlayers.length > 0 && <span style={{ fontSize:9, color:'#990033', fontWeight:700, background:'rgba(153,0,51,0.1)', borderRadius:6, padding:'2px 5px' }}>SET</span>}
+                        <span onClick={()=>removeFromTeam(sel, slot)} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                       </>
                     ) : (
-                      <div style={{ fontSize:12, color: pickingFor===slot?'#990033':'rgba(153,0,51,0.5)', fontWeight:700 }}>
-                        {pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`}
+                      <div style={{ fontSize:12, color:'rgba(0,102,51,0.4)', fontWeight:700 }}>
+                        {isFromSchedule ? 'Tap W above' : `+ Player ${slot==='a1'?'1':'2'}`}
                       </div>
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
 
-            {/* Player picker list — hidden when players are locked from schedule */}
-            {pickingFor && lockedPlayers.length === 0 && (
+            {/* Team B — Losers */}
+            <div>
+              <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
+                  <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(153,0,51,0.4)':'rgba(153,0,51,0.15)'}`, background:sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52 }}>
+                    {sel ? (
+                      <>
+                        <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name.split(' ')[0]}</div>
+                          <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
+                        </div>
+                        <span onClick={()=>removeFromTeam(sel, slot)} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
+                      </>
+                    ) : (
+                      <div style={{ fontSize:12, color:'rgba(153,0,51,0.4)', fontWeight:700 }}>
+                        {isFromSchedule ? 'Tap L above' : `+ Player ${slot==='b1'?'1':'2'}`}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Player picker — only for manual (non-schedule) entry */}
+            {!isFromSchedule && pickingFor && (
               <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
                 <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                   {ratings.filter(r => ![selA1,selA2,selB1,selB2].find(p=>p?.player_id===r.player_id)).map(r => (
-                    <button key={r.id} onClick={() => assignPlayer(r)} style={{
-                      display:'flex', alignItems:'center', gap:10, padding:'8px 10px',
-                      background:'#fff', border:'1px solid #e0d8cc',
-                      borderRadius:10, cursor:'pointer', fontFamily:'inherit',
-                    }}>
+                    <button key={r.id} onClick={() => assignPlayer(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, cursor:'pointer', fontFamily:'inherit' }}>
                       <Avatar initials={r.avatar} size={30} rating={r.rating} />
                       <div style={{ flex:1, textAlign:'left' }}>
                         <div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
@@ -467,17 +504,18 @@ export default function RatingsPage() {
                 {[['Set 1 *', s1a, setS1a, s1b, setS1b], ['Set 2', s2a, setS2a, s2b, setS2b], ['Set 3', s3a, setS3a, s3b, setS3b]].map(([label, va, sa, vb, sb]: any) => (
                   <div key={label as string} style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, alignItems:'center', marginBottom:8 }}>
                     <div style={{ fontSize:11, color:'#888', fontWeight:700 }}>{label}</div>
-                    <input type="number" min="0" max="7" placeholder="—" value={va}
-                      onChange={e => sa(e.target.value)}
+                    <input type="number" min="0" max="7" placeholder="—" value={va} onChange={e => sa(e.target.value)}
                       style={{ background:'rgba(0,102,51,0.07)', border:'1px solid rgba(0,102,51,0.3)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
                     <div style={{ textAlign:'center', color:'#888', fontWeight:700, fontSize:13 }}>–</div>
-                    <input type="number" min="0" max="7" placeholder="—" value={vb}
-                      onChange={e => sb(e.target.value)}
-                      style={{ background:'rgba(2,107,13,0.07)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:9, padding:'9px 0', color:'#026b0d', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
+                    <input type="number" min="0" max="7" placeholder="—" value={vb} onChange={e => sb(e.target.value)}
+                      style={{ background:'rgba(153,0,51,0.07)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
                   </div>
                 ))}
               </div>
             )}
+          </div>
+          )
+        })()}
 
             {/* Rating preview */}
             {preview && (
@@ -697,3 +735,4 @@ export default function RatingsPage() {
     </div>
   )
 }
+
