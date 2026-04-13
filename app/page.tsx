@@ -319,8 +319,8 @@ export default function HomePage() {
 
   // ── Derived data ──────────────────────────────────────────────────────────
   const boardPosts  = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels || [p.level]).includes(boardLevel))
-  const openPosts   = posts.filter(p => p.interested_ids.length < p.spots_needed)
-  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
+  const openPosts   = posts.filter(p => p.interested_ids.length < 3) // 4 total - 1 organiser = 3 max interested
+  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < 3).length]))
 
   const filtered = players.filter(p =>
     (filter.level === 'All' || p.level === filter.level) &&
@@ -650,8 +650,8 @@ export default function HomePage() {
             ) : boardPosts.map(post => {
               const isOwner   = currentUser?.id === post.player_id
               const alreadyIn = currentUser && post.interested_ids.includes(currentUser.id)
-              const spotsLeft = Math.max(0, post.spots_needed - post.interested_ids.length)
-              const full      = spotsLeft === 0
+              const spotsLeft = Math.max(0, 3 - post.interested_ids.length) // 4 total - 1 organiser = 3 max
+              const full      = spotsLeft <= 0
               const c         = levelColor[post.level]
               return (
                 <div key={post.id} style={{ background:'#fff', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
@@ -812,7 +812,7 @@ export default function HomePage() {
                     <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'8px 18px', color:'#026b0d', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Post a game →</button>
                   </div>
                 ) : myPosts.map(p => {
-                  const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
+                  const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
                   const full = spotsLeft === 0
                   return (
                     <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
@@ -850,7 +850,7 @@ export default function HomePage() {
                     <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'8px 18px', color:'#026b0d', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
                   </div>
                 ) : joinedPosts.map(p => {
-                  const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
+                  const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
                   const full = spotsLeft === 0
                   return (
                     <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
