@@ -132,7 +132,7 @@ export default function HomePage() {
   const [fDay,      setFDay]     = useState('')
   const [fTime,     setFTime]    = useState('')
   const [fDuration, setFDuration] = useState('')
-  const [fSpots,    setFSpots]   = useState(2)
+  const [fSpots,    setFSpots]   = useState(3)
   const [fNote,     setFNote]    = useState('')
   const [editingPost, setEditingPost] = useState<number|null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<number|null>(null)
@@ -257,9 +257,11 @@ export default function HomePage() {
       if (error) { showNotif('Error posting: ' + error.message); return }
       // Add invited players
       if (fInvited.length > 0) {
+        // Wait briefly for DB to settle then fetch the new post
+        await new Promise(r => setTimeout(r, 400))
         const { data: newPost } = await supabase.from('posts').select('id').eq('player_id', currentUser.id).order('created_at', { ascending: false }).limit(1).single()
         if (newPost) {
-          await Promise.all(fInvited.map(pid => supabase.from('post_interests').insert({ post_id: newPost.id, player_id: pid })))
+          await Promise.all(fInvited.map(pid => supabase.from('post_interests').upsert({ post_id: newPost.id, player_id: pid }, { onConflict: 'post_id,player_id' })))
         }
       }
       showNotif('Game posted!')
@@ -487,6 +489,8 @@ export default function HomePage() {
             {showForm && currentUser && (
               <div style={{ background:'#fff', border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
                 <div style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
+                {/* Auto-update spots based on invited players */}
+                {(()=>{ const auto = Math.max(1, 3 - fInvited.length); if (fSpots !== auto && !editingPost) setTimeout(()=>setFSpots(auto),0); return null })()}
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
@@ -547,14 +551,6 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    {[1,2,3].map(n => (
-                      <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?'#026b0d':'#ddd'}`, background:fSpots===n?'#014a09':'transparent', color:fSpots===n?'#ffcc66':'#888', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Add players (optional)</div>
                   {fInvited.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
@@ -602,6 +598,14 @@ export default function HomePage() {
                       </div>
                     )
                   })()}
+                </div>
+                <div>
+                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
+                  <div style={{ display:'flex', gap:8 }}>
+                    {[1,2,3].map(n => (
+                      <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?'#026b0d':'#ddd'}`, background:fSpots===n?'#014a09':'transparent', color:fSpots===n?'#ffcc66':'#888', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
+                    ))}
+                  </div>
                 </div>
                 <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(1,74,9,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
@@ -907,13 +911,15 @@ export default function HomePage() {
                   if (!editName.trim() || editSlots.length === 0) return
                   setEditLoading(true)
                   const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
-                  const { error } = await supabase.from('profiles').update({
-                    name: editName.trim(),
-                    avatar: initials,
-                    availability: editSlots,
-                  }).eq('id', currentUser.id)
+                  const newName = editName.trim()
+                  // Update profile, ratings, and all posts with new name/avatar
+                  const [profileRes] = await Promise.all([
+                    supabase.from('profiles').update({ name: newName, avatar: initials, availability: editSlots }).eq('id', currentUser.id),
+                    supabase.from('ratings').update({ player_name: newName, avatar: initials }).eq('player_id', currentUser.id),
+                    supabase.from('posts').update({ player_name: newName, player_avatar: initials }).eq('player_id', currentUser.id),
+                  ])
                   setEditLoading(false)
-                  if (!error) {
+                  if (!profileRes.error) {
                     showNotif('Profile updated!')
                     supabase.auth.getSession().then(({ data: { session } }) => {
                       if (session?.user) loadData(session.user.id)
