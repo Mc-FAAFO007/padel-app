@@ -78,6 +78,96 @@ function Notif({ msg }: { msg: string | null }) {
   )
 }
 
+// ─── Score row component ──────────────────────────────────────────────────────
+// Renders one set row + optional tiebreak sub-row if either score is 7-6
+function SetRow({
+  label, required,
+  va, setVa, vb, setVb,
+  tba, setTba, tbb, setTbb,
+}: {
+  label: string; required?: boolean
+  va: string; setVa: (v: string) => void
+  vb: string; setVb: (v: string) => void
+  tba: string; setTba: (v: string) => void
+  tbb: string; setTbb: (v: string) => void
+}) {
+  const a = parseInt(va) || 0
+  const b = parseInt(vb) || 0
+  const showTb = (a === 7 && b === 6) || (a === 6 && b === 7)
+
+  const scoreInput = (
+    val: string,
+    onChange: (v: string) => void,
+    side: 'a' | 'b'
+  ) => (
+    <input
+      type="number" min="0" max="7" placeholder="—"
+      value={val}
+      onChange={e => onChange(e.target.value)}
+      style={{
+        background: side === 'a' ? 'rgba(0,102,51,0.07)' : 'rgba(153,0,51,0.07)',
+        border: `1px solid ${side === 'a' ? 'rgba(0,102,51,0.3)' : 'rgba(153,0,51,0.3)'}`,
+        borderRadius: 9, padding: '9px 0',
+        color: side === 'a' ? '#006633' : '#990033',
+        fontSize: 20, fontWeight: 900, textAlign: 'center',
+        fontFamily: 'inherit', outline: 'none', width: '100%',
+      }}
+    />
+  )
+
+  const tbInput = (
+    val: string,
+    onChange: (v: string) => void,
+    side: 'a' | 'b'
+  ) => (
+    <input
+      type="number" min="0" max="20" placeholder="TB"
+      value={val}
+      onChange={e => onChange(e.target.value)}
+      style={{
+        background: side === 'a' ? 'rgba(0,102,51,0.05)' : 'rgba(153,0,51,0.05)',
+        border: `1px dashed ${side === 'a' ? 'rgba(0,102,51,0.35)' : 'rgba(153,0,51,0.35)'}`,
+        borderRadius: 7, padding: '5px 0',
+        color: side === 'a' ? '#006633' : '#990033',
+        fontSize: 14, fontWeight: 800, textAlign: 'center',
+        fontFamily: 'inherit', outline: 'none', width: '100%',
+      }}
+    />
+  )
+
+  return (
+    <div style={{ marginBottom: showTb ? 4 : 8 }}>
+      {/* Main set row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, alignItems: 'center' }}>
+        <div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>
+          {label}{required ? ' *' : ''}
+        </div>
+        {scoreInput(va, setVa, 'a')}
+        <div style={{ textAlign: 'center', color: '#888', fontWeight: 700, fontSize: 13 }}>–</div>
+        {scoreInput(vb, setVb, 'b')}
+      </div>
+
+      {/* Tiebreak sub-row — slides in when 7-6 */}
+      {showTb && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '50px 1fr 20px 1fr',
+          gap: 6, alignItems: 'center',
+          marginTop: 4, marginBottom: 8,
+          animation: 'fadeSlideIn 0.15s ease',
+        }}>
+          <div style={{ fontSize: 9, color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            TB
+          </div>
+          {tbInput(tba, setTba, 'a')}
+          <div style={{ textAlign: 'center', color: '#ccc', fontWeight: 700, fontSize: 11 }}>–</div>
+          {tbInput(tbb, setTbb, 'b')}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RatingsPage() {
   const router = useRouter()
@@ -94,16 +184,27 @@ export default function RatingsPage() {
   const [selA2, setSelA2] = useState<Rating | null>(null)
   const [selB1, setSelB1] = useState<Rating | null>(null)
   const [selB2, setSelB2] = useState<Rating | null>(null)
+
+  // Set scores: s1a = set1 team A, etc.
   const [s1a, setS1a] = useState('')
   const [s1b, setS1b] = useState('')
   const [s2a, setS2a] = useState('')
   const [s2b, setS2b] = useState('')
   const [s3a, setS3a] = useState('')
   const [s3b, setS3b] = useState('')
+
+  // Tiebreak scores: tb1a = set1 tiebreak team A, etc.
+  const [tb1a, setTb1a] = useState('')
+  const [tb1b, setTb1b] = useState('')
+  const [tb2a, setTb2a] = useState('')
+  const [tb2b, setTb2b] = useState('')
+  const [tb3a, setTb3a] = useState('')
+  const [tb3b, setTb3b] = useState('')
+
   const [submitting, setSubmitting] = useState(false)
   const [pickingFor, setPickingFor] = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
-  const [lockedPlayers, setLockedPlayers] = useState<string[]>([]) // player_ids locked from prefill
-  const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null) // for player profile modal
+  const [lockedPlayers, setLockedPlayers] = useState<string[]>([])
+  const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null)
   const [prefillPostId, setPrefillPostId] = useState<number|null>(null)
   const [pool, setPool] = useState<Rating[]>([])
   const [poolInitialized, setPoolInitialized] = useState(false)
@@ -117,7 +218,6 @@ export default function RatingsPage() {
   }
 
   const loadData = useCallback(async () => {
-    // Retry session check up to 5 times to handle navigation timing
     let session = null
     for (let i = 0; i < 5; i++) {
       const { data } = await supabase.auth.getSession()
@@ -138,7 +238,6 @@ export default function RatingsPage() {
     const me = all.find(r => r.player_id === session.user.id)
     if (me) {
       setCurrentUser(me)
-      // Pre-fill current user as Team A Player 1
       setSelA1(me)
     }
     setLoading(false)
@@ -153,7 +252,6 @@ export default function RatingsPage() {
     }
   }, [loadData])
 
-  // Open player profile when navigated from schedule
   useEffect(() => {
     const viewPlayerId = sessionStorage.getItem('viewPlayer')
     if (!viewPlayerId || ratings.length === 0) return
@@ -162,7 +260,6 @@ export default function RatingsPage() {
     if (player) setViewingPlayer(player)
   }, [ratings])
 
-  // Pre-fill teams from schedule game once ratings are loaded
   useEffect(() => {
     const prefill = sessionStorage.getItem('prefillGame')
     if (!prefill || ratings.length === 0) return
@@ -176,12 +273,35 @@ export default function RatingsPage() {
         setSelA2(ratingPlayers[1])
         setSelB1(ratingPlayers[2])
         setSelB2(ratingPlayers[3])
-        setLockedPlayers(playerIds) // lock all 4 — no swapping allowed
+        setLockedPlayers(playerIds)
         if (postId) setPrefillPostId(postId)
         setPickingFor(null)
       }
     } catch(e) { console.error('prefill parse error', e) }
   }, [ratings])
+
+  // ── Derived: set winners & whether Set 3 is needed ────────────────────────
+  // A set is "won by A" if A score > B score (and both entered)
+  function setWinner(a: string, b: string): 'a' | 'b' | null {
+    const av = parseInt(a), bv = parseInt(b)
+    if (isNaN(av) || isNaN(bv) || (av === 0 && bv === 0)) return null
+    if (av > bv) return 'a'
+    if (bv > av) return 'b'
+    return null // draw / incomplete
+  }
+
+  const set1Winner = setWinner(s1a, s1b)
+  const set2Winner = setWinner(s2a, s2b)
+
+  // Show Set 3 only when sets are split (one each)
+  const showSet3 = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
+
+  // Clear Set 3 scores when it becomes hidden
+  useEffect(() => {
+    if (!showSet3) {
+      setS3a(''); setS3b(''); setTb3a(''); setTb3b('')
+    }
+  }, [showSet3])
 
   // ── Rating preview calc ───────────────────────────────────────────────────
   function calcPreview() {
@@ -216,6 +336,9 @@ export default function RatingsPage() {
     const sets_a = [parseInt(s1a)||0, parseInt(s2a)||0, parseInt(s3a)||0].filter((_,i) => i===0 || (s2a&&i===1) || (s3a&&i===2))
     const sets_b = [parseInt(s1b)||0, parseInt(s2b)||0, parseInt(s3b)||0].filter((_,i) => i===0 || (s2b&&i===1) || (s3b&&i===2))
 
+    // Store tiebreak scores alongside set scores (append to metadata if needed)
+    // For now they're captured in state; extend your DB schema to persist tb scores if desired
+
     const { error: matchError } = await supabase.from('matches').insert({
       team_a1_id: selA1.player_id, team_a1_name: selA1.player_name,
       team_a2_id: selA2.player_id, team_a2_name: selA2.player_name,
@@ -230,7 +353,6 @@ export default function RatingsPage() {
 
     if (matchError) { showNotif('Error: ' + matchError.message); setSubmitting(false); return }
 
-    // Update all 4 ratings and check for errors
     const updates = await Promise.all([
       supabase.from('ratings').update({ rating: preview.a1.after, match_count: selA1.match_count + 1 }).eq('player_id', selA1.player_id).select(),
       supabase.from('ratings').update({ rating: preview.a2.after, match_count: selA2.match_count + 1 }).eq('player_id', selA2.player_id).select(),
@@ -239,12 +361,11 @@ export default function RatingsPage() {
     ])
     const updateErrors = updates.filter((r: any) => r.error)
     if (updateErrors.length > 0) {
-      console.error('Rating update errors:', updateErrors.map((r: any) => r.error))
       showNotif('Match logged but ratings need RLS fix in Supabase')
     } else {
       showNotif('Match logged! Ratings updated')
     }
-    // If this match came from a scheduled game, remove the post
+
     if (prefillPostId) {
       await supabase.from('post_interests').delete().eq('post_id', prefillPostId)
       await supabase.from('posts').delete().eq('id', prefillPostId)
@@ -253,6 +374,7 @@ export default function RatingsPage() {
     setLockedPlayers([])
     setSelA1(null); setSelA2(null); setSelB1(null); setSelB2(null)
     setS1a(''); setS1b(''); setS2a(''); setS2b(''); setS3a(''); setS3b('')
+    setTb1a(''); setTb1b(''); setTb2a(''); setTb2b(''); setTb3a(''); setTb3b('')
     setPickingFor(null)
     setSubmitting(false)
     setView('my')
@@ -269,7 +391,6 @@ export default function RatingsPage() {
     if (pickingFor === 'a2') setSelA2(r)
     if (pickingFor === 'b1') setSelB1(r)
     if (pickingFor === 'b2') setSelB2(r)
-    // Auto-advance to next empty slot
     const next = pickingFor === 'a1' ? 'a2' : pickingFor === 'a2' ? 'b1' : pickingFor === 'b1' ? 'b2' : null
     setPickingFor(next)
   }
@@ -297,11 +418,18 @@ export default function RatingsPage() {
   const myHistory = history.filter(m =>
     myId && [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(myId)
   )
-
   const myRank = currentUser ? ratings.findIndex(r => r.player_id === myId) + 1 : 0
 
   return (
     <div style={s.page}>
+      {/* Fade-in keyframe for tiebreak row */}
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
       <Notif msg={notif} />
       <div style={s.inner}>
 
@@ -373,7 +501,6 @@ export default function RatingsPage() {
         {view === 'log' && (() => {
           const isFromSchedule = lockedPlayers.length > 0
 
-          // Initialize pool from locked players on first render
           if (isFromSchedule && !poolInitialized && (selA1||selA2||selB1||selB2)) {
             const allFour = [selA1,selA2,selB1,selB2].filter(Boolean) as Rating[]
             if (allFour.length > 0) {
@@ -405,6 +532,8 @@ export default function RatingsPage() {
             else setSelB2(null)
             if (isFromSchedule) setPool(prev => [...prev, player])
           }
+
+          const allFourSelected = !!(selA1 && selA2 && selB1 && selB2)
 
           return (
             <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
@@ -506,24 +635,45 @@ export default function RatingsPage() {
                 </div>
               )}
 
-              {/* Set scores */}
-              {selA1 && selA2 && selB1 && selB2 && (
+              {/* ── Set scores ── */}
+              {allFourSelected && (
                 <div>
                   <div style={s.lbl}>Set scores</div>
-                  {[['Set 1 *', s1a, setS1a, s1b, setS1b], ['Set 2', s2a, setS2a, s2b, setS2b], ['Set 3', s3a, setS3a, s3b, setS3b]].map(([label, va, sa, vb, sb]: any) => (
-                    <div key={label as string} style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, alignItems:'center', marginBottom:8 }}>
-                      <div style={{ fontSize:11, color:'#888', fontWeight:700 }}>{label}</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={va} onChange={e => sa(e.target.value)}
-                        style={{ background:'rgba(0,102,51,0.07)', border:'1px solid rgba(0,102,51,0.3)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
-                      <div style={{ textAlign:'center', color:'#888', fontWeight:700, fontSize:13 }}>–</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={vb} onChange={e => sb(e.target.value)}
-                        style={{ background:'rgba(153,0,51,0.07)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center', fontFamily:'inherit', outline:'none', width:'100%' }} />
+
+                  {/* Set 1 — always shown, required */}
+                  <SetRow
+                    label="Set 1" required
+                    va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b}
+                    tba={tb1a} setTba={setTb1a} tbb={tb1b} setTbb={setTb1b}
+                  />
+
+                  {/* Set 2 — always shown */}
+                  <SetRow
+                    label="Set 2"
+                    va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b}
+                    tba={tb2a} setTba={setTb2a} tbb={tb2b} setTbb={setTb2b}
+                  />
+
+                  {/* Set 3 — appears only when sets are split */}
+                  {showSet3 && (
+                    <div style={{ animation:'fadeSlideIn 0.18s ease' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, marginTop:2 }}>
+                        <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
+                        <span style={{ fontSize:9, fontWeight:700, color:'#aaa', textTransform:'uppercase', letterSpacing:0.6 }}>Deciding set</span>
+                        <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
+                      </div>
+                      <SetRow
+                        label="Set 3"
+                        va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b}
+                        tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b}
+                      />
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
-              {selA1 && selA2 && selB1 && selB2 && (
+              {/* Submit */}
+              {allFourSelected && (
                 <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
                   width:'100%', background: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.08)' : '#014a09',
                   border:'none', borderRadius:12, padding:'14px 0', color: (!s1a||!s1b||submitting) ? '#aaa' : '#ffcc66',
@@ -536,36 +686,34 @@ export default function RatingsPage() {
           )
         })()}
 
-            {/* Rating preview */}
-            {preview && (
-              <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
-                  Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
+        {/* Rating preview */}
+        {preview && (
+          <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+              Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
+            </div>
+            {[
+              { p: selA1, r: preview.a1, won: preview.aWon },
+              { p: selA2, r: preview.a2, won: preview.aWon },
+              { p: selB1, r: preview.b1, won: !preview.aWon },
+              { p: selB2, r: preview.b2, won: !preview.aWon },
+            ].map(({ p, r, won }) => {
+              if (!p) return null
+              const delta = Math.round((r.after - r.before) * 10) / 10
+              return (
+                <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <Avatar initials={p.avatar} size={24} rating={p.rating} />
+                    <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
+                  </div>
+                  <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
+                    {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
+                  </span>
                 </div>
-                {[
-                  { p: selA1, r: preview.a1, won: preview.aWon },
-                  { p: selA2, r: preview.a2, won: preview.aWon },
-                  { p: selB1, r: preview.b1, won: !preview.aWon },
-                  { p: selB2, r: preview.b2, won: !preview.aWon },
-                ].map(({ p, r, won }) => {
-                  if (!p) return null
-                  const delta = Math.round((r.after - r.before) * 10) / 10
-                  return (
-                    <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <Avatar initials={p.avatar} size={24} rating={p.rating} />
-                        <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
-                        {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-
+              )
+            })}
+          </div>
+        )}
 
         {/* ══ MY RESULTS ══ */}
         {view === 'my' && (
@@ -665,6 +813,7 @@ export default function RatingsPage() {
         )}
 
       </div>
+
       {/* Player profile modal */}
       {viewingPlayer && (() => {
         const vp = viewingPlayer
@@ -677,7 +826,6 @@ export default function RatingsPage() {
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
             onClick={() => setViewingPlayer(null)}>
             <div onClick={e => e.stopPropagation()} style={{ background:'#f5f0e8', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
-              {/* Header */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
@@ -688,7 +836,6 @@ export default function RatingsPage() {
                 </div>
                 <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              {/* Rating card */}
               <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
                 <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
@@ -697,7 +844,6 @@ export default function RatingsPage() {
                   <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginTop:3 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
                 </div>
               </div>
-              {/* Match history */}
               <div>
                 <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>Match history ({vpHistory.length})</div>
                 {vpHistory.length === 0 ? (
