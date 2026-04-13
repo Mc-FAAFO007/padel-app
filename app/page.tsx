@@ -255,13 +255,18 @@ export default function HomePage() {
         slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
       })
       if (error) { showNotif('Error posting: ' + error.message); return }
-      // Add invited players
+      // Add invited players — fetch the newly created post and add interests
       if (fInvited.length > 0) {
-        // Wait briefly for DB to settle then fetch the new post
-        await new Promise(r => setTimeout(r, 400))
-        const { data: newPost } = await supabase.from('posts').select('id').eq('player_id', currentUser.id).order('created_at', { ascending: false }).limit(1).single()
-        if (newPost) {
-          await Promise.all(fInvited.map(pid => supabase.from('post_interests').upsert({ post_id: newPost.id, player_id: pid }, { onConflict: 'post_id,player_id' })))
+        await new Promise(r => setTimeout(r, 600))
+        const { data: newPost } = await supabase
+          .from('posts').select('id').eq('player_id', currentUser.id)
+          .order('created_at', { ascending: false }).limit(1).single()
+        if (newPost?.id) {
+          const insertResults = await Promise.all(
+            fInvited.map(pid => supabase.from('post_interests').insert({ post_id: newPost.id, player_id: pid }))
+          )
+          const insertErrors = insertResults.filter(r => r.error)
+          if (insertErrors.length > 0) console.error('Interest insert errors:', insertErrors.map(r => r.error))
         }
       }
       showNotif('Game posted!')
@@ -489,7 +494,7 @@ export default function HomePage() {
             {showForm && currentUser && (
               <div style={{ background:'#fff', border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
                 <div style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
-                {/* Auto-update spots based on invited players */}
+                {/* Auto-update spots based on invited players: total 4 slots, minus organiser, minus invited */}
                 {(()=>{ const auto = Math.max(1, 3 - fInvited.length); if (fSpots !== auto && !editingPost) setTimeout(()=>setFSpots(auto),0); return null })()}
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
@@ -689,7 +694,7 @@ export default function HomePage() {
 
                   {/* Player slots */}
                   {(()=>{
-                    const totalSlots = post.spots_needed + 1
+                    const totalSlots = 4
                     const interestedPlayers = players.filter(p => post.interested_ids.includes(p.id))
                     const organiser = players.find(p => p.id === post.player_id)
                     const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
