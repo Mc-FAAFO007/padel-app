@@ -183,21 +183,26 @@ export default function RatingsPage() {
 
     if (matchError) { showNotif('Error: ' + matchError.message); setSubmitting(false); return }
 
-    // Update all 4 ratings
-    await Promise.all([
-      supabase.from('ratings').update({ rating: preview.a1.after, match_count: selA1.match_count + 1 }).eq('player_id', selA1.player_id),
-      supabase.from('ratings').update({ rating: preview.a2.after, match_count: selA2.match_count + 1 }).eq('player_id', selA2.player_id),
-      supabase.from('ratings').update({ rating: preview.b1.after, match_count: selB1.match_count + 1 }).eq('player_id', selB1.player_id),
-      supabase.from('ratings').update({ rating: preview.b2.after, match_count: selB2.match_count + 1 }).eq('player_id', selB2.player_id),
+    // Update all 4 ratings and check for errors
+    const updates = await Promise.all([
+      supabase.from('ratings').update({ rating: preview.a1.after, match_count: selA1.match_count + 1 }).eq('player_id', selA1.player_id).select(),
+      supabase.from('ratings').update({ rating: preview.a2.after, match_count: selA2.match_count + 1 }).eq('player_id', selA2.player_id).select(),
+      supabase.from('ratings').update({ rating: preview.b1.after, match_count: selB1.match_count + 1 }).eq('player_id', selB1.player_id).select(),
+      supabase.from('ratings').update({ rating: preview.b2.after, match_count: selB2.match_count + 1 }).eq('player_id', selB2.player_id).select(),
     ])
-
-    showNotif('Match logged! Ratings updated 🎾')
+    const updateErrors = updates.filter((r: any) => r.error)
+    if (updateErrors.length > 0) {
+      console.error('Rating update errors:', updateErrors.map((r: any) => r.error))
+      showNotif('Match logged but ratings need RLS fix in Supabase')
+    } else {
+      showNotif('Match logged! Ratings updated')
+    }
     setSelA1(null); setSelA2(null); setSelB1(null); setSelB2(null)
     setS1a(''); setS1b(''); setS2a(''); setS2b(''); setS3a(''); setS3b('')
     setPickingFor(null)
     setSubmitting(false)
-    loadData()
-    setView('leaderboard')
+    // Small delay then reload and go to My Results
+    setTimeout(() => { loadData(); setView('my') }, 800)
   }
 
   // ── Player picker ─────────────────────────────────────────────────────────
