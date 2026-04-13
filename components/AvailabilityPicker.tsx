@@ -52,16 +52,16 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
         return (
           <div key={day} style={{
             borderRadius:12, overflow:'hidden',
-            border:`1px solid ${selected ? 'rgba(153,0,51,0.3)' : '#ddd'}`,
-            borderLeft:`3px solid ${selected ? '#990033' : 'transparent'}`,
+            border:`1px solid ${selected ? 'rgba(2,107,13,0.3)' : '#ddd'}`,
+            borderLeft:`3px solid ${selected ? '#026b0d' : 'transparent'}`,
           }}>
             <button onClick={() => toggleDay(day)} style={{
               width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
               padding:'12px 14px',
-              background: selected ? 'rgba(153,0,51,0.05)' : 'rgba(0,0,0,0.02)',
+              background: selected ? 'rgba(2,107,13,0.05)' : 'rgba(0,0,0,0.02)',
               border:'none', cursor:'pointer', fontFamily:'inherit',
             }}>
-              <span style={{ fontSize:14, fontWeight:700, color: selected ? '#990033' : '#111' }}>
+              <span style={{ fontSize:14, fontWeight:700, color: selected ? '#026b0d' : '#111' }}>
                 {day}
               </span>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -110,10 +110,10 @@ export default function AvailabilityPicker({ value, onChange }: Props) {
       })}
       <div style={{
         padding:'10px 14px', borderRadius:10, marginTop:2,
-        background: totalSelected > 0 ? 'rgba(153,0,51,0.06)' : 'rgba(0,0,0,0.03)',
-        border:`1px solid ${totalSelected > 0 ? 'rgba(153,0,51,0.2)' : '#ddd'}`,
+        background: totalSelected > 0 ? 'rgba(2,107,13,0.06)' : 'rgba(0,0,0,0.03)',
+        border:`1px solid ${totalSelected > 0 ? 'rgba(2,107,13,0.2)' : '#ddd'}`,
         fontSize:12, fontWeight:600,
-        color: totalSelected > 0 ? '#990033' : '#888',
+        color: totalSelected > 0 ? '#026b0d' : '#888',
       }}>
         {totalSelected === 0
           ? 'Tap a day to select your availability'

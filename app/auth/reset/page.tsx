@@ -42,16 +42,16 @@ export default function ResetPasswordPage() {
     page:  { minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
     card:  { width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:20 },
     label: { fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
-    input: { width:'100%', boxSizing:'border-box' as const, background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#660033', fontSize:15, fontFamily:'inherit', outline:'none' },
-    btn:   { width:'100%', background:'#660033', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
-    err:   { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:10, padding:'10px 14px', color:'#990033', fontSize:13 },
+    input: { width:'100%', boxSizing:'border-box' as const, background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#014a09', fontSize:15, fontFamily:'inherit', outline:'none' },
+    btn:   { width:'100%', background:'#014a09', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    err:   { background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'10px 14px', color:'#026b0d', fontSize:13 },
   }
 
   if (!ready) return (
     <div style={s.page}>
       <div style={{ textAlign:'center' }}>
-        <div style={{ fontSize:18, fontWeight:900, color:'#660033', marginBottom:8 }}>Court Connections</div>
-        <div style={{ color:'#990033', fontSize:14 }}>Loading reset link…</div>
+        <div style={{ fontSize:18, fontWeight:900, color:'#014a09', marginBottom:8 }}>Court Connections</div>
+        <div style={{ color:'#026b0d', fontSize:14 }}>Loading reset link…</div>
       </div>
     </div>
   )
@@ -60,8 +60,8 @@ export default function ResetPasswordPage() {
     <div style={s.page}>
       <div style={s.card}>
         <div>
-          <div style={{ fontSize:18, fontWeight:900, color:'#660033', marginBottom:6 }}>Court Connections</div>
-          <div style={{ fontSize:22, fontWeight:900, color:'#660033' }}>Set a new password</div>
+          <div style={{ fontSize:18, fontWeight:900, color:'#014a09', marginBottom:6 }}>Court Connections</div>
+          <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>Set a new password</div>
           <div style={{ fontSize:13, color:'#888', marginTop:6 }}>Choose something you will remember.</div>
         </div>
         <div>

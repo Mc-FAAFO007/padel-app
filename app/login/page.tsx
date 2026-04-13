@@ -81,18 +81,18 @@ export default function LoginPage() {
     page:    { minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', padding:'24px', fontFamily:"'DM Sans',sans-serif" },
     card:    { width:'100%', maxWidth:380, display:'flex', flexDirection:'column', gap:20 },
     logo:    { justifyContent:'center', marginBottom:4, textAlign:'center' },
-    logoTxt: { fontSize:28, fontWeight:900, color:'#660033', letterSpacing:-0.5 },
-    sub:     { fontSize:14, color:'#990033', textAlign:'center', marginTop:-12 },
+    logoTxt: { fontSize:28, fontWeight:900, color:'#014a09', letterSpacing:-0.5 },
+    sub:     { fontSize:14, color:'#026b0d', textAlign:'center', marginTop:-12 },
     label:   { fontSize:11, fontWeight:700, color:'#666', textTransform:'uppercase', letterSpacing:0.5, marginBottom:6 },
-    input:   { width:'100%', boxSizing:'border-box', background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#660033', fontSize:15, fontFamily:'inherit', outline:'none' },
-    btn:     { width:'100%', background:'#660033', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    input:   { width:'100%', boxSizing:'border-box', background:'rgba(0,0,0,0.04)', border:'1px solid #ccc', borderRadius:12, padding:'13px 14px', color:'#014a09', fontSize:15, fontFamily:'inherit', outline:'none' },
+    btn:     { width:'100%', background:'#014a09', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
     gBtn:    { width:'100%', background:'#fff', border:'1px solid rgba(255,255,255,0.15)', borderRadius:12, padding:'13px 0', color:'#111', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:10 },
-    outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(102,0,51,0.3)', borderRadius:12, padding:'13px 0', color:'#660033', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
-    err:     { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.3)', borderRadius:10, padding:'10px 14px', color:'#990033', fontSize:13 },
+    outBtn:  { width:'100%', background:'transparent', border:'1px solid rgba(1,74,9,0.3)', borderRadius:12, padding:'13px 0', color:'#014a09', fontWeight:700, fontSize:15, cursor:'pointer', fontFamily:'inherit' },
+    err:     { background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'10px 14px', color:'#026b0d', fontSize:13 },
     divider: { display:'flex', alignItems:'center', gap:12 },
-    line:    { flex:1, height:1, background:'rgba(102,0,51,0.15)' },
+    line:    { flex:1, height:1, background:'rgba(1,74,9,0.15)' },
     orTxt:   { fontSize:12, color:'#888', fontWeight:600 },
-    link:    { background:'none', border:'none', color:'#990033', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
+    link:    { background:'none', border:'none', color:'#026b0d', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:0 },
   }
 
   return (
@@ -105,11 +105,11 @@ export default function LoginPage() {
 
         {/* ── SENT ── */}
         {mode==='sent' && (
-          <div style={{background:'rgba(153,0,51,0.08)',border:'1px solid rgba(153,0,51,0.3)',borderRadius:14,padding:'24px',textAlign:'center',color:'#990033'}}>
+          <div style={{background:'rgba(2,107,13,0.08)',border:'1px solid rgba(2,107,13,0.3)',borderRadius:14,padding:'24px',textAlign:'center',color:'#026b0d'}}>
             <div style={{fontSize:32,marginBottom:12}}>📧</div>
             <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
             <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
-              We sent a confirmation to <strong style={{color:'#990033'}}>{email}</strong>.<br />
+              We sent a confirmation to <strong style={{color:'#026b0d'}}>{email}</strong>.<br />
               Click the link to activate your account.
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function LoginPage() {
             <div style={{fontSize:32,marginBottom:12}}>📧</div>
             <div style={{fontWeight:800,fontSize:16,marginBottom:8}}>Check your email!</div>
             <div style={{fontSize:13,color:'#888',lineHeight:1.5}}>
-              We sent a password reset link to <strong style={{color:'#990033'}}>{email}</strong>.<br/>
+              We sent a password reset link to <strong style={{color:'#026b0d'}}>{email}</strong>.<br/>
               Click the link to set a new password.
             </div>
           </div>
