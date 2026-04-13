@@ -123,7 +123,7 @@ export default function RatingsPage() {
 
     const [ratingsRes, matchesRes] = await Promise.all([
       supabase.from('ratings').select('*').order('rating', { ascending: false }),
-      supabase.from('matches').select('*').order('created_at', { ascending: false }).limit(50),
+      supabase.from('matches').select('*').order('created_at', { ascending: false }),
     ])
 
     const all: Rating[] = ratingsRes.data || []
@@ -201,8 +201,10 @@ export default function RatingsPage() {
     setS1a(''); setS1b(''); setS2a(''); setS2b(''); setS3a(''); setS3b('')
     setPickingFor(null)
     setSubmitting(false)
-    // Small delay then reload and go to My Results
-    setTimeout(() => { loadData(); setView('my') }, 800)
+    // Reload data then go to My Results — reload again after 2s to catch any DB lag
+    setView('my')
+    setTimeout(() => loadData(), 500)
+    setTimeout(() => loadData(), 2000)
   }
 
   // ── Player picker ─────────────────────────────────────────────────────────
@@ -483,9 +485,9 @@ export default function RatingsPage() {
                     const active = currentUser.rating >= b.min && currentUser.rating <= b.max
                     return (
                       <div key={b.label} style={{ display:'flex', alignItems:'center', gap:10, padding:'5px 0' }}>
-                        <div style={{ width:8, height:8, borderRadius:'50%', background: active ? b.color : '#2a2a2a', flexShrink:0 }} />
-                        <div style={{ flex:1, fontSize:12, color: active ? b.color : '#444', fontWeight: active ? 700 : 400 }}>{b.label}</div>
-                        <div style={{ fontSize:11, color: active ? b.color : '#333' }}>{b.min.toFixed(1)}–{b.max.toFixed(1)}</div>
+                        <div style={{ width:8, height:8, borderRadius:'50%', background: active ? b.color : '#ddd', flexShrink:0 }} />
+                        <div style={{ flex:1, fontSize:12, color: active ? b.color : '#888', fontWeight: active ? 700 : 400 }}>{b.label}</div>
+                        <div style={{ fontSize:11, color: active ? b.color : '#aaa' }}>{b.min.toFixed(1)}–{b.max.toFixed(1)}</div>
                       </div>
                     )
                   })}
@@ -545,7 +547,7 @@ export default function RatingsPage() {
                 <div style={{ fontSize:32, marginBottom:12 }}>🎾</div>
                 <div style={{ fontSize:15, fontWeight:700, color:'#660033', marginBottom:8 }}>You're not in the ratings yet</div>
                 <div style={{ fontSize:13, color:'#888', marginBottom:20 }}>Log a match to get your first rating</div>
-                <button onClick={() => setView('log')} style={{ background:'linear-gradient(90deg,#00c6a2,#007aff)', border:'none', borderRadius:12, padding:'12px 28px', color:'#660033', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
+                <button onClick={() => setView('log')} style={{ background:'#660033', border:'none', borderRadius:12, padding:'12px 28px', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
                   Log a match →
                 </button>
               </div>
