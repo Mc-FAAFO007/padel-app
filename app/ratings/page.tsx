@@ -556,7 +556,8 @@ export default function RatingsPage() {
               </button>
             )}
           </div>
-        )}
+          )
+        })()}
 
         {/* ══ MY RESULTS ══ */}
         {view === 'my' && (
