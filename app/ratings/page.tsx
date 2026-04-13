@@ -418,7 +418,7 @@ export default function RatingsPage() {
                       <div key={r.player_id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8 }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name.split(' ')[0]}</div>
+                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
                           <div style={{ fontSize:10, color:'#888' }}>{r.rating.toFixed(1)}</div>
                         </div>
                         <div style={{ display:'flex', gap:5 }}>
@@ -445,7 +445,7 @@ export default function RatingsPage() {
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name}</div>
                             <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                           </div>
                           <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
@@ -472,7 +472,7 @@ export default function RatingsPage() {
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name.split(' ')[0]}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name}</div>
                             <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                           </div>
                           <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
@@ -538,8 +538,8 @@ export default function RatingsPage() {
 
             {/* Rating preview */}
             {preview && (
-              <div style={{ background:'rgba(2,107,13,0.06)', border:'1px solid rgba(2,107,13,0.2)', borderRadius:12, padding:'12px 14px' }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#026b0d', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+              <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
+                <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
                   Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
                 </div>
                 {[
@@ -551,12 +551,12 @@ export default function RatingsPage() {
                   if (!p) return null
                   const delta = Math.round((r.after - r.before) * 10) / 10
                   return (
-                    <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.05)' }}>
+                    <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <Avatar initials={p.avatar} size={22} rating={p.rating} />
-                        <span style={{ fontSize:12, color:'#6b5050' }}>{p.player_name.split(' ')[0]}</span>
+                        <Avatar initials={p.avatar} size={24} rating={p.rating} />
+                        <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
                       </div>
-                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#026b0d' }}>
+                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
                         {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
                       </span>
                     </div>
