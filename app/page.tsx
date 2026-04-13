@@ -777,6 +777,42 @@ export default function HomePage() {
                 Fair matches. Happy players. <span style={{ color:'#026b0d', fontWeight:700 }}>Zero excuses.</span>
               </div>
             </div>
+            {/* Understanding Your Rating accordion */}
+            <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:14, overflow:'hidden' }}>
+              <button onClick={() => setShowLevelGuide(v => !v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                <span style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>Understanding Your Rating</span>
+                <span style={{ fontSize:11, color:'#888', transform: showLevelGuide ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▼</span>
+              </button>
+              {showLevelGuide && (
+                <div style={{ padding:'0 14px 16px', display:'flex', flexDirection:'column', gap:12 }}>
+                  <div style={{ fontSize:12, color:'#6b5050', lineHeight:1.6, paddingTop:2 }}>
+                    Your rating moves up or down after every logged match based on the result and your opponents' strength. The more you play, the more accurate it becomes.
+                  </div>
+                  {[
+                    { level:'1', name:'Elite', range:'5.6 – 7.0', color:levelColor['1'], bg:levelBg['1'],
+                      desc:'You compete at a high level and have done so for a while. Your wall play is automatic, your shot selection is deliberate, and you understand how to construct a point. You have likely played in tournaments or at a club competitive level. Matches at this tier are fast, technical, and unforgiving.' },
+                    { level:'2', name:'Competitive', range:'4.1 – 5.5', color:levelColor['2'], bg:levelBg['2'],
+                      desc:'A solid club player with real technical ability. You are comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You win more than you lose at casual club level and you are starting to play with real tactical intent.' },
+                    { level:'3', name:'Casual', range:'2.6 – 4.0', color:levelColor['3'], bg:levelBg['3'],
+                      desc:'You have found your feet on the court and can hold a rally. Wall bounces do not panic you anymore and you are developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You are building consistency and starting to think tactically.' },
+                    { level:'4', name:'Beginner', range:'1.0 – 2.5', color:levelColor['4'], bg:levelBg['4'],
+                      desc:'New to padel or still finding your footing. You are learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here. The only way is up.' },
+                  ].map(l => (
+                    <div key={l.level} style={{ background:l.bg, border:`1px solid ${l.color}25`, borderLeft:`3px solid ${l.color}`, borderRadius:12, padding:'13px 14px' }}>
+                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                          <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{l.name}</span>
+                        </div>
+                        <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
+                      </div>
+                      <div style={{ fontSize:12, color:'#6b5050', lineHeight:1.6 }}>{l.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
               {([['🏆','Leaderboard','See club rankings','leaderboard'],['🎾','Log Match','Record results','log'],['📈','My Results','Track your rating','my']] as const).map(([icon,title,desc,tab]) => (
                 <button key={title} onClick={() => { sessionStorage.setItem('arenaTab', tab); router.push('/ratings') }}
@@ -1063,3 +1099,4 @@ export default function HomePage() {
     </div>
   )
 }
+
