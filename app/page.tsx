@@ -783,97 +783,109 @@ export default function HomePage() {
         {view==='matches' && (()=>{
           if (!currentUser) return (
             <div style={{ textAlign:'center', padding:'48px 20px' }}>
-              <div style={{ fontSize:32 }}>📅</div>
               <div style={{ color:'#555', fontWeight:600, marginTop:10 }}>Log in to see your schedule</div>
             </div>
           )
 
           const myPosts = posts.filter(p => p.player_id === currentUser.id)
           const joinedPosts = posts.filter(p => p.interested_ids.includes(currentUser.id))
+          const schedulePosts = [...myPosts, ...joinedPosts.filter(p => p.player_id !== currentUser.id)]
+
+          function ScheduleCard({ post: p, isOwner }: { post: any, isOwner: boolean }) {
+            const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
+            const full = spotsLeft === 0
+            const c = levelColor[p.level]
+            const interestedPlayers = players.filter((pl:any) => p.interested_ids.includes(pl.id))
+            const organiser = players.find((pl:any) => pl.id === p.player_id)
+            const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
+            const emptySlots = Math.max(0, 4 - filledSlots.length)
+            return (
+              <div style={{ background:'#fff', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
+                <div style={{ display:'flex', alignItems:'flex-start', gap:11 }}>
+                  <Avatar initials={p.player_avatar} size={38} level={p.level} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
+                      <span style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{p.player_name}</span>
+                      <LevelBadge level={p.level} small />
+                      {isOwner && <span style={{ fontSize:9, fontWeight:700, color:'#014a09', background:'rgba(1,74,9,0.1)', borderRadius:5, padding:'1px 5px' }}>YOUR GAME</span>}
+                    </div>
+                    <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' }}>
+                      {(p.allowed_levels || [p.level]).map((l:string) => (
+                        <span key={l} style={{ background:levelBg[l], color:levelColor[l], border:`1px solid ${levelColor[l]}40`, borderRadius:6, padding:'1px 6px', fontSize:9, fontWeight:800 }}>L{l}</span>
+                      ))}
+                      <span style={{ fontSize:10, color:'#888' }}>{timeAgo(p.created_at)}</span>
+                    </div>
+                  </div>
+                  {isOwner && (
+                    <div style={{ display:'flex', gap:5 }}>
+                      <button onClick={() => {
+                        const slot = p.slot; const dotIdx = slot.indexOf(' · ')
+                        const timePart = dotIdx > -1 ? slot.slice(0, dotIdx) : slot
+                        const durPart = dotIdx > -1 ? slot.slice(dotIdx + 3) : ''
+                        const parts = timePart.split(' ')
+                        setFDay(parts[0]||''); setFTime(parts.slice(1).join(' ')||'')
+                        setFDuration(durPart||''); setFSpots(p.spots_needed)
+                        setFNote(p.note||''); setFLevels(p.allowed_levels||[p.level])
+                        setEditingPost(p.id); setShowForm(true); setView('board')
+                      }} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
+                      <button onClick={() => handleDeletePost(p.id)} style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:7, padding:'3px 8px', color:'#990033', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
+                  <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
+                    📅 {formatSlotDisplay(p.slot)}
+                  </span>
+                </div>
+                {p.note && <div style={{ fontSize:13, color:'#888', lineHeight:1.5, fontStyle:'italic' }}>"{p.note}"</div>}
+                <div>
+                  <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/4)</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
+                    {filledSlots.map((pl:any, i:number) => pl && (
+                      <div key={pl.id} style={{ background:i===0?`${levelColor[pl.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[pl.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
+                        <Avatar initials={pl.avatar} size={24} level={pl.level} />
+                        <div style={{ minWidth:0 }}>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#014a09', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name.split(' ')[0]}</div>
+                          <div style={{ fontSize:9, color:i===0?levelColor[pl.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {Array.from({length:emptySlots}).map((_,i) => (
+                      <div key={`open-${i}`} style={{ background:'rgba(0,0,0,0.02)', border:'1px solid #ddd', borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
+                        <span style={{ fontSize:11, color:'#bbb' }}>○ Open</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {!isOwner && (
+                  <button onClick={() => handleInterest(p.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                    Cancel my spot
+                  </button>
+                )}
+              </div>
+            )
+          }
 
           return (
-            <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <Avatar initials={currentUser.avatar} size={46} level={currentUser.level} />
+            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
                 <div>
-                  <div style={{ fontSize:17, fontWeight:800, color:'#014a09' }}>{currentUser.name}'s Schedule</div>
-                  <div style={{ fontSize:12, color:'#888' }}>{myPosts.length + joinedPosts.length} active games</div>
+                  <div style={{ fontSize:17, fontWeight:900, color:'#014a09' }}>My Schedule</div>
+                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{schedulePosts.length} active game{schedulePosts.length!==1?'s':''}</div>
                 </div>
+                <button onClick={() => setView('board')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               </div>
 
-              {/* Games I posted */}
-              <div>
-                <div style={{ fontSize:12, fontWeight:800, color:'#555', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>
-                  Games I posted ({myPosts.length})
+              {schedulePosts.length === 0 ? (
+                <div style={{ textAlign:'center', padding:'48px 20px' }}>
+                  <div style={{ fontSize:30, marginBottom:12 }}>📅</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#014a09', marginBottom:8 }}>No games yet</div>
+                  <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>Post a game or join one from the board</div>
+                  <button onClick={() => setView('board')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'11px 24px', color:'#ffcc66', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
                 </div>
-                {myPosts.length === 0 ? (
-                  <div style={{ background:'rgba(0,0,0,0.02)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:14, padding:'20px', textAlign:'center' }}>
-                    <div style={{ fontSize:24, marginBottom:8 }}>📋</div>
-                    <div style={{ fontSize:13, color:'#6b5050' }}>You haven't posted any games yet</div>
-                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'8px 18px', color:'#026b0d', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Post a game →</button>
-                  </div>
-                ) : myPosts.map(p => {
-                  const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
-                  const full = spotsLeft === 0
-                  return (
-                    <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
-                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                        <div>
-                          <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>🕐 {p.slot}</span>
-                        </div>
-                        <span style={{ fontSize:12, fontWeight:700, color: full ? '#00c6a2' : '#888' }}>
-                          {full ? '✓ Full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} left`}
-                        </span>
-                      </div>
-                      {p.note && <div style={{ fontSize:13, color:'#777', fontStyle:'italic' }}>"{p.note}"</div>}
-                      {p.interested_ids.length > 0 && (
-                        <div style={{ fontSize:12, color:'#555' }}>
-                          <span style={{ color:'#4ade80', fontWeight:700 }}>{p.interested_ids.length}</span> player{p.interested_ids.length!==1?'s':''} interested
-                        </div>
-                      )}
-                      <button onClick={() => handleDeletePost(p.id)} style={{ background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:9, padding:'7px 0', color:'#f87171', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
-                        Remove post
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* Games I joined */}
-              <div>
-                <div style={{ fontSize:12, fontWeight:800, color:'#555', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10 }}>
-                  Games I joined ({joinedPosts.length})
-                </div>
-                {joinedPosts.length === 0 ? (
-                  <div style={{ background:'rgba(0,0,0,0.02)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:14, padding:'20px', textAlign:'center' }}>
-                    <div style={{ fontSize:24, marginBottom:8 }}>🎾</div>
-                    <div style={{ fontSize:13, color:'#6b5050' }}>You haven't joined any games yet</div>
-                    <button onClick={() => setView('board')} style={{ marginTop:12, background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.3)', borderRadius:10, padding:'8px 18px', color:'#026b0d', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
-                  </div>
-                ) : joinedPosts.map(p => {
-                  const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
-                  const full = spotsLeft === 0
-                  return (
-                    <div key={p.id} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}25`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:14, padding:'14px 16px', marginBottom:9, display:'flex', flexDirection:'column', gap:9 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <Avatar initials={p.player_avatar} size={32} level={p.level} />
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:700, fontSize:13, color:'#4a3030' }}>{p.player_name}'s game</div>
-                          <div style={{ fontSize:11, color:'#555', marginTop:2 }}>{p.slot}</div>
-                        </div>
-                        <LevelBadge level={p.level} small />
-                      </div>
-                      {p.note && <div style={{ fontSize:13, color:'#777', fontStyle:'italic' }}>"{p.note}"</div>}
-                      <div style={{ fontSize:12, color: full ? '#00c6a2' : '#888', fontWeight:600 }}>
-                        {full ? '✓ Game is full' : `${spotsLeft} spot${spotsLeft!==1?'s':''} still open`}
-                      </div>
-                      <button onClick={() => handleInterest(p.id)} style={{ background:'transparent', border:'1px solid rgba(248,113,113,0.3)', borderRadius:9, padding:'7px 0', color:'#f87171', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>
-                        Cancel interest
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
+              ) : schedulePosts.map(p => (
+                <ScheduleCard key={p.id} post={p} isOwner={p.player_id === currentUser.id} />
+              ))}
             </div>
           )
         })()}
