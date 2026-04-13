@@ -240,11 +240,12 @@ export default function RatingsPage() {
     </div>
   )
 
+  const myId = currentUser?.player_id || userId
   const myHistory = history.filter(m =>
-    [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(userId!)
+    myId && [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(myId)
   )
 
-  const myRank = currentUser ? ratings.findIndex(r => r.player_id === userId) + 1 : 0
+  const myRank = currentUser ? ratings.findIndex(r => r.player_id === myId) + 1 : 0
 
   return (
     <div style={s.page}>
@@ -275,7 +276,7 @@ export default function RatingsPage() {
             <div style={s.lbl}>Club rankings · {ratings.length} members</div>
             {ratings.map((r, i) => {
               const b = getBand(r.rating)
-              const isMe = r.player_id === userId
+              const isMe = r.player_id === myId
               return (
                 <div key={r.id} style={{
                   display:'flex', alignItems:'center', gap:12,
@@ -472,8 +473,8 @@ export default function RatingsPage() {
                     <div style={{ fontSize:12, color:'#888', marginBottom:3 }}>Your current rating</div>
                     <div style={{ fontSize:16, fontWeight:800, color:'#660033' }}>{currentUser.player_name}</div>
                     <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:6 }}>
-                      <ConfBadge n={currentUser.match_count} />
-                      <span style={{ fontSize:11, color:'#888' }}>{currentUser.match_count} matches · rank #{myRank}</span>
+                      <ConfBadge n={myHistory.length} />
+                      <span style={{ fontSize:11, color:'#888' }}>{myHistory.length} matches · rank #{myRank}</span>
                     </div>
                   </div>
                 </div>
@@ -494,23 +495,23 @@ export default function RatingsPage() {
                 </div>
 
                 {/* Match history */}
-                <div style={s.lbl}>Recent matches ({myHistory.length})</div>
+                <div style={s.lbl}>All matches ({myHistory.length})</div>
                 {myHistory.length === 0 ? (
                   <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet</div>
                 ) : myHistory.map(m => {
-                  const onA = [m.team_a1_id, m.team_a2_id].includes(userId!)
+                  const onA = [m.team_a1_id, m.team_a2_id].includes(myId!)
                   const won = onA
                     ? (m.sets_a.reduce((a:number,b:number)=>a+b,0) > m.sets_b.reduce((a:number,b:number)=>a+b,0))
                     : (m.sets_b.reduce((a:number,b:number)=>a+b,0) > m.sets_a.reduce((a:number,b:number)=>a+b,0))
-                  const isA1 = m.team_a1_id === userId
-                  const isA2 = m.team_a2_id === userId
-                  const before = isA1 ? m.rating_a1_before : isA2 ? m.rating_a2_before : m.team_b1_id === userId ? m.rating_b1_before : m.rating_b2_before
-                  const after  = isA1 ? m.rating_a1_after  : isA2 ? m.rating_a2_after  : m.team_b1_id === userId ? m.rating_b1_after  : m.rating_b2_after
+                  const isA1 = m.team_a1_id === myId
+                  const isA2 = m.team_a2_id === myId
+                  const before = isA1 ? m.rating_a1_before : isA2 ? m.rating_a2_before : m.team_b1_id === myId ? m.rating_b1_before : m.rating_b2_before
+                  const after  = isA1 ? m.rating_a1_after  : isA2 ? m.rating_a2_after  : m.team_b1_id === myId ? m.rating_b1_after  : m.rating_b2_after
                   const delta  = Math.round((after - before) * 10) / 10
                   const sets = m.sets_a.map((a:number,i:number) => `${a}-${m.sets_b[i]}`).join(', ')
                   const partner = onA
                     ? (isA1 ? m.team_a2_name : m.team_a1_name)
-                    : (m.team_b1_id === userId ? m.team_b2_name : m.team_b1_name)
+                    : (m.team_b1_id === myId ? m.team_b2_name : m.team_b1_name)
                   const opp1 = onA ? m.team_b1_name : m.team_a1_name
                   const opp2 = onA ? m.team_b2_name : m.team_a2_name
 
