@@ -635,13 +635,13 @@ export default function RatingsPage() {
                         </div>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(2,107,13,0.05)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(2,107,13,0.15)'}` }}>
+                        <div style={{ padding:'7px 9px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
                           <div style={{ fontSize:9, fontWeight:700, color: won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#6b5050', lineHeight:1.5 }}>You<br/>{partner}</div>
+                          <div style={{ fontSize:11, color: won?'#006633':'#990033', lineHeight:1.5 }}>You<br/>{partner}</div>
                         </div>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: !won?'rgba(0,102,51,0.07)':'rgba(2,107,13,0.05)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(2,107,13,0.15)'}` }}>
+                        <div style={{ padding:'7px 9px', borderRadius:8, background: !won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
                           <div style={{ fontSize:9, fontWeight:700, color: !won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{!won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#6b5050', lineHeight:1.5 }}>{opp1}<br/>{opp2}</div>
+                          <div style={{ fontSize:11, color: !won?'#006633':'#990033', lineHeight:1.5 }}>{opp1}<br/>{opp2}</div>
                         </div>
                       </div>
                       <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#006633' : '#026b0d' }}>
@@ -723,13 +723,13 @@ export default function RatingsPage() {
                         <div style={{ fontSize:12, fontWeight:700, color:won?'#006633':'#990033' }}>{won?'W':'L'} · {sets}</div>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7, marginBottom:7 }}>
-                        <div style={{ padding:'6px 8px', borderRadius:8, background:'rgba(0,102,51,0.07)', border:'1px solid rgba(0,102,51,0.2)' }}>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
                           <div style={{ fontSize:9, fontWeight:700, color:won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#014a09' }}>{vp.player_name}<br/>{partner}</div>
+                          <div style={{ fontSize:11, color:won?'#006633':'#990033' }}>{vp.player_name}<br/>{partner}</div>
                         </div>
-                        <div style={{ padding:'6px 8px', borderRadius:8, background:!won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:!won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
                           <div style={{ fontSize:9, fontWeight:700, color:!won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{!won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:'#014a09' }}>{opp1}<br/>{opp2}</div>
+                          <div style={{ fontSize:11, color:!won?'#006633':'#990033' }}>{opp1}<br/>{opp2}</div>
                         </div>
                       </div>
                       <div style={{ fontSize:12, fontWeight:700, color:delta>=0?'#006633':'#990033' }}>{before.toFixed(1)} → {after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
