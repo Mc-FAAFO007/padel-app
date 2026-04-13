@@ -137,6 +137,9 @@ export default function HomePage() {
   const [editingPost, setEditingPost] = useState<number|null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<number|null>(null)
   const [addingMember, setAddingMember] = useState<number|null>(null)
+  const [fInvited, setFInvited] = useState<string[]>([])
+  const [fPlayerSearch, setFPlayerSearch] = useState('')
+  const [showPlayerSearch, setShowPlayerSearch] = useState(false)
 
   function showNotif(msg: string) {
     setNotif(msg)
@@ -252,9 +255,16 @@ export default function HomePage() {
         slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
       })
       if (error) { showNotif('Error posting: ' + error.message); return }
+      // Add invited players
+      if (fInvited.length > 0) {
+        const { data: newPost } = await supabase.from('posts').select('id').eq('player_id', currentUser.id).order('created_at', { ascending: false }).limit(1).single()
+        if (newPost) {
+          await Promise.all(fInvited.map(pid => supabase.from('post_interests').insert({ post_id: newPost.id, player_id: pid })))
+        }
+      }
       showNotif('Game posted!')
     }
-    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote(''); setFLevels([])
+    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote(''); setFLevels([]); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false)
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
@@ -543,6 +553,55 @@ export default function HomePage() {
                       <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?'#990033':'#ddd'}`, background:fSpots===n?'#660033':'transparent', color:fSpots===n?'#ffcc66':'#888', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Add players (optional)</div>
+                  {fInvited.length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
+                      {fInvited.map(pid => {
+                        const p = players.find((x:any) => x.id === pid)
+                        if (!p) return null
+                        return (
+                          <div key={pid} style={{ display:'flex', alignItems:'center', gap:5, background:levelBg[p.level], border:`1px solid ${levelColor[p.level]}40`, borderRadius:20, padding:'4px 10px 4px 6px' }}>
+                            <Avatar initials={p.avatar} size={20} level={p.level} />
+                            <span style={{ fontSize:12, fontWeight:700, color:levelColor[p.level] }}>{p.name.split(' ')[0]}</span>
+                            <button onClick={() => setFInvited((prev:string[]) => prev.filter((x:string)=>x!==pid))} style={{ background:'none', border:'none', color:'#888', fontSize:13, cursor:'pointer', padding:'0 0 0 2px', lineHeight:1, fontFamily:'inherit' }}>✕</button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                  <div style={{ position:'relative' }}>
+                    <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'#aaa', pointerEvents:'none' }}>🔍</span>
+                    <input
+                      type="text"
+                      placeholder="Search members…"
+                      value={fPlayerSearch}
+                      onChange={e => { setFPlayerSearch(e.target.value); setShowPlayerSearch(true) }}
+                      onFocus={() => setShowPlayerSearch(true)}
+                      style={{ width:'100%', background:'#fff', border:`1px solid ${showPlayerSearch?'rgba(153,0,51,0.3)':'#ddd'}`, borderRadius:10, padding:'10px 14px 10px 36px', color:'#660033', fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' as const }}
+                    />
+                  </div>
+                  {showPlayerSearch && (() => {
+                    const results = players.filter((p:any) => p.id !== currentUser.id && !fInvited.includes(p.id) && p.name.toLowerCase().includes(fPlayerSearch.toLowerCase()))
+                    return (
+                      <div style={{ background:'#fff', border:'1px solid rgba(102,0,51,0.15)', borderRadius:10, marginTop:6, overflow:'hidden', maxHeight:200, overflowY:'auto' }}>
+                        {results.length === 0 ? (
+                          <div style={{ padding:'14px', fontSize:12, color:'#888', textAlign:'center' }}>No members found</div>
+                        ) : results.map((p:any, idx:number) => (
+                          <button key={p.id} onClick={() => { setFInvited((prev:string[]) => [...prev, p.id]); setFPlayerSearch(''); setShowPlayerSearch(false) }}
+                            style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'transparent', border:'none', borderBottom: idx < results.length-1 ? '1px solid rgba(102,0,51,0.07)' : 'none', cursor:'pointer', fontFamily:'inherit', textAlign:'left' as const }}>
+                            <Avatar initials={p.avatar} size={28} level={p.level} />
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight:700, color:'#660033' }}>{p.name}</div>
+                              <div style={{ fontSize:10, color:'#888' }}>L{p.level} · {levelDesc[p.level]}</div>
+                            </div>
+                            <span style={{ fontSize:11, fontWeight:700, color:'#990033' }}>+ Add</span>
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  })()}
                 </div>
                 <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(102,0,51,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
