@@ -178,9 +178,18 @@ export default function HomePage() {
       }))
       setPosts(enrichedPosts)
 
-      // Fetch live rating for header pill
+      // Fetch live rating for header pill and sync level on profile
       const ratingRes = await supabase.from('ratings').select('rating').eq('player_id', userId).single()
-      if (ratingRes.data) setLiveRating(ratingRes.data.rating)
+      if (ratingRes.data) {
+        const rating = ratingRes.data.rating
+        setLiveRating(rating)
+        // Sync profile level if rating has moved them to a new level
+        const derivedLevel = ratingToLevel(rating).level
+        if (profileRes.data && profileRes.data.level !== derivedLevel) {
+          await supabase.from('profiles').update({ level: derivedLevel }).eq('id', userId)
+          profileRes.data.level = derivedLevel
+        }
+      }
 
       setLoading(false)
     } catch (err) {
@@ -289,7 +298,8 @@ export default function HomePage() {
     const post = posts.find(p => p.id === postId)
     if (!post) return
     const allowedLevels = post.allowed_levels || [post.level]
-    if (!allowedLevels.includes(currentUser.level) && !post.interested_ids.includes(currentUser.id)) {
+    const myCurrentLevel = liveRating ? ratingToLevel(liveRating).level : currentUser.level
+    if (!allowedLevels.includes(myCurrentLevel) && !post.interested_ids.includes(currentUser.id)) {
       showNotif('This game is restricted to ' + allowedLevels.map((l: string) => `L${l}`).join(', '))
       return
     }
@@ -489,8 +499,11 @@ export default function HomePage() {
                   setFSpots(3); setFNote(''); setFInvited([])
                   setFPlayerSearch(''); setShowPlayerSearch(false)
                   setEditingPost(null)
-                  // Auto-select current user's level
-                  if (currentUser) setFLevels([currentUser.level])
+                  // Auto-select current level derived from live rating
+                  if (currentUser) {
+                    const currentLevel = liveRating ? ratingToLevel(liveRating).level : currentUser.level
+                    setFLevels([currentLevel])
+                  }
                   setShowForm(true)
                 }} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
               )}
@@ -707,7 +720,8 @@ export default function HomePage() {
                     const emptySlots = Math.max(0, totalSlots - filledSlots.length)
                     const canJoin = !isOwner && currentUser && !alreadyIn && !full
                     const allowedLevels = post.allowed_levels || [post.level]
-                    const levelAllowed = currentUser && allowedLevels.includes(currentUser.level)
+                    const myLevel = liveRating ? ratingToLevel(liveRating).level : currentUser?.level
+                    const levelAllowed = currentUser && allowedLevels.includes(myLevel!)
                     return (
                       <div>
                         <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
