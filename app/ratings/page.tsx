@@ -50,6 +50,82 @@ function Avatar({ initials, size = 40, rating }: { initials: string; size?: numb
       color: b.color, fontWeight: 900, fontSize: size * 0.32, flexShrink: 0,
     }}>
       {initials}
+      {/* Player profile modal */}
+      {viewingPlayer && (() => {
+        const vp = viewingPlayer
+        const b = getBand(vp.rating)
+        const vpHistory = history.filter(m =>
+          [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(vp.player_id)
+        )
+        const vpRank = ratings.findIndex(r => r.player_id === vp.player_id) + 1
+        return (
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
+            onClick={() => setViewingPlayer(null)}>
+            <div onClick={e => e.stopPropagation()} style={{ background:'#f5f0e8', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+              {/* Header */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
+                  <div>
+                    <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{vp.player_name}</div>
+                    <div style={{ fontSize:12, color:'#888' }}>Rank #{vpRank} · {b.label}</div>
+                  </div>
+                </div>
+                <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
+              </div>
+              {/* Rating card */}
+              <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
+                <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
+                <div>
+                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.7)', marginBottom:3 }}>Current rating</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{b.label}</div>
+                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginTop:3 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
+                </div>
+              </div>
+              {/* Match history */}
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>Match history ({vpHistory.length})</div>
+                {vpHistory.length === 0 ? (
+                  <div style={{ textAlign:'center', padding:'20px 0', fontSize:13, color:'#888' }}>No matches logged yet</div>
+                ) : vpHistory.slice(0,10).map((m:any) => {
+                  const onA = [m.team_a1_id, m.team_a2_id].includes(vp.player_id)
+                  const won = onA
+                    ? (m.sets_a.reduce((a:number,b:number)=>a+b,0) > m.sets_b.reduce((a:number,b:number)=>a+b,0))
+                    : (m.sets_b.reduce((a:number,b:number)=>a+b,0) > m.sets_a.reduce((a:number,b:number)=>a+b,0))
+                  const isA1 = m.team_a1_id === vp.player_id
+                  const isA2 = m.team_a2_id === vp.player_id
+                  const before = isA1?m.rating_a1_before:isA2?m.rating_a2_before:m.team_b1_id===vp.player_id?m.rating_b1_before:m.rating_b2_before
+                  const after  = isA1?m.rating_a1_after :isA2?m.rating_a2_after :m.team_b1_id===vp.player_id?m.rating_b1_after :m.rating_b2_after
+                  const delta  = Math.round((after - before) * 10) / 10
+                  const sets   = m.sets_a.map((a:number,i:number)=>`${a}-${m.sets_b[i]}`).join(', ')
+                  const partner = onA?(isA1?m.team_a2_name:m.team_a1_name):(m.team_b1_id===vp.player_id?m.team_b2_name:m.team_b1_name)
+                  const opp1 = onA?m.team_b1_name:m.team_a1_name
+                  const opp2 = onA?m.team_b2_name:m.team_a2_name
+                  return (
+                    <div key={m.id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.1)', borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'11px 14px', marginBottom:7 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                        <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                        <div style={{ fontSize:12, fontWeight:700, color:won?'#006633':'#990033' }}>{won?'W':'L'} · {sets}</div>
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7, marginBottom:7 }}>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#014a09' }}>{vp.player_name.split(' ')[0]}<br/>{partner.split(' ')[0]}</div>
+                        </div>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:!won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:!won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{!won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#014a09' }}>{opp1.split(' ')[0]}<br/>{opp2.split(' ')[0]}</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize:12, fontWeight:700, color:delta>=0?'#006633':'#990033' }}>{before.toFixed(1)} → {after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
@@ -101,6 +177,9 @@ export default function RatingsPage() {
   const [s3b, setS3b] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [pickingFor, setPickingFor] = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
+  const [lockedPlayers, setLockedPlayers] = useState<string[]>([]) // player_ids locked from prefill
+  const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null) // for player profile modal
+  const [prefillPostId, setPrefillPostId] = useState<number|null>(null)
 
   const notifRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -147,28 +226,32 @@ export default function RatingsPage() {
     }
   }, [loadData])
 
+  // Open player profile when navigated from schedule
+  useEffect(() => {
+    const viewPlayerId = sessionStorage.getItem('viewPlayer')
+    if (!viewPlayerId || ratings.length === 0) return
+    sessionStorage.removeItem('viewPlayer')
+    const player = ratings.find(r => r.player_id === viewPlayerId)
+    if (player) setViewingPlayer(player)
+  }, [ratings])
+
   // Pre-fill teams from schedule game once ratings are loaded
   useEffect(() => {
     const prefill = sessionStorage.getItem('prefillGame')
     if (!prefill || ratings.length === 0) return
     sessionStorage.removeItem('prefillGame')
     try {
-      const { playerIds } = JSON.parse(prefill)
+      const { playerIds, postId } = JSON.parse(prefill)
       if (!playerIds || playerIds.length < 4) return
-      // Map player IDs to rating objects
       const ratingPlayers = playerIds.map((id: string) => ratings.find(r => r.player_id === id)).filter(Boolean)
       if (ratingPlayers.length >= 4) {
         setSelA1(ratingPlayers[0])
         setSelA2(ratingPlayers[1])
         setSelB1(ratingPlayers[2])
         setSelB2(ratingPlayers[3])
+        setLockedPlayers(playerIds) // lock all 4 — no swapping allowed
+        if (postId) setPrefillPostId(postId)
         setPickingFor(null)
-      } else if (ratingPlayers.length >= 2) {
-        // Partial — fill what we have
-        if (ratingPlayers[0]) setSelA1(ratingPlayers[0])
-        if (ratingPlayers[1]) setSelA2(ratingPlayers[1])
-        if (ratingPlayers[2]) setSelB1(ratingPlayers[2])
-        if (ratingPlayers[3]) setSelB2(ratingPlayers[3])
       }
     } catch(e) { console.error('prefill parse error', e) }
   }, [ratings])
@@ -234,11 +317,17 @@ export default function RatingsPage() {
     } else {
       showNotif('Match logged! Ratings updated')
     }
+    // If this match came from a scheduled game, remove the post
+    if (prefillPostId) {
+      await supabase.from('post_interests').delete().eq('post_id', prefillPostId)
+      await supabase.from('posts').delete().eq('id', prefillPostId)
+      setPrefillPostId(null)
+    }
+    setLockedPlayers([])
     setSelA1(null); setSelA2(null); setSelB1(null); setSelB2(null)
     setS1a(''); setS1b(''); setS2a(''); setS2b(''); setS3a(''); setS3b('')
     setPickingFor(null)
     setSubmitting(false)
-    // Reload data then go to My Results — reload again after 2s to catch any DB lag
     setView('my')
     setTimeout(() => loadData(), 500)
     setTimeout(() => loadData(), 2000)
@@ -315,12 +404,14 @@ export default function RatingsPage() {
               const b = getBand(r.rating)
               const isMe = r.player_id === myId
               return (
-                <div key={r.id} style={{
+                <div key={r.id} onClick={() => !isMe && setViewingPlayer(r)}
+                  style={{
                   display:'flex', alignItems:'center', gap:12,
                   padding:'12px 4px', borderBottom:'1px solid rgba(1,74,9,0.08)',
                   background: isMe ? 'rgba(1,74,9,0.05)' : 'transparent',
                   borderRadius: isMe ? 8 : 0,
                   margin: isMe ? '0 -4px' : 0,
+                  cursor: isMe ? 'default' : 'pointer',
                 }}>
                   <div style={{ fontSize:13, fontWeight:900, color: i < 3 ? '#014a09' : '#aaa', width:20, textAlign:'center', flexShrink:0, background: i < 3 ? 'rgba(1,74,9,0.1)' : 'transparent', borderRadius:'50%', height:20, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     {i + 1}
@@ -360,7 +451,9 @@ export default function RatingsPage() {
               <div style={{ ...s.lbl, color:'#006633', marginBottom:8 }}>Team A — Winners</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                 {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => {
-                  const isLocked = slot === 'a1'
+                  const isYou = slot === 'a1'
+                  const isFullyLocked = lockedPlayers.length > 0
+                  const isLocked = isYou || isFullyLocked
                   return (
                     <button key={slot} onClick={() => !isLocked && setPickingFor(pickingFor === slot ? null : slot)} style={{
                       padding:'10px 12px', borderRadius:11,
@@ -372,11 +465,11 @@ export default function RatingsPage() {
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1, textAlign:'left' }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}{isLocked?' (you)':''}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name.split(' ')[0]}{isYou?' (you)':''}</div>
                             <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                           </div>
                           {!isLocked && <span onClick={e => { e.stopPropagation(); setSelA2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>}
-                          {isLocked && <span style={{ fontSize:9, color:'#014a09', fontWeight:700, background:'rgba(1,74,9,0.1)', borderRadius:6, padding:'2px 5px' }}>YOU</span>}
+                          {isLocked && <span style={{ fontSize:9, color:'#014a09', fontWeight:700, background:'rgba(1,74,9,0.1)', borderRadius:6, padding:'2px 5px' }}>{isYou?'YOU':'SET'}</span>}
                         </>
                       ) : (
                         <div style={{ fontSize:12, color: pickingFor===slot?'#026b0d':'rgba(0,102,51,0.5)', fontWeight:700 }}>
@@ -394,10 +487,11 @@ export default function RatingsPage() {
               <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                 {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                  <button key={slot} onClick={() => setPickingFor(pickingFor === slot ? null : slot)} style={{
-                    padding:'10px 12px', borderRadius:11, border:`1px solid ${pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(153,0,51,0.4)':'#ddd'}`,
-                    background: pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)',
-                    cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
+                  <button key={slot} onClick={() => lockedPlayers.length === 0 && setPickingFor(pickingFor === slot ? null : slot)} style={{
+                    padding:'10px 12px', borderRadius:11,
+                    border:`1px solid ${lockedPlayers.length>0?'rgba(153,0,51,0.4)':pickingFor===slot?'rgba(153,0,51,0.6)':sel?'rgba(153,0,51,0.4)':'#ddd'}`,
+                    background: lockedPlayers.length>0?'rgba(153,0,51,0.07)':pickingFor===slot?'rgba(153,0,51,0.08)':sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)',
+                    cursor: lockedPlayers.length>0?'default':'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:8, minHeight:52,
                   }}>
                     {sel ? (
                       <>
@@ -406,7 +500,8 @@ export default function RatingsPage() {
                           <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name.split(' ')[0]}</div>
                           <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                         </div>
-                        <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
+                        {lockedPlayers.length === 0 && <span onClick={e => { e.stopPropagation(); slot==='b1'?setSelB1(null):setSelB2(null) }} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>}
+                        {lockedPlayers.length > 0 && <span style={{ fontSize:9, color:'#990033', fontWeight:700, background:'rgba(153,0,51,0.1)', borderRadius:6, padding:'2px 5px' }}>SET</span>}
                       </>
                     ) : (
                       <div style={{ fontSize:12, color: pickingFor===slot?'#990033':'rgba(153,0,51,0.5)', fontWeight:700 }}>
@@ -418,8 +513,8 @@ export default function RatingsPage() {
               </div>
             </div>
 
-            {/* Player picker list */}
-            {pickingFor && (
+            {/* Player picker list — hidden when players are locked from schedule */}
+            {pickingFor && lockedPlayers.length === 0 && (
               <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
                 <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -599,6 +694,82 @@ export default function RatingsPage() {
         )}
 
       </div>
+      {/* Player profile modal */}
+      {viewingPlayer && (() => {
+        const vp = viewingPlayer
+        const b = getBand(vp.rating)
+        const vpHistory = history.filter(m =>
+          [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(vp.player_id)
+        )
+        const vpRank = ratings.findIndex(r => r.player_id === vp.player_id) + 1
+        return (
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
+            onClick={() => setViewingPlayer(null)}>
+            <div onClick={e => e.stopPropagation()} style={{ background:'#f5f0e8', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+              {/* Header */}
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
+                  <div>
+                    <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{vp.player_name}</div>
+                    <div style={{ fontSize:12, color:'#888' }}>Rank #{vpRank} · {b.label}</div>
+                  </div>
+                </div>
+                <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
+              </div>
+              {/* Rating card */}
+              <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
+                <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
+                <div>
+                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.7)', marginBottom:3 }}>Current rating</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{b.label}</div>
+                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginTop:3 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
+                </div>
+              </div>
+              {/* Match history */}
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>Match history ({vpHistory.length})</div>
+                {vpHistory.length === 0 ? (
+                  <div style={{ textAlign:'center', padding:'20px 0', fontSize:13, color:'#888' }}>No matches logged yet</div>
+                ) : vpHistory.slice(0,10).map((m:any) => {
+                  const onA = [m.team_a1_id, m.team_a2_id].includes(vp.player_id)
+                  const won = onA
+                    ? (m.sets_a.reduce((a:number,b:number)=>a+b,0) > m.sets_b.reduce((a:number,b:number)=>a+b,0))
+                    : (m.sets_b.reduce((a:number,b:number)=>a+b,0) > m.sets_a.reduce((a:number,b:number)=>a+b,0))
+                  const isA1 = m.team_a1_id === vp.player_id
+                  const isA2 = m.team_a2_id === vp.player_id
+                  const before = isA1?m.rating_a1_before:isA2?m.rating_a2_before:m.team_b1_id===vp.player_id?m.rating_b1_before:m.rating_b2_before
+                  const after  = isA1?m.rating_a1_after :isA2?m.rating_a2_after :m.team_b1_id===vp.player_id?m.rating_b1_after :m.rating_b2_after
+                  const delta  = Math.round((after - before) * 10) / 10
+                  const sets   = m.sets_a.map((a:number,i:number)=>`${a}-${m.sets_b[i]}`).join(', ')
+                  const partner = onA?(isA1?m.team_a2_name:m.team_a1_name):(m.team_b1_id===vp.player_id?m.team_b2_name:m.team_b1_name)
+                  const opp1 = onA?m.team_b1_name:m.team_a1_name
+                  const opp2 = onA?m.team_b2_name:m.team_a2_name
+                  return (
+                    <div key={m.id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.1)', borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'11px 14px', marginBottom:7 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                        <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                        <div style={{ fontSize:12, fontWeight:700, color:won?'#006633':'#990033' }}>{won?'W':'L'} · {sets}</div>
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7, marginBottom:7 }}>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#014a09' }}>{vp.player_name.split(' ')[0]}<br/>{partner.split(' ')[0]}</div>
+                        </div>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:!won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.05)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.15)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:700, color:!won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{!won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:'#014a09' }}>{opp1.split(' ')[0]}<br/>{opp2.split(' ')[0]}</div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize:12, fontWeight:700, color:delta>=0?'#006633':'#990033' }}>{before.toFixed(1)} → {after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

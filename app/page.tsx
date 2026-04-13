@@ -860,7 +860,8 @@ export default function HomePage() {
                   <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/4)</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {filledSlots.map((pl:any, i:number) => pl && (
-                      <div key={pl.id} style={{ background:i===0?`${levelColor[pl.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[pl.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
+                      <div key={pl.id} onClick={() => { sessionStorage.setItem('arenaTab','leaderboard'); sessionStorage.setItem('viewPlayer', pl.id); router.push('/ratings') }}
+                        style={{ background:i===0?`${levelColor[pl.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[pl.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
                         <Avatar initials={pl.avatar} size={24} level={pl.level} />
                         <div style={{ minWidth:0 }}>
                           <div style={{ fontSize:11, fontWeight:700, color:'#014a09', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name.split(' ')[0]}</div>
