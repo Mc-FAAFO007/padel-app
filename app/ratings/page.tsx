@@ -25,14 +25,7 @@ function getConf(n: number): { label: string; color: string; bg: string } {
   return             { label:'HC', color:'#006633', bg:'rgba(0,102,51,0.10)'    }
 }
 
-// ─── K Factor: high movement early, slows down at high confidence ─────────────
-function getK(n: number) {
-  if (n < 5)  return 0.60   // NC  — big early swings, rating finds its level fast
-  if (n < 11) return 0.45   // LC  — still quite fluid
-  if (n < 21) return 0.28   // MC  — settling down
-  if (n < 41) return 0.18   // HC  — stabilising
-  return 0.12               // HC+ — high confidence, slow earned movement
-}
+function getK(n: number) { return n < 5 ? 0.4 : n < 10 ? 0.3 : n < 20 ? 0.22 : 0.16 }
 
 function marginMult(wG: number, lG: number) {
   const d = wG - lG
@@ -85,6 +78,108 @@ function Notif({ msg }: { msg: string | null }) {
   )
 }
 
+// ─── Score row component ──────────────────────────────────────────────────────
+// Renders one set row + optional tiebreak sub-row if either score is 7-6
+// aWinning/bWinning drive reactive colours — winner green, loser red, neutral when tied
+function SetRow({
+  label,
+  va, setVa, vb, setVb,
+  tba, setTba, tbb, setTbb,
+  aWinning, bWinning,
+}: {
+  label: string
+  va: string; setVa: (v: string) => void
+  vb: string; setVb: (v: string) => void
+  tba: string; setTba: (v: string) => void
+  tbb: string; setTbb: (v: string) => void
+  aWinning: boolean; bWinning: boolean
+}) {
+  const a = parseInt(va) || 0
+  const b = parseInt(vb) || 0
+  const showTb = (a === 7 && b === 6) || (a === 6 && b === 7)
+  const hasVal = va !== '' || vb !== ''
+
+  // Per-row reactive colour: higher score in this set is green, lower is red
+  const aRowWin = hasVal && a > b
+  const bRowWin = hasVal && b > a
+
+  function inputStyle(side: 'a' | 'b', rowWin: boolean, rowLose: boolean): React.CSSProperties {
+    const win  = { bg: 'rgba(0,102,51,0.07)',  border: 'rgba(0,102,51,0.4)',  color: '#006633' }
+    const lose = { bg: 'rgba(153,0,51,0.07)',  border: 'rgba(153,0,51,0.4)', color: '#990033' }
+    const neu  = { bg: 'rgba(1,74,9,0.04)',    border: 'rgba(1,74,9,0.15)',  color: '#888'    }
+    const { bg, border, color } = rowWin ? win : rowLose ? lose : neu
+    return {
+      background: bg, border: `1px solid ${border}`,
+      borderRadius: 9, padding: '9px 0',
+      color, fontSize: 20, fontWeight: 900, textAlign: 'center',
+      fontFamily: 'inherit', outline: 'none', width: '100%',
+      transition: 'all 0.15s',
+    }
+  }
+
+  function tbStyle(side: 'a' | 'b', rowWin: boolean, rowLose: boolean): React.CSSProperties {
+    const win  = { bg: 'rgba(0,102,51,0.05)',  border: 'rgba(0,102,51,0.35)',  color: '#006633' }
+    const lose = { bg: 'rgba(153,0,51,0.05)',  border: 'rgba(153,0,51,0.35)', color: '#990033' }
+    const neu  = { bg: 'rgba(1,74,9,0.02)',    border: 'rgba(1,74,9,0.2)',    color: '#aaa'    }
+    const { bg, border, color } = rowWin ? win : rowLose ? lose : neu
+    return {
+      background: bg, border: `1px dashed ${border}`,
+      borderRadius: 7, padding: '5px 0',
+      color, fontSize: 14, fontWeight: 800, textAlign: 'center',
+      fontFamily: 'inherit', outline: 'none', width: '100%',
+      transition: 'all 0.15s',
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: showTb ? 4 : 8 }}>
+      {/* Main set row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, alignItems: 'center' }}>
+        <div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>
+          {label}
+        </div>
+        <input
+          type="number" min="0" max="7" placeholder="—"
+          value={va} onChange={e => setVa(e.target.value)}
+          style={inputStyle('a', aRowWin, bRowWin)}
+        />
+        <div style={{ textAlign: 'center', color: '#888', fontWeight: 700, fontSize: 13 }}>–</div>
+        <input
+          type="number" min="0" max="7" placeholder="—"
+          value={vb} onChange={e => setVb(e.target.value)}
+          style={inputStyle('b', bRowWin, aRowWin)}
+        />
+      </div>
+
+      {/* Tiebreak sub-row — slides in when 7-6 */}
+      {showTb && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '50px 1fr 20px 1fr',
+          gap: 6, alignItems: 'center',
+          marginTop: 4, marginBottom: 8,
+          animation: 'fadeSlideIn 0.15s ease',
+        }}>
+          <div style={{ fontSize: 9, color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            TB
+          </div>
+          <input
+            type="number" min="0" max="20" placeholder="TB"
+            value={tba} onChange={e => setTba(e.target.value)}
+            style={tbStyle('a', aRowWin, bRowWin)}
+          />
+          <div style={{ textAlign: 'center', color: '#ccc', fontWeight: 700, fontSize: 11 }}>–</div>
+          <input
+            type="number" min="0" max="20" placeholder="TB"
+            value={tbb} onChange={e => setTbb(e.target.value)}
+            style={tbStyle('b', bRowWin, aRowWin)}
+          />
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function RatingsPage() {
   const router = useRouter()
@@ -101,18 +196,23 @@ export default function RatingsPage() {
   const [selA2, setSelA2] = useState<Rating | null>(null)
   const [selB1, setSelB1] = useState<Rating | null>(null)
   const [selB2, setSelB2] = useState<Rating | null>(null)
+
+  // Set scores: s1a = set1 team A, etc.
   const [s1a, setS1a] = useState('')
   const [s1b, setS1b] = useState('')
   const [s2a, setS2a] = useState('')
   const [s2b, setS2b] = useState('')
   const [s3a, setS3a] = useState('')
   const [s3b, setS3b] = useState('')
+
+  // Tiebreak scores: tb1a = set1 tiebreak team A, etc.
   const [tb1a, setTb1a] = useState('')
   const [tb1b, setTb1b] = useState('')
   const [tb2a, setTb2a] = useState('')
   const [tb2b, setTb2b] = useState('')
   const [tb3a, setTb3a] = useState('')
   const [tb3b, setTb3b] = useState('')
+
   const [submitting, setSubmitting] = useState(false)
   const [pickingFor, setPickingFor] = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
   const [lockedPlayers, setLockedPlayers] = useState<string[]>([])
@@ -192,6 +292,29 @@ export default function RatingsPage() {
     } catch(e) { console.error('prefill parse error', e) }
   }, [ratings])
 
+  // ── Derived: set winners & whether Set 3 is needed ────────────────────────
+  // A set is "won by A" if A score > B score (and both entered)
+  function setWinner(a: string, b: string): 'a' | 'b' | null {
+    const av = parseInt(a), bv = parseInt(b)
+    if (isNaN(av) || isNaN(bv) || (av === 0 && bv === 0)) return null
+    if (av > bv) return 'a'
+    if (bv > av) return 'b'
+    return null // draw / incomplete
+  }
+
+  const set1Winner = setWinner(s1a, s1b)
+  const set2Winner = setWinner(s2a, s2b)
+
+  // Show Set 3 only when sets are split (one each)
+  const showSet3 = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
+
+  // Clear Set 3 scores when it becomes hidden
+  useEffect(() => {
+    if (!showSet3) {
+      setS3a(''); setS3b(''); setTb3a(''); setTb3b('')
+    }
+  }, [showSet3])
+
   // ── Rating preview calc ───────────────────────────────────────────────────
   function calcPreview() {
     if (!selA1 || !selA2 || !selB1 || !selB2) return null
@@ -225,6 +348,9 @@ export default function RatingsPage() {
     const sets_a = [parseInt(s1a)||0, parseInt(s2a)||0, parseInt(s3a)||0].filter((_,i) => i===0 || (s2a&&i===1) || (s3a&&i===2))
     const sets_b = [parseInt(s1b)||0, parseInt(s2b)||0, parseInt(s3b)||0].filter((_,i) => i===0 || (s2b&&i===1) || (s3b&&i===2))
 
+    // Store tiebreak scores alongside set scores (append to metadata if needed)
+    // For now they're captured in state; extend your DB schema to persist tb scores if desired
+
     const { error: matchError } = await supabase.from('matches').insert({
       team_a1_id: selA1.player_id, team_a1_name: selA1.player_name,
       team_a2_id: selA2.player_id, team_a2_name: selA2.player_name,
@@ -247,7 +373,6 @@ export default function RatingsPage() {
     ])
     const updateErrors = updates.filter((r: any) => r.error)
     if (updateErrors.length > 0) {
-      console.error('Rating update errors:', updateErrors.map((r: any) => r.error))
       showNotif('Match logged but ratings need RLS fix in Supabase')
     } else {
       showNotif('Match logged! Ratings updated')
@@ -305,11 +430,18 @@ export default function RatingsPage() {
   const myHistory = history.filter(m =>
     myId && [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(myId)
   )
-
   const myRank = currentUser ? ratings.findIndex(r => r.player_id === myId) + 1 : 0
 
   return (
     <div style={s.page}>
+      {/* Fade-in keyframe for tiebreak row */}
+      <style>{`
+        @keyframes fadeSlideIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
       <Notif msg={notif} />
       <div style={s.inner}>
 
@@ -413,6 +545,8 @@ export default function RatingsPage() {
             if (isFromSchedule) setPool(prev => [...prev, player])
           }
 
+          const allFourSelected = !!(selA1 && selA2 && selB1 && selB2)
+
           return (
             <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
@@ -440,9 +574,9 @@ export default function RatingsPage() {
                 </div>
               )}
 
-              {/* Team A — Winners */}
+              {/* Team A */}
               <div>
-                <div style={{ ...s.lbl, color:'#006633', marginBottom:8 }}>Team A — Winners</div>
+                <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team A</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
                     <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(0,102,51,0.4)':'rgba(0,102,51,0.15)'}`, background:sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52,
@@ -467,9 +601,9 @@ export default function RatingsPage() {
                 </div>
               </div>
 
-              {/* Team B — Losers */}
+              {/* Team B */}
               <div>
-                <div style={{ ...s.lbl, color:'#990033', marginBottom:8 }}>Team B — Losers</div>
+                <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team B</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
                     <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(153,0,51,0.4)':'rgba(153,0,51,0.15)'}`, background:sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52,
@@ -513,147 +647,77 @@ export default function RatingsPage() {
                 </div>
               )}
 
-              {/* Set scores */}
-              {selA1 && selA2 && selB1 && selB2 && (() => {
-                const s1aWon = parseInt(s1a)||0; const s1bWon = parseInt(s1b)||0
-                const s2aWon = parseInt(s2a)||0; const s2bWon = parseInt(s2b)||0
-                const set1done = s1a !== '' && s1b !== ''
-                const set2done = s2a !== '' && s2b !== ''
-                const a1 = set1done && s1aWon > s1bWon
-                const a2 = set2done && s2aWon > s2bWon
-                const showSet3 = set1done && set2done && a1 !== a2
+              {/* ── Scores ── */}
+              {allFourSelected && (() => {
+                // Derive who's leading based on total games won across all sets
+                const aTotal = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
+                const bTotal = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
+                const aLeading = aTotal > bTotal
+                const bLeading = bTotal > aTotal
+                const hasScores = aTotal > 0 || bTotal > 0
 
-                const isTb = (a: string, b: string) => (parseInt(a)===7 && parseInt(b)===6) || (parseInt(a)===6 && parseInt(b)===7)
-                const tb1 = isTb(s1a, s1b)
-                const tb2 = isTb(s2a, s2b)
-                const tb3 = isTb(s3a, s3b)
-
-                const rowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:2 }
-                const tbRowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:8 }
-
-                function inputStyle(myVal: string, oppVal: string) {
-                  const me = parseInt(myVal)||0, opp = parseInt(oppVal)||0
-                  const hasVal = myVal !== '' && oppVal !== ''
-                  if (!hasVal || me === opp) return { background:'rgba(0,0,0,0.03)', border:'1px solid #ddd', borderRadius:9, padding:'9px 0', color:'#888', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                  if (me > opp) return { background:'rgba(0,102,51,0.08)', border:'1px solid rgba(0,102,51,0.35)', borderRadius:9, padding:'9px 0', color:'#006633', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                  return { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.35)', borderRadius:9, padding:'9px 0', color:'#990033', fontSize:20, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                }
-                function tbInputStyle(myVal: string, oppVal: string) {
-                  const me = parseInt(myVal)||0, opp = parseInt(oppVal)||0
-                  const hasVal = myVal !== '' && oppVal !== ''
-                  if (!hasVal || me === opp) return { background:'rgba(0,0,0,0.03)', border:'1px solid #ddd', borderRadius:8, padding:'6px 0', color:'#888', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                  if (me > opp) return { background:'rgba(0,102,51,0.08)', border:'1px solid rgba(0,102,51,0.35)', borderRadius:8, padding:'6px 0', color:'#006633', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                  return { background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.35)', borderRadius:8, padding:'6px 0', color:'#990033', fontSize:15, fontWeight:900, textAlign:'center' as const, fontFamily:'inherit', outline:'none', width:'100%' }
-                }
-                const dashStyle = { textAlign:'center' as const, color:'#888', fontWeight:700, fontSize:13 }
-
-                const aWins = [
-                  set1done && s1aWon > s1bWon,
-                  set2done && s2aWon > s2bWon,
-                  s3a !== '' && s3b !== '' && (parseInt(s3a)||0) > (parseInt(s3b)||0)
-                ].filter(Boolean).length
-                const bWins = [
-                  set1done && s1bWon > s1aWon,
-                  set2done && s2bWon > s2aWon,
-                  s3a !== '' && s3b !== '' && (parseInt(s3b)||0) > (parseInt(s3a)||0)
-                ].filter(Boolean).length
-                const aLeading = aWins > bWins
-                const bLeading = bWins > aWins
+                // Reactive colours for each team column
+                const aCol = !hasScores ? '#888' : aLeading ? '#006633' : bLeading ? '#990033' : '#888'
+                const bCol = !hasScores ? '#888' : bLeading ? '#006633' : aLeading ? '#990033' : '#888'
 
                 return (
                   <div>
-                    <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:8 }}>Scores</div>
+                    <div style={s.lbl}>Scores</div>
 
-                    {/* Team name headers */}
-                    <div style={{ display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:6 }}>
+                    {/* Team name headers above score columns */}
+                    <div style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, marginBottom:6 }}>
                       <div />
-                      <div style={{ textAlign:'center', fontSize:11, fontWeight:800,
-                        color: aLeading ? '#006633' : bLeading ? '#990033' : '#888' }}>
-                        {selA1?.player_name.split(' ')[0]} & {selA2?.player_name.split(' ')[0]}
-                      </div>
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: aCol, transition:'color 0.2s' }}>Team A</div>
                       <div />
-                      <div style={{ textAlign:'center', fontSize:11, fontWeight:800,
-                        color: bLeading ? '#006633' : aLeading ? '#990033' : '#888' }}>
-                        {selB1?.player_name.split(' ')[0]} & {selB2?.player_name.split(' ')[0]}
-                      </div>
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: bCol, transition:'color 0.2s' }}>Team B</div>
                     </div>
 
-                    {/* Set 1 */}
-                    <div style={rowStyle}>
-                      <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 1</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s1a} onChange={e=>setS1a(e.target.value)} style={inputStyle(s1a, s1b)} />
-                      <div style={dashStyle}>–</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s1b} onChange={e=>setS1b(e.target.value)} style={inputStyle(s1b, s1a)} />
-                    </div>
-                    {tb1 && (
-                      <div style={tbRowStyle}>
-                        <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                        <input type="number" min="0" placeholder="—" value={tb1a} onChange={e=>setTb1a(e.target.value)} style={tbInputStyle(tb1a, tb1b)} />
-                        <div style={{...dashStyle, fontSize:11}}>–</div>
-                        <input type="number" min="0" placeholder="—" value={tb1b} onChange={e=>setTb1b(e.target.value)} style={tbInputStyle(tb1b, tb1a)} />
-                      </div>
-                    )}
-                    {!tb1 && <div style={{marginBottom:8}}/>}
+                    {/* Set 1 — always shown */}
+                    <SetRow
+                      label="Set 1"
+                      va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b}
+                      tba={tb1a} setTba={setTb1a} tbb={tb1b} setTbb={setTb1b}
+                      aWinning={aLeading} bWinning={bLeading}
+                    />
 
-                    {/* Set 2 */}
-                    <div style={rowStyle}>
-                      <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 2</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s2a} onChange={e=>setS2a(e.target.value)} style={inputStyle(s2a, s2b)} />
-                      <div style={dashStyle}>–</div>
-                      <input type="number" min="0" max="7" placeholder="—" value={s2b} onChange={e=>setS2b(e.target.value)} style={inputStyle(s2b, s2a)} />
-                    </div>
-                    {tb2 && (
-                      <div style={tbRowStyle}>
-                        <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                        <input type="number" min="0" placeholder="—" value={tb2a} onChange={e=>setTb2a(e.target.value)} style={tbInputStyle(tb2a, tb2b)} />
-                        <div style={{...dashStyle, fontSize:11}}>–</div>
-                        <input type="number" min="0" placeholder="—" value={tb2b} onChange={e=>setTb2b(e.target.value)} style={tbInputStyle(tb2b, tb2a)} />
-                      </div>
-                    )}
-                    {!tb2 && <div style={{marginBottom:8}}/>}
+                    {/* Set 2 — always shown */}
+                    <SetRow
+                      label="Set 2"
+                      va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b}
+                      tba={tb2a} setTba={setTb2a} tbb={tb2b} setTbb={setTb2b}
+                      aWinning={aLeading} bWinning={bLeading}
+                    />
 
-                    {/* Set 3 — only when split */}
+                    {/* Set 3 — appears only when sets are split */}
                     {showSet3 && (
-                      <>
-                        <div style={rowStyle}>
-                          <div style={{ fontSize:11, color:'#888', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Set 3</div>
-                          <input type="number" min="0" max="7" placeholder="—" value={s3a} onChange={e=>setS3a(e.target.value)} style={inputStyle(s3a, s3b)} />
-                          <div style={dashStyle}>–</div>
-                          <input type="number" min="0" max="7" placeholder="—" value={s3b} onChange={e=>setS3b(e.target.value)} style={inputStyle(s3b, s3a)} />
+                      <div style={{ animation:'fadeSlideIn 0.18s ease' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, marginTop:2 }}>
+                          <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
+                          <span style={{ fontSize:9, fontWeight:700, color:'#aaa', textTransform:'uppercase', letterSpacing:0.6 }}>Deciding set</span>
+                          <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
                         </div>
-                        {tb3 && (
-                          <div style={tbRowStyle}>
-                            <div style={{ fontSize:10, color:'#014a09', fontWeight:700, textAlign:'right' as const, paddingRight:4 }}>Tiebreaker</div>
-                            <input type="number" min="0" placeholder="—" value={tb3a} onChange={e=>setTb3a(e.target.value)} style={tbInputStyle(tb3a, tb3b)} />
-                            <div style={{...dashStyle, fontSize:11}}>–</div>
-                            <input type="number" min="0" placeholder="—" value={tb3b} onChange={e=>setTb3b(e.target.value)} style={tbInputStyle(tb3b, tb3a)} />
-                          </div>
-                        )}
-                        {!tb3 && <div style={{marginBottom:8}}/>}
-                      </>
+                        <SetRow
+                          label="Set 3"
+                          va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b}
+                          tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b}
+                          aWinning={aLeading} bWinning={bLeading}
+                        />
+                      </div>
                     )}
                   </div>
                 )
               })()}
 
-              {selA1 && selA2 && selB1 && selB2 && (() => {
-                const set1done = s1a !== '' && s1b !== ''
-                const set2done = s2a !== '' && s2b !== ''
-                const s1aW = parseInt(s1a)||0; const s1bW = parseInt(s1b)||0
-                const s2aW = parseInt(s2a)||0; const s2bW = parseInt(s2b)||0
-                const needSet3 = set1done && set2done && (s1aW > s1bW) !== (s2aW > s2bW)
-                const set3done = !needSet3 || (s3a !== '' && s3b !== '')
-                const ready = set1done && set2done && set3done && !submitting
-                return (
-                  <button onClick={handleSubmit} disabled={!ready} style={{
-                    width:'100%', background: !ready ? 'rgba(1,74,9,0.08)' : '#014a09',
-                    border:'none', borderRadius:12, padding:'14px 0', color: !ready ? '#aaa' : '#ffcc66',
-                    fontWeight:800, fontSize:15, cursor: !ready ? 'default' : 'pointer', fontFamily:'inherit',
-                  }}>
-                    {submitting ? 'Logging…' : 'Confirm & Log Match →'}
-                  </button>
-                )
-              })()}
+              {/* Submit */}
+              {allFourSelected && (
+                <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
+                  width:'100%', background: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.08)' : '#014a09',
+                  border:'none', borderRadius:12, padding:'14px 0', color: (!s1a||!s1b||submitting) ? '#aaa' : '#ffcc66',
+                  fontWeight:800, fontSize:15, cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer', fontFamily:'inherit',
+                }}>
+                  {submitting ? 'Logging…' : 'Confirm & Log Match →'}
+                </button>
+              )}
             </div>
           )
         })()}
