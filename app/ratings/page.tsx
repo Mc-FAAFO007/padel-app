@@ -25,7 +25,14 @@ function getConf(n: number): { label: string; color: string; bg: string } {
   return             { label:'HC', color:'#006633', bg:'rgba(0,102,51,0.10)'    }
 }
 
-function getK(n: number) { return n < 5 ? 0.4 : n < 10 ? 0.3 : n < 20 ? 0.22 : 0.16 }
+// ─── K Factor: high movement early, slows down at high confidence ─────────────
+function getK(n: number) {
+  if (n < 5)  return 0.60   // NC  — big early swings, rating finds its level fast
+  if (n < 11) return 0.45   // LC  — still quite fluid
+  if (n < 21) return 0.28   // MC  — settling down
+  if (n < 41) return 0.18   // HC  — stabilising
+  return 0.12               // HC+ — high confidence, slow earned movement
+}
 
 function marginMult(wG: number, lG: number) {
   const d = wG - lG
@@ -108,8 +115,8 @@ export default function RatingsPage() {
   const [tb3b, setTb3b] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [pickingFor, setPickingFor] = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
-  const [lockedPlayers, setLockedPlayers] = useState<string[]>([]) // player_ids locked from prefill
-  const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null) // for player profile modal
+  const [lockedPlayers, setLockedPlayers] = useState<string[]>([])
+  const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null)
   const [prefillPostId, setPrefillPostId] = useState<number|null>(null)
   const [pool, setPool] = useState<Rating[]>([])
   const [poolInitialized, setPoolInitialized] = useState(false)
@@ -123,7 +130,6 @@ export default function RatingsPage() {
   }
 
   const loadData = useCallback(async () => {
-    // Retry session check up to 5 times to handle navigation timing
     let session = null
     for (let i = 0; i < 5; i++) {
       const { data } = await supabase.auth.getSession()
@@ -144,7 +150,6 @@ export default function RatingsPage() {
     const me = all.find(r => r.player_id === session.user.id)
     if (me) {
       setCurrentUser(me)
-      // Pre-fill current user as Team A Player 1
       setSelA1(me)
     }
     setLoading(false)
@@ -159,7 +164,6 @@ export default function RatingsPage() {
     }
   }, [loadData])
 
-  // Open player profile when navigated from schedule
   useEffect(() => {
     const viewPlayerId = sessionStorage.getItem('viewPlayer')
     if (!viewPlayerId || ratings.length === 0) return
@@ -168,7 +172,6 @@ export default function RatingsPage() {
     if (player) setViewingPlayer(player)
   }, [ratings])
 
-  // Pre-fill teams from schedule game once ratings are loaded
   useEffect(() => {
     const prefill = sessionStorage.getItem('prefillGame')
     if (!prefill || ratings.length === 0) return
@@ -182,7 +185,7 @@ export default function RatingsPage() {
         setSelA2(ratingPlayers[1])
         setSelB1(ratingPlayers[2])
         setSelB2(ratingPlayers[3])
-        setLockedPlayers(playerIds) // lock all 4 — no swapping allowed
+        setLockedPlayers(playerIds)
         if (postId) setPrefillPostId(postId)
         setPickingFor(null)
       }
@@ -236,7 +239,6 @@ export default function RatingsPage() {
 
     if (matchError) { showNotif('Error: ' + matchError.message); setSubmitting(false); return }
 
-    // Update all 4 ratings and check for errors
     const updates = await Promise.all([
       supabase.from('ratings').update({ rating: preview.a1.after, match_count: selA1.match_count + 1 }).eq('player_id', selA1.player_id).select(),
       supabase.from('ratings').update({ rating: preview.a2.after, match_count: selA2.match_count + 1 }).eq('player_id', selA2.player_id).select(),
@@ -250,7 +252,7 @@ export default function RatingsPage() {
     } else {
       showNotif('Match logged! Ratings updated')
     }
-    // If this match came from a scheduled game, remove the post
+
     if (prefillPostId) {
       await supabase.from('post_interests').delete().eq('post_id', prefillPostId)
       await supabase.from('posts').delete().eq('id', prefillPostId)
@@ -276,7 +278,6 @@ export default function RatingsPage() {
     if (pickingFor === 'a2') setSelA2(r)
     if (pickingFor === 'b1') setSelB1(r)
     if (pickingFor === 'b2') setSelB2(r)
-    // Auto-advance to next empty slot
     const next = pickingFor === 'a1' ? 'a2' : pickingFor === 'a2' ? 'b1' : pickingFor === 'b1' ? 'b2' : null
     setPickingFor(next)
   }
@@ -380,7 +381,6 @@ export default function RatingsPage() {
         {view === 'log' && (() => {
           const isFromSchedule = lockedPlayers.length > 0
 
-          // Initialize pool from locked players on first render
           if (isFromSchedule && !poolInitialized && (selA1||selA2||selB1||selB2)) {
             const allFour = [selA1,selA2,selB1,selB2].filter(Boolean) as Rating[]
             if (allFour.length > 0) {
@@ -513,9 +513,8 @@ export default function RatingsPage() {
                 </div>
               )}
 
-              {/* Set scores — dynamic: 2 sets default, Set 3 on split, tiebreak on 7-6 */}
+              {/* Set scores */}
               {selA1 && selA2 && selB1 && selB2 && (() => {
-                // Determine if sets are split (need set 3)
                 const s1aWon = parseInt(s1a)||0; const s1bWon = parseInt(s1b)||0
                 const s2aWon = parseInt(s2a)||0; const s2bWon = parseInt(s2b)||0
                 const set1done = s1a !== '' && s1b !== ''
@@ -524,7 +523,6 @@ export default function RatingsPage() {
                 const a2 = set2done && s2aWon > s2bWon
                 const showSet3 = set1done && set2done && a1 !== a2
 
-                // Tiebreak: show when either team score is 7 and other is 6
                 const isTb = (a: string, b: string) => (parseInt(a)===7 && parseInt(b)===6) || (parseInt(a)===6 && parseInt(b)===7)
                 const tb1 = isTb(s1a, s1b)
                 const tb2 = isTb(s2a, s2b)
@@ -532,7 +530,7 @@ export default function RatingsPage() {
 
                 const rowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:2 }
                 const tbRowStyle = { display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:8 }
-                // Dynamic input style — green for higher score, red for lower, grey when empty/equal
+
                 function inputStyle(myVal: string, oppVal: string) {
                   const me = parseInt(myVal)||0, opp = parseInt(oppVal)||0
                   const hasVal = myVal !== '' && oppVal !== ''
@@ -549,7 +547,6 @@ export default function RatingsPage() {
                 }
                 const dashStyle = { textAlign:'center' as const, color:'#888', fontWeight:700, fontSize:13 }
 
-                // Reactive team names based on who's winning overall
                 const aWins = [
                   set1done && s1aWon > s1bWon,
                   set2done && s2aWon > s2bWon,
@@ -562,13 +559,12 @@ export default function RatingsPage() {
                 ].filter(Boolean).length
                 const aLeading = aWins > bWins
                 const bLeading = bWins > aWins
-                const tied = set1done && aWins === bWins
 
                 return (
                   <div>
                     <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:8 }}>Scores</div>
 
-                    {/* Team name headers — reactive colours */}
+                    {/* Team name headers */}
                     <div style={{ display:'grid', gridTemplateColumns:'70px 1fr 24px 1fr', gap:6, alignItems:'center', marginBottom:6 }}>
                       <div />
                       <div style={{ textAlign:'center', fontSize:11, fontWeight:800,
@@ -662,36 +658,34 @@ export default function RatingsPage() {
           )
         })()}
 
-            {/* Rating preview */}
-            {preview && (
-              <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
-                  Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
+        {/* Rating preview */}
+        {preview && (
+          <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+              Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
+            </div>
+            {[
+              { p: selA1, r: preview.a1, won: preview.aWon },
+              { p: selA2, r: preview.a2, won: preview.aWon },
+              { p: selB1, r: preview.b1, won: !preview.aWon },
+              { p: selB2, r: preview.b2, won: !preview.aWon },
+            ].map(({ p, r, won }) => {
+              if (!p) return null
+              const delta = Math.round((r.after - r.before) * 10) / 10
+              return (
+                <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <Avatar initials={p.avatar} size={24} rating={p.rating} />
+                    <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
+                  </div>
+                  <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
+                    {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
+                  </span>
                 </div>
-                {[
-                  { p: selA1, r: preview.a1, won: preview.aWon },
-                  { p: selA2, r: preview.a2, won: preview.aWon },
-                  { p: selB1, r: preview.b1, won: !preview.aWon },
-                  { p: selB2, r: preview.b2, won: !preview.aWon },
-                ].map(({ p, r, won }) => {
-                  if (!p) return null
-                  const delta = Math.round((r.after - r.before) * 10) / 10
-                  return (
-                    <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <Avatar initials={p.avatar} size={24} rating={p.rating} />
-                        <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
-                      </div>
-                      <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
-                        {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-
+              )
+            })}
+          </div>
+        )}
 
         {/* ══ MY RESULTS ══ */}
         {view === 'my' && (
@@ -791,6 +785,7 @@ export default function RatingsPage() {
         )}
 
       </div>
+
       {/* Player profile modal */}
       {viewingPlayer && (() => {
         const vp = viewingPlayer
@@ -803,7 +798,6 @@ export default function RatingsPage() {
           <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
             onClick={() => setViewingPlayer(null)}>
             <div onClick={e => e.stopPropagation()} style={{ background:'#f5f0e8', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
-              {/* Header */}
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
@@ -814,7 +808,6 @@ export default function RatingsPage() {
                 </div>
                 <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              {/* Rating card */}
               <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
                 <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
@@ -823,7 +816,6 @@ export default function RatingsPage() {
                   <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginTop:3 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
                 </div>
               </div>
-              {/* Match history */}
               <div>
                 <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>Match history ({vpHistory.length})</div>
                 {vpHistory.length === 0 ? (
@@ -870,3 +862,4 @@ export default function RatingsPage() {
     </div>
   )
 }
+
