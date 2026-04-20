@@ -547,6 +547,31 @@ export default function RatingsPage() {
 
           const allFourSelected = !!(selA1 && selA2 && selB1 && selB2)
 
+          // Derive who's leading based on total games won across all sets
+          const aTotal = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
+          const bTotal = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
+          const aLeading = aTotal > bTotal
+          const bLeading = bTotal > aTotal
+          const hasScores = aTotal > 0 || bTotal > 0
+
+          // Determine team colors based on scores
+          const getTeamAStyle = () => {
+            if (!hasScores) return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+            if (aLeading) return { border: 'rgba(0,102,51,0.4)', bg: 'rgba(0,102,51,0.07)', text: '#006633' }
+            if (bLeading) return { border: 'rgba(153,0,51,0.4)', bg: 'rgba(153,0,51,0.07)', text: '#990033' }
+            return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+          }
+
+          const getTeamBStyle = () => {
+            if (!hasScores) return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+            if (bLeading) return { border: 'rgba(0,102,51,0.4)', bg: 'rgba(0,102,51,0.07)', text: '#006633' }
+            if (aLeading) return { border: 'rgba(153,0,51,0.4)', bg: 'rgba(153,0,51,0.07)', text: '#990033' }
+            return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+          }
+
+          const teamAStyle = getTeamAStyle()
+          const teamBStyle = getTeamBStyle()
+
           return (
             <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
@@ -579,20 +604,20 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team A</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
-                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(0,102,51,0.4)':'rgba(0,102,51,0.15)'}`, background:sel?'rgba(0,102,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52,
+                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?teamAStyle.border:'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{sel.player_name}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:sel?teamAStyle.text:'#888', transition:'color 0.2s' }}>{sel.player_name}</div>
                             <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                           </div>
                           <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                         </>
                       ) : (
-                        <div style={{ fontSize:12, color:'rgba(0,102,51,0.4)', fontWeight:700 }}>
+                        <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
                           {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
                         </div>
                       )}
@@ -606,20 +631,20 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team B</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?'rgba(153,0,51,0.4)':'rgba(153,0,51,0.15)'}`, background:sel?'rgba(153,0,51,0.07)':'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52,
+                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?teamBStyle.border:'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#990033' }}>{sel.player_name}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:sel?teamBStyle.text:'#888', transition:'color 0.2s' }}>{sel.player_name}</div>
                             <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
                           </div>
                           <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
                         </>
                       ) : (
-                        <div style={{ fontSize:12, color:'rgba(153,0,51,0.4)', fontWeight:700 }}>
+                        <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
                           {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
                         </div>
                       )}
@@ -649,13 +674,6 @@ export default function RatingsPage() {
 
               {/* ── Scores ── */}
               {allFourSelected && (() => {
-                // Derive who's leading based on total games won across all sets
-                const aTotal = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
-                const bTotal = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
-                const aLeading = aTotal > bTotal
-                const bLeading = bTotal > aTotal
-                const hasScores = aTotal > 0 || bTotal > 0
-
                 // Reactive colours for each team column
                 const aCol = !hasScores ? '#888' : aLeading ? '#006633' : bLeading ? '#990033' : '#888'
                 const bCol = !hasScores ? '#888' : bLeading ? '#006633' : aLeading ? '#990033' : '#888'
