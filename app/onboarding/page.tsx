@@ -145,7 +145,7 @@ const LEVEL_RESULTS: LevelResult[] = [
   },
   {
     appLevel: '3',
-    name: 'Intermediate',
+    name: 'Casual',
     range: 'Level 2.5 – 3.5',
     color: '#facc15',
     bg: 'rgba(250,204,21,0.12)',
@@ -159,7 +159,7 @@ const LEVEL_RESULTS: LevelResult[] = [
   },
   {
     appLevel: '2',
-    name: 'Advanced',
+    name: 'Competitive',
     range: 'Level 4.0 – 5.0',
     color: '#fb923c',
     bg: 'rgba(251,146,60,0.12)',
