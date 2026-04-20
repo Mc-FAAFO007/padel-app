@@ -613,7 +613,7 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team A</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
-                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`2px dashed ${draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamAStyle.border:draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
@@ -640,7 +640,7 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team B</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`2px dashed ${draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamBStyle.border:draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
