@@ -61,7 +61,7 @@ function ratingToLevel(rating: number): { level: string; color: string; bg: stri
   if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
   if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
   if (rating >= 2.6) return { level:'3', color:'#006633', bg:'rgba(0,102,51,0.10)', desc:'Casual' }
-  return              { level:'4', color:'#026b0d', bg:'rgba(2,107,13,0.12)', desc:'Beginner' }
+  return              { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Beginner' }
 }
 
 function timeAgo(iso: string) {
@@ -583,7 +583,7 @@ export default function HomePage() {
                         return (
                           <div key={pid} style={{ display:'flex', alignItems:'center', gap:5, background:levelBg[p.level], border:`1px solid ${levelColor[p.level]}40`, borderRadius:20, padding:'4px 10px 4px 6px' }}>
                             <Avatar initials={p.avatar} size={20} level={p.level} />
-                            <span style={{ fontSize:12, fontWeight:700, color:levelColor[p.level] }}>{p.name.split(' ')[0]}</span>
+                            <span style={{ fontSize:12, fontWeight:700, color:levelColor[p.level] }}>{p.name}</span>
                             <button onClick={() => setFInvited((prev:string[]) => prev.filter((x:string)=>x!==pid))} style={{ background:'none', border:'none', color:'#888', fontSize:13, cursor:'pointer', padding:'0 0 0 2px', lineHeight:1, fontFamily:'inherit' }}>✕</button>
                           </div>
                         )
@@ -727,7 +727,7 @@ export default function HomePage() {
                             <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[p.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
                               <Avatar initials={p.avatar} size={24} level={p.level} />
                               <div style={{ minWidth:0 }}>
-                                <div style={{ fontSize:11, fontWeight:700, color:'#4a3030', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name.split(' ')[0]}</div>
+                                <div style={{ fontSize:11, fontWeight:700, color:'#4a3030', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
                                 <div style={{ fontSize:9, color:i===0?levelColor[p.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
                               </div>
                             </div>
@@ -897,7 +897,7 @@ export default function HomePage() {
                         style={{ background:i===0?`${levelColor[pl.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[pl.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
                         <Avatar initials={pl.avatar} size={24} level={pl.level} />
                         <div style={{ minWidth:0 }}>
-                          <div style={{ fontSize:11, fontWeight:700, color:'#014a09', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name.split(' ')[0]}</div>
+                          <div style={{ fontSize:11, fontWeight:700, color:'#014a09', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name}</div>
                           <div style={{ fontSize:9, color:i===0?levelColor[pl.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
                         </div>
                       </div>
