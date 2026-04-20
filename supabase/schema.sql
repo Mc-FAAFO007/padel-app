@@ -31,7 +31,7 @@ create table if not exists posts (
   player_avatar text not null,
   level         text not null,
   slot          text not null,         -- e.g. "Sat AM"
-  spots_needed  int not null check (spots_needed between 1 and 3),
+  spots_needed  int not null check (spots_needed between 0 and 3),
   note          text default '',
   created_at    timestamptz default now()
 );

@@ -553,7 +553,7 @@ export default function RatingsPage() {
               {/* Player pool — schedule flow only */}
               {isFromSchedule && pool.length > 0 && (
                 <div>
-                  <div style={{ ...s.lbl, marginBottom:8 }}>Tap W (winner) or L (loser) to assign teams</div>
+                  <div style={{ ...s.lbl, marginBottom:8 }}>Select players for each team</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {pool.map(r => (
                       <div key={r.player_id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8 }}>
@@ -564,9 +564,9 @@ export default function RatingsPage() {
                         </div>
                         <div style={{ display:'flex', gap:5 }}>
                           <button onClick={()=>assignToTeam(r,'a')} disabled={!!(selA1&&selA2)}
-                            style={{ background:selA1&&selA2?'#eee':'rgba(0,102,51,0.12)', border:`1px solid ${selA1&&selA2?'#ddd':'rgba(0,102,51,0.35)'}`, borderRadius:7, padding:'5px 10px', color:selA1&&selA2?'#bbb':'#006633', fontSize:11, fontWeight:800, cursor:selA1&&selA2?'default':'pointer', fontFamily:'inherit' }}>W</button>
+                            style={{ background:selA1&&selA2?'#eee':'rgba(0,102,51,0.12)', border:`1px solid ${selA1&&selA2?'#ddd':'rgba(0,102,51,0.35)'}`, borderRadius:7, padding:'5px 10px', color:selA1&&selA2?'#bbb':'#006633', fontSize:11, fontWeight:800, cursor:selA1&&selA2?'default':'pointer', fontFamily:'inherit' }}>Team A</button>
                           <button onClick={()=>assignToTeam(r,'b')} disabled={!!(selB1&&selB2)}
-                            style={{ background:selB1&&selB2?'#eee':'rgba(153,0,51,0.08)', border:`1px solid ${selB1&&selB2?'#ddd':'rgba(153,0,51,0.3)'}`, borderRadius:7, padding:'5px 10px', color:selB1&&selB2?'#bbb':'#990033', fontSize:11, fontWeight:800, cursor:selB1&&selB2?'default':'pointer', fontFamily:'inherit' }}>L</button>
+                            style={{ background:selB1&&selB2?'#eee':'rgba(153,0,51,0.08)', border:`1px solid ${selB1&&selB2?'#ddd':'rgba(153,0,51,0.3)'}`, borderRadius:7, padding:'5px 10px', color:selB1&&selB2?'#bbb':'#990033', fontSize:11, fontWeight:800, cursor:selB1&&selB2?'default':'pointer', fontFamily:'inherit' }}>Team B</button>
                         </div>
                       </div>
                     ))}
@@ -593,7 +593,7 @@ export default function RatingsPage() {
                         </>
                       ) : (
                         <div style={{ fontSize:12, color:'rgba(0,102,51,0.4)', fontWeight:700 }}>
-                          {isFromSchedule ? 'Tap W above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
+                          {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
                         </div>
                       )}
                     </div>
@@ -620,7 +620,7 @@ export default function RatingsPage() {
                         </>
                       ) : (
                         <div style={{ fontSize:12, color:'rgba(153,0,51,0.4)', fontWeight:700 }}>
-                          {isFromSchedule ? 'Tap L above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
+                          {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
                         </div>
                       )}
                     </div>

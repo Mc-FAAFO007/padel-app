@@ -280,7 +280,7 @@ export default function HomePage() {
       }
       showNotif('Game posted!')
     }
-    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(2); setFNote(''); setFLevels([]); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false)
+    setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(3); setFNote(''); setFLevels([]); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false)
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
@@ -307,6 +307,11 @@ export default function HomePage() {
     if (already) {
       await supabase.from('post_interests').delete().eq('post_id', postId).eq('player_id', currentUser.id)
     } else {
+      // Check if post is already full
+      if (post.interested_ids.length >= post.spots_needed) {
+        showNotif('This game is already full')
+        return
+      }
       await supabase.from('post_interests').insert({ post_id: postId, player_id: currentUser.id })
     }
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
@@ -329,8 +334,8 @@ export default function HomePage() {
 
   // ── Derived data ──────────────────────────────────────────────────────────
   const boardPosts  = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels || [p.level]).includes(boardLevel))
-  const openPosts   = posts.filter(p => p.interested_ids.length < 3) // 4 total - 1 organiser = 3 max interested
-  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < 3).length]))
+  const openPosts   = posts.filter(p => p.interested_ids.length < p.spots_needed) // spots_needed max interested
+  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
 
   const filtered = players.filter(p =>
     (filter.level === 'All' || p.level === filter.level) &&
@@ -476,7 +481,7 @@ export default function HomePage() {
                   </div>
                   <div style={{ flexShrink:0, textAlign:'right' }}>
                     <LevelBadge level={p.level} small />
-                    <div style={{ fontSize:10, color:'#4ade80', fontWeight:700, marginTop:3 }}>{Math.max(0, 3 - p.interested_ids.length)} spot{Math.max(0, 3 - p.interested_ids.length)!==1?'s':''} open</div>
+                    <div style={{ fontSize:10, color:'#4ade80', fontWeight:700, marginTop:3 }}>{Math.max(0, p.spots_needed - p.interested_ids.length)} spot{Math.max(0, p.spots_needed - p.interested_ids.length)!==1?'s':''} open</div>
                   </div>
                 </div>
               ))}
@@ -626,9 +631,7 @@ export default function HomePage() {
                 <div>
                   <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
                   <div style={{ display:'flex', gap:8 }}>
-                    {[1,2,3].map(n => (
-                      <button key={n} onClick={() => setFSpots(n)} style={{ flex:1, border:`1px solid ${fSpots===n?'#026b0d':'#ddd'}`, background:fSpots===n?'#014a09':'transparent', color:fSpots===n?'#ffcc66':'#888', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>
-                    ))}
+                    <div style={{ flex:1, border:'1px solid #026b0d', background:'#014a09', color:'#ffcc66', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, textAlign:'center', fontFamily:'inherit' }}>{fSpots}</div>
                   </div>
                 </div>
                 <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(1,74,9,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
@@ -663,7 +666,7 @@ export default function HomePage() {
             ) : boardPosts.map(post => {
               const isOwner   = currentUser?.id === post.player_id
               const alreadyIn = currentUser && post.interested_ids.includes(currentUser.id)
-              const spotsLeft = Math.max(0, 3 - post.interested_ids.length) // 4 total - 1 organiser = 3 max
+              const spotsLeft = Math.max(0, post.spots_needed - post.interested_ids.length) // spots_needed max interested
               const full      = spotsLeft <= 0
               const c         = levelColor[post.level]
               return (
@@ -846,7 +849,7 @@ export default function HomePage() {
           const schedulePosts = [...myPosts, ...joinedPosts]
 
           function ScheduleCard({ post: p, isOwner }: { post: any, isOwner: boolean }) {
-            const spotsLeft = Math.max(0, 3 - p.interested_ids.length)
+            const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
             const full = spotsLeft === 0
             const c = levelColor[p.level]
             const interestedPlayers = players.filter((pl:any) => p.interested_ids.includes(pl.id))
