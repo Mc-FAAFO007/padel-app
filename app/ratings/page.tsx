@@ -836,12 +836,12 @@ export default function RatingsPage() {
 
                   return (
                     <div key={m.id} style={{
-                      background:'#fff', border:'1px solid rgba(1,74,9,0.12)',
-                      borderLeft:`3px solid ${won?'#006633':'#026b0d'}`, borderRadius:12, padding:'12px 14px', marginBottom:6,
+                      background:'#fff', border:`1px solid ${won?'rgba(0,102,51,0.3)':'rgba(153,0,51,0.3)'}`,
+                      borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'12px 14px', marginBottom:6,
                     }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                         <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-                        <div style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#026b0d' }}>
+                        <div style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
                           {won ? 'W' : 'L'} · {sets}
                         </div>
                       </div>
