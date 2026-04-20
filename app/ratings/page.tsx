@@ -220,6 +220,7 @@ export default function RatingsPage() {
   const [prefillPostId, setPrefillPostId] = useState<number|null>(null)
   const [pool, setPool] = useState<Rating[]>([])
   const [poolInitialized, setPoolInitialized] = useState(false)
+  const [draggedPlayer, setDraggedPlayer] = useState<Rating | null>(null)
 
   const notifRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -524,17 +525,31 @@ export default function RatingsPage() {
             }
           }
 
-          function assignToTeam(player: Rating, team: 'a'|'b') {
-            if (team==='a') {
-              if (!selA1) setSelA1(player)
-              else if (!selA2) setSelA2(player)
-              else return
-            } else {
-              if (!selB1) setSelB1(player)
-              else if (!selB2) setSelB2(player)
-              else return
-            }
-            setPool(prev => prev.filter(p=>p.player_id !== player.player_id))
+          function assignToSlot(player: Rating, slot: 'a1'|'a2'|'b1'|'b2') {
+            if (slot==='a1') setSelA1(player)
+            else if (slot==='a2') setSelA2(player)
+            else if (slot==='b1') setSelB1(player)
+            else setSelB2(player)
+            if (isFromSchedule) setPool(prev => prev.filter(p=>p.player_id !== player.player_id))
+          }
+
+          function handleDragStart(e: React.DragEvent<HTMLDivElement>, player: Rating) {
+            setDraggedPlayer(player)
+            e.dataTransfer.effectAllowed = 'move'
+          }
+
+          function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+            e.preventDefault()
+            e.dataTransfer.dropEffect = 'move'
+          }
+
+          function handleDropOnSlot(e: React.DragEvent<HTMLDivElement>, slot: 'a1'|'a2'|'b1'|'b2') {
+            e.preventDefault()
+            if (!draggedPlayer) return
+            const already = [selA1, selA2, selB1, selB2].find(p => p?.player_id === draggedPlayer.player_id)
+            if (already && already.player_id !== draggedPlayer.player_id) return
+            assignToSlot(draggedPlayer, slot)
+            setDraggedPlayer(null)
           }
 
           function removeFromTeam(player: Rating, slot: 'a1'|'a2'|'b1'|'b2') {
@@ -578,20 +593,14 @@ export default function RatingsPage() {
               {/* Player pool — schedule flow only */}
               {isFromSchedule && pool.length > 0 && (
                 <div>
-                  <div style={{ ...s.lbl, marginBottom:8 }}>Select players for each team</div>
+                  <div style={{ ...s.lbl, marginBottom:8 }}>Drag players to assign teams</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {pool.map(r => (
-                      <div key={r.player_id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8 }}>
+                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1 }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
                           <div style={{ fontSize:10, color:'#888' }}>{r.rating.toFixed(1)}</div>
-                        </div>
-                        <div style={{ display:'flex', gap:5 }}>
-                          <button onClick={()=>assignToTeam(r,'a')} disabled={!!(selA1&&selA2)}
-                            style={{ background:selA1&&selA2?'#eee':'rgba(0,102,51,0.12)', border:`1px solid ${selA1&&selA2?'#ddd':'rgba(0,102,51,0.35)'}`, borderRadius:7, padding:'5px 10px', color:selA1&&selA2?'#bbb':'#006633', fontSize:11, fontWeight:800, cursor:selA1&&selA2?'default':'pointer', fontFamily:'inherit' }}>Team A</button>
-                          <button onClick={()=>assignToTeam(r,'b')} disabled={!!(selB1&&selB2)}
-                            style={{ background:selB1&&selB2?'#eee':'rgba(153,0,51,0.08)', border:`1px solid ${selB1&&selB2?'#ddd':'rgba(153,0,51,0.3)'}`, borderRadius:7, padding:'5px 10px', color:selB1&&selB2?'#bbb':'#990033', fontSize:11, fontWeight:800, cursor:selB1&&selB2?'default':'pointer', fontFamily:'inherit' }}>Team B</button>
                         </div>
                       </div>
                     ))}
@@ -604,7 +613,7 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team A</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
-                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?teamAStyle.border:'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`2px dashed ${draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
@@ -618,7 +627,7 @@ export default function RatingsPage() {
                         </>
                       ) : (
                         <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
-                          {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
+                          {isFromSchedule ? 'Drag player here' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
                         </div>
                       )}
                     </div>
@@ -631,7 +640,7 @@ export default function RatingsPage() {
                 <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team B</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                    <div key={slot} style={{ padding:'10px 12px', borderRadius:11, border:`1px solid ${sel?teamBStyle.border:'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`2px dashed ${draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
                       cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
@@ -645,7 +654,7 @@ export default function RatingsPage() {
                         </>
                       ) : (
                         <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
-                          {isFromSchedule ? 'Select from above' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
+                          {isFromSchedule ? 'Drag player here' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
                         </div>
                       )}
                     </div>
