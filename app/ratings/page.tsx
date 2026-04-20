@@ -432,6 +432,21 @@ export default function RatingsPage() {
   )
   const myRank = currentUser ? ratings.findIndex(r => r.player_id === myId) + 1 : 0
 
+  const myRatingTimeline = myHistory.slice().reverse().map(m => {
+    const isA1 = m.team_a1_id === myId
+    const isA2 = m.team_a2_id === myId
+    const isB1 = m.team_b1_id === myId
+    const isB2 = m.team_b2_id === myId
+    const before = isA1 ? m.rating_a1_before : isA2 ? m.rating_a2_before : isB1 ? m.rating_b1_before : m.rating_b2_before
+    const after = isA1 ? m.rating_a1_after : isA2 ? m.rating_a2_after : isB1 ? m.rating_b1_after : m.rating_b2_after
+    const aSum = m.sets_a.reduce((a:number,b:number)=>a+b,0)
+    const bSum = m.sets_b.reduce((a:number,b:number)=>a+b,0)
+    const won = [m.team_a1_id, m.team_a2_id].includes(myId!) ? aSum > bSum : bSum > aSum
+    return { id:m.id, date:m.created_at, rating: after, before, won }
+  })
+  const myRatingMin = myRatingTimeline.length ? Math.min(...myRatingTimeline.map(p=>p.rating), 1) : 1
+  const myRatingMax = myRatingTimeline.length ? Math.max(...myRatingTimeline.map(p=>p.rating), 7) : 7
+
   return (
     <div style={s.page}>
       {/* Fade-in keyframe for tiebreak row */}
@@ -797,19 +812,46 @@ export default function RatingsPage() {
                   </div>
                 </div>
 
-                {/* Band indicator */}
-                <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'12px 14px' }}>
-                  <div style={{ ...s.lbl, marginBottom:8 }}>Rating bands</div>
-                  {BANDS.map(b => {
-                    const active = currentUser.rating >= b.min && currentUser.rating <= b.max
-                    return (
-                      <div key={b.label} style={{ display:'flex', alignItems:'center', gap:10, padding:'5px 0' }}>
-                        <div style={{ width:8, height:8, borderRadius:'50%', background: active ? b.color : '#ddd', flexShrink:0 }} />
-                        <div style={{ flex:1, fontSize:12, color: active ? b.color : '#888', fontWeight: active ? 700 : 400 }}>{b.label}</div>
-                        <div style={{ fontSize:11, color: active ? b.color : '#aaa' }}>{b.min.toFixed(1)}–{b.max.toFixed(1)}</div>
+                {/* Rating fluctuation graph */}
+                <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'14px' }}>
+                  <div style={{ ...s.lbl, marginBottom:10 }}>Rating fluctuations</div>
+                  {myRatingTimeline.length === 0 ? (
+                    <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet — log a match to build your history.</div>
+                  ) : (
+                    <>
+                      <div style={{ display:'flex', gap:10, marginBottom:16 }}>
+                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Matches</div>
+                          <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{myRatingTimeline.length}</div>
+                        </div>
+                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Currently</div>
+                          <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{myRatingTimeline[myRatingTimeline.length-1].rating.toFixed(1)}</div>
+                        </div>
+                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Trend</div>
+                          <div style={{ fontSize:22, fontWeight:900, color: myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '#006633' : '#990033' }}>
+                            {myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '+' : ''}{(myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating).toFixed(1)}
+                          </div>
+                        </div>
                       </div>
-                    )
-                  })}
+
+                      <div style={{ background:'#f7f2e8', borderRadius:16, padding:'14px', overflowX:'auto' }}>
+                        <div style={{ display:'flex', alignItems:'flex-end', gap:9, minWidth: Math.max(280, myRatingTimeline.length * 56) }}>
+                          {myRatingTimeline.map(point => {
+                            const height = Math.max(20, ((point.rating - myRatingMin) / Math.max(myRatingMax - myRatingMin, 1)) * 104)
+                            return (
+                              <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, minWidth:44 }}>
+                                <div style={{ width:12, height, borderRadius:999, background: point.won ? '#006633' : '#990033' }} />
+                                <div style={{ fontSize:10, color:'#555' }}>{point.rating.toFixed(1)}</div>
+                                <div style={{ fontSize:9, color:'#888', textAlign:'center' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Match history */}

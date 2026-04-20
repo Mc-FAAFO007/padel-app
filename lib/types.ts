@@ -15,6 +15,7 @@ export interface Post {
   player_name: string
   player_avatar: string
   level: string
+  allowed_levels?: string[]
   slot: string
   spots_needed: number
   note: string

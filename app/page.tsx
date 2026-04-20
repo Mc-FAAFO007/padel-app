@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker'
-import type { Profile, Post } from '@/lib/types'
+import type { Profile, Post, Match } from '@/lib/types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
@@ -114,6 +114,8 @@ export default function HomePage() {
   const [players,     setPlayers]     = useState<Profile[]>([])
   const [posts,       setPosts]       = useState<(Post & { interested_ids: string[] })[]>([])
   const [view,        setView]        = useState<'home'|'board'|'arena'|'matches'|'profile'>('home')
+  const [profileTab,  setProfileTab]  = useState<'edit'|'results'>('edit')
+  const [ratingHistory, setRatingHistory] = useState<Match[]>([])
   const [editName,    setEditName]    = useState('')
   const [editLevel,   setEditLevel]   = useState('')
   const [editSlots,   setEditSlots]   = useState<string[]>([])
@@ -165,9 +167,13 @@ export default function HomePage() {
 
       setCurrentUser(profileRes.data)
 
-      const [playersRes, postsRes] = await Promise.all([
+      const [playersRes, postsRes, matchesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at'),
         supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false }),
+        supabase.from('matches')
+          .select('*')
+          .or(`team_a1_id.eq.${userId},team_a2_id.eq.${userId},team_b1_id.eq.${userId},team_b2_id.eq.${userId}`)
+          .order('created_at', { ascending: true }),
       ])
 
       setPlayers(playersRes.data || [])
@@ -177,6 +183,7 @@ export default function HomePage() {
         interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
       }))
       setPosts(enrichedPosts)
+      setRatingHistory(matchesRes.data || [])
 
       // Fetch live rating for header pill and sync level on profile
       const ratingRes = await supabase.from('ratings').select('rating').eq('player_id', userId).single()
@@ -347,6 +354,26 @@ export default function HomePage() {
         .map(p => ({ ...p, score: getCompatScore(selected, p) }))
         .sort((a,b) => b.score - a.score)
     : []
+
+  const ratingTimeline = currentUser ? ratingHistory.map(m => {
+    const onA = [m.team_a1_id, m.team_a2_id].includes(currentUser.id)
+    const before = m.team_a1_id === currentUser.id ? m.rating_a1_before
+      : m.team_a2_id === currentUser.id ? m.rating_a2_before
+      : m.team_b1_id === currentUser.id ? m.rating_b1_before
+      : m.rating_b2_before
+    const after = m.team_a1_id === currentUser.id ? m.rating_a1_after
+      : m.team_a2_id === currentUser.id ? m.rating_a2_after
+      : m.team_b1_id === currentUser.id ? m.rating_b1_after
+      : m.rating_b2_after
+    const aSum = m.sets_a.reduce((a:number,b:number)=>a+b,0)
+    const bSum = m.sets_b.reduce((a:number,b:number)=>a+b,0)
+    const won = onA ? aSum > bSum : bSum > aSum
+    return { id: m.id, date: m.created_at, rating: after, before, won }
+  }) : []
+
+  const ratingMin = ratingTimeline.length ? Math.min(...ratingTimeline.map(p => p.rating), 1) : 1
+  const ratingMax = ratingTimeline.length ? Math.max(...ratingTimeline.map(p => p.rating), 7) : 7
+  const ratingTrend = ratingTimeline.length ? ratingTimeline[ratingTimeline.length - 1].rating - ratingTimeline[0].rating : 0
 
   if (loading) {
     return (
@@ -974,83 +1001,150 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
-              <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
-
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Name</div>
-                <input
-                  value={editName}
-                  onChange={e => setEditName(e.target.value)}
-                  style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid #ddd', borderRadius:10, padding:'11px 13px', color:'#4a3030', fontSize:14, fontFamily:'inherit', outline:'none' }}
-                />
-              </div>
-
-              <div style={{ marginBottom:14 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
-                <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                  <span style={{ fontSize:13, color:'#6b5050' }}>Assigned by assessment</span>
-                  <span style={{ background:levelBg[currentUser.level], color:levelColor[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}40`, borderRadius:20, padding:'3px 12px', fontSize:12, fontWeight:800 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</span>
-                </div>
-                <div style={{ fontSize:11, color:'#888', marginTop:6 }}>To change your level, contact your club admin.</div>
-              </div>
-
-              <div style={{ marginBottom:18 }}>
-                <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
-                  Availability
-                </div>
-                <AvailabilityPicker value={editSlots} onChange={setEditSlots} />
-              </div>
-
-              <button
-                disabled={editLoading || !editName.trim() || editSlots.length === 0}
-                onClick={async () => {
-                  if (!editName.trim() || editSlots.length === 0) return
-                  setEditLoading(true)
-                  const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
-                  const newName = editName.trim()
-                  // Update profile, ratings, and all posts with new name/avatar
-                  const [profileRes] = await Promise.all([
-                    supabase.from('profiles').update({ name: newName, avatar: initials, availability: editSlots }).eq('id', currentUser.id),
-                    supabase.from('ratings').update({ player_name: newName, avatar: initials }).eq('player_id', currentUser.id),
-                    supabase.from('posts').update({ player_name: newName, player_avatar: initials }).eq('player_id', currentUser.id),
-                  ])
-                  setEditLoading(false)
-                  if (!profileRes.error) {
-                    showNotif('Profile updated!')
-                    supabase.auth.getSession().then(({ data: { session } }) => {
-                      if (session?.user) loadData(session.user.id)
-                    })
-                    setView('home')
-                  } else {
-                    showNotif('Error saving — try again')
-                  }
-                }}
-                style={{
-                  width:'100%',
-                  background: editLoading ? 'rgba(1,74,9,0.1)' : '#014a09',
-                  border:'none', borderRadius:12, padding:'13px 0', color:'#ffcc66',
-                  fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
-                  opacity: editLoading ? 0.6 : 1
-                }}
-              >
-                {editLoading ? 'Saving…' : 'Save Changes'}
-              </button>
-
-              <button
-                onClick={handleSignOut}
-                style={{
-                  width:'100%', background:'transparent',
-                  border:'1px solid rgba(2,107,13,0.3)', borderRadius:12, padding:'13px 0',
-                  color:'#026b0d', fontWeight:700, fontSize:14,
-                  cursor:'pointer', fontFamily:'inherit', marginTop:8
-                }}
-              >
-                Sign Out
-              </button>
+            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+              {['edit','results'].map(tab => (
+                <button key={tab} onClick={() => setProfileTab(tab as 'edit'|'results')} style={{
+                  flex:1, minWidth:120, background: profileTab===tab ? '#014a09' : '#fff',
+                  border: profileTab===tab ? '1px solid #014a09' : '1px solid #e0d8cc',
+                  color: profileTab===tab ? '#ffcc66' : '#555', borderRadius:12,
+                  padding:'12px 14px', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit'
+                }}>
+                  {tab === 'edit' ? 'Edit Profile' : 'My Results'}
+                </button>
+              ))}
             </div>
 
+            {profileTab === 'edit' ? (
+              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
+                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
 
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Name</div>
+                  <input
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid #ddd', borderRadius:10, padding:'11px 13px', color:'#4a3030', fontSize:14, fontFamily:'inherit', outline:'none' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
+                  <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:13, color:'#6b5050' }}>Assigned by assessment</span>
+                    <span style={{ background:levelBg[currentUser.level], color:levelColor[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}40`, borderRadius:20, padding:'3px 12px', fontSize:12, fontWeight:800 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</span>
+                  </div>
+                  <div style={{ fontSize:11, color:'#888', marginTop:6 }}>To change your level, contact your club admin.</div>
+                </div>
+
+                <div style={{ marginBottom:18 }}>
+                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+                    Availability
+                  </div>
+                  <AvailabilityPicker value={editSlots} onChange={setEditSlots} />
+                </div>
+
+                <button
+                  disabled={editLoading || !editName.trim() || editSlots.length === 0}
+                  onClick={async () => {
+                    if (!editName.trim() || editSlots.length === 0) return
+                    setEditLoading(true)
+                    const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
+                    const newName = editName.trim()
+                    const [profileRes] = await Promise.all([
+                      supabase.from('profiles').update({ name: newName, avatar: initials, availability: editSlots }).eq('id', currentUser.id),
+                      supabase.from('ratings').update({ player_name: newName, avatar: initials }).eq('player_id', currentUser.id),
+                      supabase.from('posts').update({ player_name: newName, player_avatar: initials }).eq('player_id', currentUser.id),
+                    ])
+                    setEditLoading(false)
+                    if (!profileRes.error) {
+                      showNotif('Profile updated!')
+                      supabase.auth.getSession().then(({ data: { session } }) => {
+                        if (session?.user) loadData(session.user.id)
+                      })
+                      setView('home')
+                    } else {
+                      showNotif('Error saving — try again')
+                    }
+                  }}
+                  style={{
+                    width:'100%',
+                    background: editLoading ? 'rgba(1,74,9,0.1)' : '#014a09',
+                    border:'none', borderRadius:12, padding:'13px 0', color:'#ffcc66',
+                    fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
+                    opacity: editLoading ? 0.6 : 1
+                  }}
+                >
+                  {editLoading ? 'Saving…' : 'Save Changes'}
+                </button>
+
+                <button
+                  onClick={handleSignOut}
+                  style={{
+                    width:'100%', background:'transparent',
+                    border:'1px solid rgba(2,107,13,0.3)', borderRadius:12, padding:'13px 0',
+                    color:'#026b0d', fontWeight:700, fontSize:14,
+                    cursor:'pointer', fontFamily:'inherit', marginTop:8
+                  }}
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
+                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Rating Fluctuations</div>
+                {ratingTimeline.length === 0 ? (
+                  <div style={{ textAlign:'center', color:'#888', fontSize:13, padding:'30px 0' }}>
+                    No logged matches yet. Play a game and your rating will show up here.
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:16 }}>
+                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Matches</div>
+                        <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{ratingTimeline.length}</div>
+                      </div>
+                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Current</div>
+                        <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{ratingTimeline[ratingTimeline.length-1].rating.toFixed(1)}</div>
+                      </div>
+                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
+                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Trend</div>
+                        <div style={{ fontSize:22, fontWeight:900, color: ratingTrend >= 0 ? '#006633' : '#990033' }}>
+                          {ratingTrend >= 0 ? '+' : ''}{ratingTrend.toFixed(1)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ background:'#f7f2e8', borderRadius:16, padding:'14px 12px', overflowX:'auto' }}>
+                      <div style={{ display:'flex', alignItems:'flex-end', gap:10, minWidth: ratingTimeline.length * 64 }}>
+                        {ratingTimeline.map(point => {
+                          const height = Math.max(22, ((point.rating - ratingMin) / Math.max(ratingMax - ratingMin, 1)) * 100)
+                          return (
+                            <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, minWidth:44 }}>
+                              <div style={{ width:12, height, borderRadius:999, background: point.won ? '#006633' : '#990033' }} />
+                              <div style={{ fontSize:10, color:'#555' }}>{point.rating.toFixed(1)}</div>
+                              <div style={{ fontSize:9, color:'#888', lineHeight:1.3, textAlign:'center' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop:18, display:'grid', gap:10 }}>
+                      {ratingTimeline.slice(-3).reverse().map(point => (
+                        <div key={`recent-${point.id}`} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
+                          <div>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            <div style={{ fontSize:11, color:'#888' }}>{point.won ? 'Win' : 'Loss'} · {point.before.toFixed(1)} → {point.rating.toFixed(1)}</div>
+                          </div>
+                          <div style={{ fontSize:12, fontWeight:800, color: point.won ? '#006633' : '#990033' }}>{point.won ? '+' : ''}{(point.rating - point.before).toFixed(1)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
