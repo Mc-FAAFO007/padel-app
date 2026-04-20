@@ -746,7 +746,7 @@ export default function HomePage() {
                               }}
                               style={{ background:canJoin&&levelAllowed?'#fff':'rgba(0,0,0,0.02)', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44, opacity: canJoin&&levelAllowed ? 1 : 0.6 }}>
                               <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#026b0d':'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
-                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#026b0d':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Full'}</span>
+                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#026b0d':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
                             </button>
                           ))}
                         </div>
