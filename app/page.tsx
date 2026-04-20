@@ -301,7 +301,7 @@ export default function HomePage() {
   }
 
   async function handleInterest(postId: number) {
-    if (!currentUser) return
+    if (!currentUser) { showNotif('Please sign in to join a game'); return }
     const post = posts.find(p => p.id === postId)
     if (!post) return
     const allowedLevels = post.allowed_levels || [post.level]
@@ -312,14 +312,18 @@ export default function HomePage() {
     }
     const already = post.interested_ids.includes(currentUser.id)
     if (already) {
-      await supabase.from('post_interests').delete().eq('post_id', postId).eq('player_id', currentUser.id)
+      const { error } = await supabase.from('post_interests').delete().eq('post_id', postId).eq('player_id', currentUser.id)
+      if (error) { showNotif('Error removing interest'); console.error(error); return }
+      showNotif('Spot removed')
     } else {
       // Check if post is already full
       if (post.interested_ids.length >= post.spots_needed) {
         showNotif('This game is already full')
         return
       }
-      await supabase.from('post_interests').insert({ post_id: postId, player_id: currentUser.id })
+      const { error } = await supabase.from('post_interests').insert({ post_id: postId, player_id: currentUser.id })
+      if (error) { showNotif('Error joining game'); console.error(error); return }
+      showNotif('You joined the game!')
     }
     supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
   }
@@ -734,10 +738,15 @@ export default function HomePage() {
                           ))}
                           {Array.from({length:emptySlots}).map((_,i)=>(
                             <button key={`empty-${i}`}
-                              onClick={()=>canJoin&&levelAllowed?handleInterest(post.id):!levelAllowed&&currentUser?showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`):null}
-                              style={{ background:'#fff', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
+                              disabled={!canJoin}
+                              onClick={() => {
+                                if (!currentUser) { showNotif('Please sign in to join'); return }
+                                if (!levelAllowed) { showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`); return }
+                                handleInterest(post.id)
+                              }}
+                              style={{ background:canJoin&&levelAllowed?'#fff':'rgba(0,0,0,0.02)', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44, opacity: canJoin&&levelAllowed ? 1 : 0.6 }}>
                               <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#026b0d':'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
-                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#026b0d':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
+                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#026b0d':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Full'}</span>
                             </button>
                           ))}
                         </div>
