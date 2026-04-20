@@ -9,8 +9,8 @@ import type { Rating, Match } from '@/lib/types'
 const BANDS = [
   { label:'Beginner',        min:1.0, max:2.5, color:'#990033', bg:'rgba(153,0,51,0.10)'  },
   { label:'Casual',          min:2.6, max:4.0, color:'#006633', bg:'rgba(0,102,51,0.10)'  },
-  { label:'Competitive',     min:4.1, max:6.5, color:'#000099', bg:'rgba(0,0,153,0.10)'   },
-  { label:'Elite',           min:6.6, max:7.0, color:'#cc9900', bg:'rgba(204,153,0,0.12)' },
+  { label:'Competitive',     min:4.1, max:5.5, color:'#000099', bg:'rgba(0,0,153,0.10)'   },
+  { label:'Elite',           min:5.6, max:7.0, color:'#cc9900', bg:'rgba(204,153,0,0.12)' },
 ]
 
 function getBand(r: number) {
