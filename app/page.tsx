@@ -472,7 +472,7 @@ export default function HomePage() {
                 <span>Open Games</span>
                 <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:'#026b0d', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
               </div>
-              {openPosts.slice(0,3).map(p => (
+              {openPosts.map(p => (
                 <div key={p.id} onClick={() => { setBoardLevel(p.level); setView('board') }} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}20`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:8 }}>
                   <Avatar initials={p.player_avatar} size={32} level={p.level} />
                   <div style={{ flex:1, minWidth:0 }}>
