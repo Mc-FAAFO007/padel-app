@@ -454,7 +454,7 @@ export default function HomePage() {
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                           <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
-                          <span style={{ fontSize:13, fontWeight:700, color:'#4a3030' }}>{l.name}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:l.color }}>{l.name}</span>
                         </div>
                         <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
                       </div>
@@ -805,7 +805,7 @@ export default function HomePage() {
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                           <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
-                          <span style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{l.name}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:l.color }}>{l.name}</span>
                         </div>
                         <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
                       </div>
