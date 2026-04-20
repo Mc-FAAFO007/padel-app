@@ -855,7 +855,7 @@ export default function RatingsPage() {
                           <div style={{ fontSize:11, color: !won?'#006633':'#990033', lineHeight:1.5 }}>{opp1}<br/>{opp2}</div>
                         </div>
                       </div>
-                      <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#006633' : '#026b0d' }}>
+                      <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#006633' : '#990033' }}>
                         {before.toFixed(1)} → {after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)} rating)
                       </div>
                     </div>
