@@ -49,9 +49,8 @@ export interface Buddy {
 
 ### 4. Navigation Update
 - **File**: `app/page.tsx` (updated)
-- **Change**: Added a "👥 Buddies" button in the header that navigates to the profile view with the buddies tab selected
-- **Location**: Header section next to the user's rating pill
-- **Styling**: Matches the existing design with #014a09 background and #ffcc66 text
+- **Change**: The "👥 Buddies" button was removed from the header. Users can access the buddy list by going to their profile and selecting the "👥 Buddies" tab.
+- **Location**: Profile view tabs
 
 ## Features Implemented
 
@@ -106,7 +105,9 @@ DELETE FROM buddies WHERE user_id = $1 AND buddy_id = $2
 ## Testing Checklist
 - [ ] Run the buddies.sql migration in Supabase
 - [ ] Navigate to the app home page
-- [ ] Click the "👥 Buddies" button in the header
+- [ ] Go to your profile by clicking on your rating pill in the header
+- [ ] Click the "👥 Buddies" tab
+- [ ] Add and remove buddies to test the functionality
 - [ ] Verify profile information displays correctly
 - [ ] Test adding a buddy
 - [ ] Test removing a buddy

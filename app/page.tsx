@@ -499,9 +499,6 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <button onClick={() => { setView('profile'); setProfileTab('buddies') }} style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'8px 12px', color:'#ffcc66', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
-                  👥 Buddies
-                </button>
               </div>
             )
           })()}
@@ -1219,20 +1216,27 @@ export default function HomePage() {
                       style={{ padding:'8px 12px', borderRadius:6, border:'1px solid #014a0922', fontSize:13, fontFamily:'inherit' }}
                     >
                       <option value="">All Times</option>
-                      <option value="Mon AM">Monday AM</option>
-                      <option value="Mon PM">Monday PM</option>
-                      <option value="Tue AM">Tuesday AM</option>
-                      <option value="Tue PM">Tuesday PM</option>
-                      <option value="Wed AM">Wednesday AM</option>
-                      <option value="Wed PM">Wednesday PM</option>
-                      <option value="Thu AM">Thursday AM</option>
-                      <option value="Thu PM">Thursday PM</option>
-                      <option value="Fri AM">Friday AM</option>
-                      <option value="Fri PM">Friday PM</option>
-                      <option value="Sat AM">Saturday AM</option>
-                      <option value="Sat PM">Saturday PM</option>
-                      <option value="Sun AM">Sunday AM</option>
-                      <option value="Sun PM">Sunday PM</option>
+                      <option value="Mon Morning">Monday Morning</option>
+                      <option value="Mon Afternoon">Monday Afternoon</option>
+                      <option value="Mon Evening">Monday Evening</option>
+                      <option value="Tue Morning">Tuesday Morning</option>
+                      <option value="Tue Afternoon">Tuesday Afternoon</option>
+                      <option value="Tue Evening">Tuesday Evening</option>
+                      <option value="Wed Morning">Wednesday Morning</option>
+                      <option value="Wed Afternoon">Wednesday Afternoon</option>
+                      <option value="Wed Evening">Wednesday Evening</option>
+                      <option value="Thu Morning">Thursday Morning</option>
+                      <option value="Thu Afternoon">Thursday Afternoon</option>
+                      <option value="Thu Evening">Thursday Evening</option>
+                      <option value="Fri Morning">Friday Morning</option>
+                      <option value="Fri Afternoon">Friday Afternoon</option>
+                      <option value="Fri Evening">Friday Evening</option>
+                      <option value="Sat Morning">Saturday Morning</option>
+                      <option value="Sat Afternoon">Saturday Afternoon</option>
+                      <option value="Sat Evening">Saturday Evening</option>
+                      <option value="Sun Morning">Sunday Morning</option>
+                      <option value="Sun Afternoon">Sunday Afternoon</option>
+                      <option value="Sun Evening">Sunday Evening</option>
                     </select>
                   </div>
                 )}
