@@ -493,24 +493,6 @@ export default function HomePage() {
             const rd = liveRating ? ratingToLevel(liveRating) : ratingToLevel(3.5)
             return (
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                {currentUser.is_admin && (
-                  <button 
-                    onClick={() => router.push('/admin')} 
-                    style={{ 
-                      background: '#990033', 
-                      border: 'none', 
-                      borderRadius: 12, 
-                      padding: '12px 24px', 
-                      color: '#fff', 
-                      fontWeight: 800, 
-                      fontSize: 14, 
-                      cursor: 'pointer', 
-                      fontFamily: 'inherit',
-                      marginRight: 12
-                    }}>
-                    ⚙️ Admin Panel
-                  </button>
-                )}
                 <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
                   onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
                   <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
@@ -1067,9 +1049,26 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
             <div style={{ display:'flex', alignItems:'center', gap:12 }}>
               <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
-              <div>
+              <div style={{ flex:1 }}>
                 <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{currentUser.name}</div>
-                <div style={{ fontSize:12, color:'#555', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+                <div style={{ fontSize:12, color:'#555', marginTop:2, marginBottom:10 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+                {currentUser.is_admin && (
+                  <button 
+                    onClick={() => router.push('/admin')} 
+                    style={{ 
+                      background: '#990033', 
+                      border: 'none', 
+                      borderRadius: 10, 
+                      padding: '8px 14px', 
+                      color: '#fff', 
+                      fontWeight: 700, 
+                      fontSize: 12, 
+                      cursor: 'pointer', 
+                      fontFamily: 'inherit'
+                    }}>
+                    ⚙️ Admin Panel
+                  </button>
+                )}
               </div>
             </div>
 

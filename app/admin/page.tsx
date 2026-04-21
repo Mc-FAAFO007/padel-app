@@ -94,11 +94,18 @@ export default function AdminPage() {
           <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0, marginBottom: 4 }}>Admin Panel</h1>
           <div style={{ fontSize: 13, color: '#888' }}>Logged in as {currentUser.name} • Admin</div>
         </div>
-        <button
-          onClick={() => { supabase.auth.signOut(); router.push('/login') }}
-          style={{ background: '#990033', border: 'none', borderRadius: 10, padding: '10px 20px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          Sign Out
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button
+            onClick={() => router.push('/')}
+            style={{ background: '#026b0d', border: 'none', borderRadius: 10, padding: '10px 20px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            ← Back to App
+          </button>
+          <button
+            onClick={() => { supabase.auth.signOut(); router.push('/login') }}
+            style={{ background: '#990033', border: 'none', borderRadius: 10, padding: '10px 20px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Sign Out
+          </button>
+        </div>
       </div>
 
       {/* Notification */}
