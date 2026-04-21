@@ -4,7 +4,13 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Profile, Post, Rating, Match } from '@/lib/types'
 
-type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics'
+// Derive level badge from numeric rating
+function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
+  if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
+  if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
+  if (rating >= 2.6) return { level:'3', color:'#006633', bg:'rgba(0,102,51,0.10)', desc:'Casual' }
+  return              { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Beginner' }
+}
 
 export default function AdminPage() {
   const router = useRouter()
@@ -344,7 +350,8 @@ export default function AdminPage() {
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button
                     onClick={async () => {
-                      const { error } = await supabase
+                      const newLevel = ratingToLevel(editingRating.rating).level
+                      const { error: ratingError } = await supabase
                         .from('ratings')
                         .update({
                           rating: editingRating.rating,
@@ -352,12 +359,22 @@ export default function AdminPage() {
                           updated_at: new Date().toISOString(),
                         })
                         .eq('id', editingRating.id)
-                      if (error) showNotif('Error updating rating')
-                      else {
-                        showNotif('Rating updated')
-                        setRatings(ratings.map(r => r.id === editingRating.id ? { ...r, ...editingRating } as Rating : r))
-                        setEditingRating(null)
+                      if (ratingError) {
+                        showNotif('Error updating rating')
+                        return
                       }
+                      const { error: profileError } = await supabase
+                        .from('profiles')
+                        .update({ level: newLevel })
+                        .eq('id', editingRating.player_id)
+                      if (profileError) {
+                        showNotif('Rating updated but error syncing level')
+                      } else {
+                        showNotif('Rating updated')
+                        setUsers(users.map(u => u.id === editingRating.player_id ? { ...u, level: newLevel } : u))
+                      }
+                      setRatings(ratings.map(r => r.id === editingRating.id ? { ...r, ...editingRating } as Rating : r))
+                      setEditingRating(null)
                     }}
                     style={{ flex: 1, background: '#014a09', border: 'none', borderRadius: 8, padding: '12px', color: '#ffcc66', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                     Save
