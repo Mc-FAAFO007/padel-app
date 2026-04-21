@@ -1047,29 +1047,32 @@ export default function HomePage() {
         {/* ══ PROFILE ══ */}
         {view==='profile' && currentUser && (
           <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{currentUser.name}</div>
-                <div style={{ fontSize:12, color:'#555', marginTop:2, marginBottom:10 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
-                {currentUser.is_admin && (
-                  <button 
-                    onClick={() => router.push('/admin')} 
-                    style={{ 
-                      background: '#990033', 
-                      border: 'none', 
-                      borderRadius: 10, 
-                      padding: '8px 14px', 
-                      color: '#fff', 
-                      fontWeight: 700, 
-                      fontSize: 12, 
-                      cursor: 'pointer', 
-                      fontFamily: 'inherit'
-                    }}>
-                    ⚙️ Admin Panel
-                  </button>
-                )}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
+                <div>
+                  <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{currentUser.name}</div>
+                  <div style={{ fontSize:12, color:'#555', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+                </div>
               </div>
+              {currentUser.is_admin && (
+                <button 
+                  onClick={() => router.push('/admin')} 
+                  style={{ 
+                    background: '#990033', 
+                    border: 'none', 
+                    borderRadius: 10, 
+                    padding: '10px 16px', 
+                    color: '#fff', 
+                    fontWeight: 700, 
+                    fontSize: 12, 
+                    cursor: 'pointer', 
+                    fontFamily: 'inherit',
+                    whiteSpace: 'nowrap'
+                  }}>
+                  ⚙️ Admin
+                </button>
+              )}
             </div>
 
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
