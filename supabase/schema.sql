@@ -113,7 +113,27 @@ create policy "Matches viewable by everyone"
 create policy "Authenticated users can log matches"
   on matches for insert with check (auth.uid() = logged_by);
 
--- ── 6. REALTIME ──────────────────────────────────────────────
+-- ── 6. BUDDIES ───────────────────────────────────────────────
+-- Tracks buddy relationships between players (bidirectional)
+create table if not exists buddies (
+  id           bigserial primary key,
+  user_id      uuid references profiles(id) on delete cascade,
+  buddy_id     uuid references profiles(id) on delete cascade,
+  created_at   timestamptz default now(),
+  unique(user_id, buddy_id)
+);
+
+create index if not exists idx_buddies_user_id on buddies(user_id);
+
+alter table buddies enable row level security;
+create policy "Users can view their own buddies"
+  on buddies for select using (auth.uid() = user_id);
+create policy "Users can add buddies"
+  on buddies for insert with check (auth.uid() = user_id);
+create policy "Users can remove their own buddies"
+  on buddies for delete using (auth.uid() = user_id);
+
+-- ── 7. REALTIME ──────────────────────────────────────────────
 -- Enable realtime for the board so posts update live
 alter publication supabase_realtime add table posts;
 alter publication supabase_realtime add table post_interests;

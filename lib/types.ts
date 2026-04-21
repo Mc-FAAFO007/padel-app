@@ -62,3 +62,10 @@ export interface Match {
   logged_by: string
   created_at: string
 }
+
+export interface Buddy {
+  id: number
+  user_id: string
+  buddy_id: string
+  created_at: string
+}

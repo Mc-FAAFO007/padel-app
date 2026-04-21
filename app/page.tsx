@@ -416,17 +416,22 @@ export default function HomePage() {
           {currentUser && (()=>{
             const rd = liveRating ? ratingToLevel(liveRating) : ratingToLevel(3.5)
             return (
-              <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
-                onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
-                <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
-                <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
-                  <div style={{ fontSize:17, fontWeight:900, color:'#ffcc66', lineHeight:1.1 }}>
-                    {liveRating ? liveRating.toFixed(1) : '--'}
-                  </div>
-                  <div style={{ fontSize:9, fontWeight:700, color:'rgba(255,204,102,0.85)', marginTop:2, whiteSpace:'nowrap' }}>
-                    L{rd.level} · {rd.desc}
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
+                  onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
+                  <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
+                  <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
+                    <div style={{ fontSize:17, fontWeight:900, color:'#ffcc66', lineHeight:1.1 }}>
+                      {liveRating ? liveRating.toFixed(1) : '--'}
+                    </div>
+                    <div style={{ fontSize:9, fontWeight:700, color:'rgba(255,204,102,0.85)', marginTop:2, whiteSpace:'nowrap' }}>
+                      L{rd.level} · {rd.desc}
+                    </div>
                   </div>
                 </div>
+                <button onClick={() => router.push('/profile')} style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'8px 12px', color:'#ffcc66', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                  👥 Buddies
+                </button>
               </div>
             )
           })()}
