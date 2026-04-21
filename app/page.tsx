@@ -259,9 +259,12 @@ export default function HomePage() {
       })
     }
     const channel = supabase
-      .channel('board')
+      .channel('board-and-admin')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, refreshData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'post_interests' }, refreshData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, refreshData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, refreshData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ratings' }, refreshData)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [loadData])
