@@ -1,7 +1,7 @@
 # Buddy List Feature Implementation
 
 ## Overview
-Added a new Buddy List feature that allows users to manage and view their padel playing buddies. This includes a dedicated profile page where users can:
+Added a new Buddy List feature that allows users to manage and view their padel playing buddies. This includes a dedicated buddies tab within the profile view where users can:
 - View their profile information
 - See all their current buddies
 - Filter buddies by skill level and availability
@@ -36,9 +36,9 @@ export interface Buddy {
 }
 ```
 
-### 3. Profile Page
-- **File**: `app/profile/page.tsx` (new)
-- **Purpose**: Main user profile page with buddy list management
+### 3. Profile View Update
+- **File**: `app/page.tsx` (updated)
+- **Purpose**: Added buddies tab to the existing profile view on the home page
 - **Features**:
   - Displays current user's profile with avatar, name, level, and availability
   - Shows all current buddies in a grid layout
@@ -49,7 +49,7 @@ export interface Buddy {
 
 ### 4. Navigation Update
 - **File**: `app/page.tsx` (updated)
-- **Change**: Added a "👥 Buddies" button in the header that links to the new profile page
+- **Change**: Added a "👥 Buddies" button in the header that navigates to the profile view with the buddies tab selected
 - **Location**: Header section next to the user's rating pill
 - **Styling**: Matches the existing design with #014a09 background and #ffcc66 text
 

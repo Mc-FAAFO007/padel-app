@@ -114,7 +114,7 @@ export default function HomePage() {
   const [players,     setPlayers]     = useState<Profile[]>([])
   const [posts,       setPosts]       = useState<(Post & { interested_ids: string[] })[]>([])
   const [view,        setView]        = useState<'home'|'board'|'arena'|'matches'|'profile'>('home')
-  const [profileTab,  setProfileTab]  = useState<'edit'|'results'>('edit')
+  const [profileTab,  setProfileTab]  = useState<'edit'|'results'|'buddies'>('edit')
   const [ratingHistory, setRatingHistory] = useState<Match[]>([])
   const [editName,    setEditName]    = useState('')
   const [editLevel,   setEditLevel]   = useState('')
@@ -129,6 +129,10 @@ export default function HomePage() {
   const [notif,       setNotif]       = useState<string|null>(null)
   const [loading,     setLoading]     = useState(true)
   const [liveRating,   setLiveRating]   = useState<number|null>(null)
+  const [buddies, setBuddies] = useState<Profile[]>([])
+  const [allProfiles, setAllProfiles] = useState<Profile[]>([])
+  const [buddyFilterLevel, setBuddyFilterLevel] = useState<string>('')
+  const [buddyFilterAvailability, setBuddyFilterAvailability] = useState<string>('')
 
   // Post form state
   const [fDay,      setFDay]     = useState('')
@@ -198,6 +202,19 @@ export default function HomePage() {
         }
       }
 
+      // Load buddies data
+      const allProfilesRes = await supabase.from('profiles').select('*').order('name')
+      if (allProfilesRes.data) {
+        setAllProfiles(allProfilesRes.data)
+      }
+
+      const buddiesRes = await supabase.from('buddies').select('buddy_id').eq('user_id', userId)
+      if (buddiesRes.data && allProfilesRes.data) {
+        const buddyIds = new Set(buddiesRes.data.map(b => b.buddy_id))
+        const enrichedBuddies = allProfilesRes.data.filter(p => buddyIds.has(p.id))
+        setBuddies(enrichedBuddies)
+      }
+
       setLoading(false)
     } catch (err) {
       console.error('loadData error:', err)
@@ -248,6 +265,59 @@ export default function HomePage() {
       .subscribe()
     return () => { supabase.removeChannel(channel) }
   }, [loadData])
+
+  // ── Buddy functions ───────────────────────────────────────────────────────
+  const addBuddy = async (buddyId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { error } = await supabase
+      .from('buddies')
+      .insert([{ user_id: session.user.id, buddy_id: buddyId }])
+
+    if (error) {
+      showNotif('Error adding buddy')
+      return
+    }
+
+    const buddy = allProfiles.find(p => p.id === buddyId)
+    if (buddy) {
+      setBuddies([...buddies, buddy])
+    }
+    showNotif('Buddy added!')
+  }
+
+  const removeBuddy = async (buddyId: string) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    const { error } = await supabase
+      .from('buddies')
+      .delete()
+      .eq('user_id', session.user.id)
+      .eq('buddy_id', buddyId)
+
+    if (error) {
+      showNotif('Error removing buddy')
+      return
+    }
+
+    setBuddies(buddies.filter(b => b.id !== buddyId))
+    showNotif('Buddy removed')
+  }
+
+  const getFilteredBuddies = () => {
+    return buddies.filter(buddy => {
+      if (buddyFilterLevel && buddy.level !== buddyFilterLevel) return false
+      if (buddyFilterAvailability && !buddy.availability.includes(buddyFilterAvailability)) return false
+      return true
+    })
+  }
+
+  const getAvailableToAdd = () => {
+    const buddyIds = new Set(buddies.map(b => b.id))
+    return allProfiles.filter(p => p.id !== currentUser?.id && !buddyIds.has(p.id))
+  }
 
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
@@ -429,7 +499,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-                <button onClick={() => router.push('/profile')} style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'8px 12px', color:'#ffcc66', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                <button onClick={() => { setView('profile'); setProfileTab('buddies') }} style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'8px 12px', color:'#ffcc66', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
                   👥 Buddies
                 </button>
               </div>
@@ -983,14 +1053,14 @@ export default function HomePage() {
             </div>
 
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              {['edit','results'].map(tab => (
-                <button key={tab} onClick={() => setProfileTab(tab as 'edit'|'results')} style={{
+              {['edit','results','buddies'].map(tab => (
+                <button key={tab} onClick={() => setProfileTab(tab as 'edit'|'results'|'buddies')} style={{
                   flex:1, minWidth:120, background: profileTab===tab ? '#014a09' : '#fff',
                   border: profileTab===tab ? '1px solid #014a09' : '1px solid #e0d8cc',
                   color: profileTab===tab ? '#ffcc66' : '#555', borderRadius:12,
                   padding:'12px 14px', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit'
                 }}>
-                  {tab === 'edit' ? 'Edit Profile' : 'My Results'}
+                  {tab === 'edit' ? 'Edit Profile' : tab === 'results' ? 'My Results' : '👥 Buddies'}
                 </button>
               ))}
             </div>
@@ -1070,7 +1140,7 @@ export default function HomePage() {
                   Sign Out
                 </button>
               </div>
-            ) : (
+            ) : profileTab === 'results' ? (
               <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
                 <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Rating Fluctuations</div>
                 {ratingTimeline.length === 0 ? (
@@ -1123,6 +1193,127 @@ export default function HomePage() {
                       ))}
                     </div>
                   </>
+                )}
+              </div>
+            ) : (
+              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
+                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>My Buddies ({buddies.length})</div>
+
+                {/* Filters */}
+                {buddies.length > 0 && (
+                  <div style={{ marginBottom:24, display:'flex', gap:16, flexWrap:'wrap' }}>
+                    <select
+                      value={buddyFilterLevel}
+                      onChange={(e) => setBuddyFilterLevel(e.target.value)}
+                      style={{ padding:'8px 12px', borderRadius:6, border:'1px solid #014a0922', fontSize:13, fontFamily:'inherit' }}
+                    >
+                      <option value="">All Levels</option>
+                      <option value="1">L1 · Elite</option>
+                      <option value="2">L2 · Competitive</option>
+                      <option value="3">L3 · Casual</option>
+                      <option value="4">L4 · Beginner</option>
+                    </select>
+                    <select
+                      value={buddyFilterAvailability}
+                      onChange={(e) => setBuddyFilterAvailability(e.target.value)}
+                      style={{ padding:'8px 12px', borderRadius:6, border:'1px solid #014a0922', fontSize:13, fontFamily:'inherit' }}
+                    >
+                      <option value="">All Times</option>
+                      <option value="Mon AM">Monday AM</option>
+                      <option value="Mon PM">Monday PM</option>
+                      <option value="Tue AM">Tuesday AM</option>
+                      <option value="Tue PM">Tuesday PM</option>
+                      <option value="Wed AM">Wednesday AM</option>
+                      <option value="Wed PM">Wednesday PM</option>
+                      <option value="Thu AM">Thursday AM</option>
+                      <option value="Thu PM">Thursday PM</option>
+                      <option value="Fri AM">Friday AM</option>
+                      <option value="Fri PM">Friday PM</option>
+                      <option value="Sat AM">Saturday AM</option>
+                      <option value="Sat PM">Saturday PM</option>
+                      <option value="Sun AM">Sunday AM</option>
+                      <option value="Sun PM">Sunday PM</option>
+                    </select>
+                  </div>
+                )}
+
+                {/* Buddies Grid */}
+                {getFilteredBuddies().length > 0 ? (
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16, marginBottom:40 }}>
+                    {getFilteredBuddies().map(buddy => (
+                      <div key={buddy.id} style={{ padding:16, background:'#fff', borderRadius:12, border:'1px solid #014a0911', display:'flex', flexDirection:'column', gap:12 }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                          <Avatar initials={buddy.avatar} size={48} level={buddy.level} />
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:14, fontWeight:700 }}>{buddy.name}</div>
+                            <LevelBadge level={buddy.level} />
+                          </div>
+                        </div>
+                        <div style={{ fontSize:12, color:'#666', lineHeight:1.5 }}>
+                          {buddy.availability.length > 0 ? buddy.availability.join(', ') : 'No availability'}
+                        </div>
+                        <button
+                          onClick={() => removeBuddy(buddy.id)}
+                          style={{
+                            padding:'8px 12px',
+                            background:'#f5f0e8',
+                            border:'1px solid #990033',
+                            borderRadius:6,
+                            color:'#990033',
+                            fontSize:12,
+                            fontWeight:600,
+                            cursor:'pointer',
+                            fontFamily:'inherit',
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ padding:32, background:'#fff', borderRadius:12, border:'1px solid #014a0911', textAlign:'center', color:'#666', marginBottom:40 }}>
+                    {buddies.length === 0 ? "You don't have any buddies yet. Add some below!" : 'No buddies match your filters.'}
+                  </div>
+                )}
+
+                {/* Add Buddies Section */}
+                {getAvailableToAdd().length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize:16, fontWeight:900, marginBottom:16 }}>Add Buddies</h3>
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+                      {getAvailableToAdd().map(profile => (
+                        <div key={profile.id} style={{ padding:16, background:'#fff', borderRadius:12, border:'1px solid #014a0911', display:'flex', flexDirection:'column', gap:12 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                            <Avatar initials={profile.avatar} size={48} level={profile.level} />
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:14, fontWeight:700 }}>{profile.name}</div>
+                              <LevelBadge level={profile.level} />
+                            </div>
+                          </div>
+                          <div style={{ fontSize:12, color:'#666', lineHeight:1.5 }}>
+                            {profile.availability.length > 0 ? profile.availability.join(', ') : 'No availability'}
+                          </div>
+                          <button
+                            onClick={() => addBuddy(profile.id)}
+                            style={{
+                              padding:'8px 12px',
+                              background:'#014a09',
+                              border:'none',
+                              borderRadius:6,
+                              color:'#f5f0e8',
+                              fontSize:12,
+                              fontWeight:600,
+                              cursor:'pointer',
+                              fontFamily:'inherit',
+                            }}
+                          >
+                            Add Buddy
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
