@@ -6,25 +6,21 @@ import type { Profile, Post, Rating, Match } from '@/lib/types'
 
 type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics'
 
-interface AdminUser extends Profile {
-  is_admin: boolean
-}
-
 export default function AdminPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null)
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null)
   const [tab, setTab] = useState<AdminTab>('dashboard')
   const [loading, setLoading] = useState(true)
   const [notif, setNotif] = useState<string | null>(null)
 
   // Data states
-  const [users, setUsers] = useState<AdminUser[]>([])
+  const [users, setUsers] = useState<Profile[]>([])
   const [posts, setPosts] = useState<Post[]>([])
   const [ratings, setRatings] = useState<Rating[]>([])
   const [matches, setMatches] = useState<Match[]>([])
 
   // Edit states
-  const [editingUser, setEditingUser] = useState<Partial<AdminUser> | null>(null)
+  const [editingUser, setEditingUser] = useState<Partial<Profile> | null>(null)
   const [editingPost, setEditingPost] = useState<Partial<Post> | null>(null)
   const [editingRating, setEditingRating] = useState<Partial<Rating> | null>(null)
 
@@ -43,7 +39,7 @@ export default function AdminPage() {
     // Check if user is admin
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('*, is_admin: is_admin')
+      .select('*, is_admin')
       .eq('id', session.user.id)
       .single()
 
@@ -53,17 +49,17 @@ export default function AdminPage() {
       return
     }
 
-    setCurrentUser(profileData as AdminUser)
+    setCurrentUser(profileData)
 
     // Load all data
     const [usersRes, postsRes, ratingsRes, matchesRes] = await Promise.all([
-      supabase.from('profiles').select('*, is_admin: is_admin').order('created_at'),
+      supabase.from('profiles').select('*, is_admin').order('created_at'),
       supabase.from('posts').select('*').order('created_at', { ascending: false }),
       supabase.from('ratings').select('*').order('rating', { ascending: false }),
       supabase.from('matches').select('*').order('created_at', { ascending: false }),
     ])
 
-    setUsers((usersRes.data as AdminUser[]) || [])
+    setUsers((usersRes.data as Profile[]) || [])
     setPosts(postsRes.data as Post[] || [])
     setRatings(ratingsRes.data as Rating[] || [])
     setMatches(matchesRes.data as Match[] || [])

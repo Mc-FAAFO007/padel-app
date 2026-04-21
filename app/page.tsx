@@ -155,7 +155,7 @@ export default function HomePage() {
   // ── Load session + data ───────────────────────────────────────────────────
   const loadData = useCallback(async (userId: string) => {
     try {
-      const profileRes = await supabase.from('profiles').select('*').eq('id', userId).single()
+      const profileRes = await supabase.from('profiles').select('*, is_admin').eq('id', userId).single()
 
       if (profileRes.error) {
         // Only redirect to onboarding if profile genuinely doesn't exist
@@ -493,6 +493,24 @@ export default function HomePage() {
             const rd = liveRating ? ratingToLevel(liveRating) : ratingToLevel(3.5)
             return (
               <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                {currentUser.is_admin && (
+                  <button 
+                    onClick={() => router.push('/admin')} 
+                    style={{ 
+                      background: '#990033', 
+                      border: 'none', 
+                      borderRadius: 12, 
+                      padding: '12px 24px', 
+                      color: '#fff', 
+                      fontWeight: 800, 
+                      fontSize: 14, 
+                      cursor: 'pointer', 
+                      fontFamily: 'inherit',
+                      marginRight: 12
+                    }}>
+                    ⚙️ Admin Panel
+                  </button>
+                )}
                 <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
                   onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
                   <Avatar initials={currentUser.avatar} size={34} level={rd.level} />

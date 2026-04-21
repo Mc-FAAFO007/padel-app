@@ -7,6 +7,7 @@ export interface Profile {
   level: string          // "1" | "2" | "3" | "4"
   availability: string[]
   created_at: string
+  is_admin?: boolean
 }
 
 export interface Post {
