@@ -269,20 +269,26 @@ export default function HomePage() {
   // ── Buddy functions ───────────────────────────────────────────────────────
   const addBuddy = async (buddyId: string) => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    if (!session) {
+      showNotif('Not logged in')
+      return
+    }
 
     const { error } = await supabase
       .from('buddies')
       .insert([{ user_id: session.user.id, buddy_id: buddyId }])
 
     if (error) {
-      showNotif('Error adding buddy')
+      console.error('Error adding buddy:', error)
+      showNotif(`Error adding buddy: ${error.message}`)
       return
     }
 
     const buddy = allProfiles.find(p => p.id === buddyId)
     if (buddy) {
       setBuddies([...buddies, buddy])
+    } else {
+      console.error('Buddy not found in allProfiles:', buddyId, allProfiles)
     }
     showNotif('Buddy added!')
   }
