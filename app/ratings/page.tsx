@@ -995,10 +995,10 @@ export default function RatingsPage() {
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {[
             { label:'Home',     path:'/',        icon:<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
-            { label:'Board',    path:'/',        icon:<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
+            { label:'Board',    path:'/?view=board',    icon:<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
             { label:'League',   path:'/league',  icon:<><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
             { label:'Arena',    path:'/ratings', icon:<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
-            { label:'Schedule', path:'/',        icon:<><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></> },
+            { label:'Schedule', path:'/?view=matches',  icon:<><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></> },
           ].map(({ label, path, icon }) => {
             const active = path === '/ratings'
             return (
