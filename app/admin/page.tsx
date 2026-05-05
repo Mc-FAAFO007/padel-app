@@ -210,6 +210,7 @@ export default function AdminPage() {
                   </div>
                   <button onClick={async () => {
                     if (confirm(`Delete ${p.player_name}'s post?`)) {
+                      await supabase.from('post_interests').delete().eq('post_id', p.id)
                       await supabase.from('posts').delete().eq('id', p.id)
                       setPosts(posts.filter(x => x.id!==p.id))
                       showNotif('Post deleted')
