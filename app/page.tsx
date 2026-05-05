@@ -1464,7 +1464,6 @@ export default function HomePage() {
         </div>
       )}
 
-    </div>
       {/* ── Bottom Nav ── */}
       <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#fff', borderTop:'1px solid rgba(1,74,9,0.12)', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
@@ -1499,6 +1498,7 @@ export default function HomePage() {
           })}
         </div>
       </nav>
+    </div>
   )
 }
 
