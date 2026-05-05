@@ -224,6 +224,14 @@ export default function HomePage() {
   }, [router])
 
   useEffect(() => {
+    const mainView = sessionStorage.getItem('mainView')
+    if (mainView === 'board' || mainView === 'matches') {
+      setView(mainView as any)
+      sessionStorage.removeItem('mainView')
+    }
+  }, [])
+
+  useEffect(() => {
     let sessionChecked = false
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
