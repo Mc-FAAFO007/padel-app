@@ -123,7 +123,7 @@ export default function AdminPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth:900, margin:'0 auto', padding:'20px 16px 60px', background:'#f5f0e8', minHeight:'100vh' }}>
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'20px 16px 60px', background:'#f5f0e8', minHeight:'calc(100vh - 100px)', background:'#f5f0e8', minHeight:'100vh' }}>
 
         {/* Dashboard */}
         {tab==='dashboard' && (
@@ -137,7 +137,7 @@ export default function AdminPage() {
             ].map(({ label, val, color }) => (
               <div key={label} style={{
                 background:'#fff', border:'1px solid rgba(1,74,9,0.06)',
-                borderRadius:12, padding:'16px 18px',
+                borderRadius:16, padding:'16px 18px',
               }}>
                 <div style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>{label}</div>
                 <div style={{ fontSize:28, fontWeight:900, color }}>{val}</div>
@@ -200,7 +200,7 @@ export default function AdminPage() {
             <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
               {posts.map(p => (
                 <div key={p.id} style={{
-                  border:'1px solid rgba(1,74,9,0.06)', borderRadius:10,
+                  border:'1px solid rgba(1,74,9,0.06)', borderRadius:12, background:'rgba(1,74,9,0.03)',
                   padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'center',
                 }}>
                   <div>
@@ -304,7 +304,7 @@ export default function AdminPage() {
             </div>
             <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
               {matches.slice(0,30).map(m => (
-                <div key={m.id} style={{ border:'1px solid rgba(1,74,9,0.06)', borderRadius:10, padding:'12px 14px' }}>
+                <div key={m.id} style={{ border:'1px solid rgba(1,74,9,0.06)', borderRadius:12, background:'rgba(1,74,9,0.03)', padding:'12px 14px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
                     <div style={{ fontSize:13, fontWeight:700, color: C.dark, lineHeight:1.4 }}>
                       {m.team_a1_name} & {m.team_a2_name}<br />
