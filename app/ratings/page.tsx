@@ -1006,7 +1006,7 @@ export default function RatingsPage() {
                 if (label==='Board') { sessionStorage.setItem('mainView','board'); router.push('/') }
                 else if (label==='Schedule') { sessionStorage.setItem('mainView','matches'); router.push('/') }
                 else router.push(path)
-              }} style{{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+              }} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
                 <svg width="18" height="18" fill="none" stroke={active ? '#014a09' : '#aaa'} strokeWidth="1.8" viewBox="0 0 24 24">{icon}</svg>
                 {label}
                 {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
