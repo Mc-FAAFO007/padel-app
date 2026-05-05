@@ -252,6 +252,58 @@ export default function HomePage() {
     }
   }, [loadData, router])
 
+  // ── Refresh specific data tables ────────────────────────────────────────
+  const refreshSpecificData = useCallback(async (table: string) => {
+    if (!currentUser?.id) return
+
+    try {
+      if (table === 'posts' || table === 'post_interests') {
+        const postsRes = await supabase
+          .from('posts')
+          .select('*, post_interests(player_id)')
+          .order('created_at', { ascending: false })
+
+        if (postsRes.data) {
+          const enrichedPosts = postsRes.data.map((p: any) => ({
+            ...p,
+            interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
+          }))
+          setPosts(enrichedPosts)
+        }
+      }
+
+      if (table === 'matches' || table === 'ratings') {
+        const [matchesRes, ratingRes] = await Promise.all([
+          supabase
+            .from('matches')
+            .select('*')
+            .or(`team_a1_id.eq.${currentUser.id},team_a2_id.eq.${currentUser.id},team_b1_id.eq.${currentUser.id},team_b2_id.eq.${currentUser.id}`)
+            .order('created_at', { ascending: true }),
+          supabase.from('ratings').select('rating').eq('player_id', currentUser.id).single()
+        ])
+
+        if (matchesRes.data) setRatingHistory(matchesRes.data)
+        if (ratingRes.data) setLiveRating(ratingRes.data.rating)
+      }
+
+      if (table === 'profiles') {
+        const profilesRes = await supabase.from('profiles').select('*').order('created_at')
+        if (profilesRes.data) setPlayers(profilesRes.data)
+      }
+
+      if (table === 'buddies') {
+        const buddiesRes = await supabase.from('buddies').select('buddy_id').eq('user_id', currentUser.id)
+        if (buddiesRes.data) {
+          const buddyIds = new Set(buddiesRes.data.map(b => b.buddy_id))
+          const enrichedBuddies = allProfiles.filter(p => buddyIds.has(p.id))
+          setBuddies(enrichedBuddies)
+        }
+      }
+    } catch (err) {
+      console.error('Error refreshing data:', err)
+    }
+  }, [currentUser?.id])
+
   useEffect(() => {
     const handleRealtimeUpdate = (payload: any) => {
       console.log('Real-time update detected:', payload.eventType, 'on table:', payload.table)
@@ -295,58 +347,6 @@ export default function HomePage() {
       channel.unsubscribe()
     }
   }, [refreshSpecificData])
-
-  // ── Refresh specific data tables ────────────────────────────────────────
-  const refreshSpecificData = useCallback(async (table: string) => {
-    if (!currentUser?.id) return
-    
-    try {
-      if (table === 'posts' || table === 'post_interests') {
-        const postsRes = await supabase
-          .from('posts')
-          .select('*, post_interests(player_id)')
-          .order('created_at', { ascending: false })
-        
-        if (postsRes.data) {
-          const enrichedPosts = postsRes.data.map((p: any) => ({
-            ...p,
-            interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
-          }))
-          setPosts(enrichedPosts)
-        }
-      }
-      
-      if (table === 'matches' || table === 'ratings') {
-        const [matchesRes, ratingRes] = await Promise.all([
-          supabase
-            .from('matches')
-            .select('*')
-            .or(`team_a1_id.eq.${currentUser.id},team_a2_id.eq.${currentUser.id},team_b1_id.eq.${currentUser.id},team_b2_id.eq.${currentUser.id}`)
-            .order('created_at', { ascending: true }),
-          supabase.from('ratings').select('rating').eq('player_id', currentUser.id).single()
-        ])
-        
-        if (matchesRes.data) setRatingHistory(matchesRes.data)
-        if (ratingRes.data) setLiveRating(ratingRes.data.rating)
-      }
-      
-      if (table === 'profiles') {
-        const profilesRes = await supabase.from('profiles').select('*').order('created_at')
-        if (profilesRes.data) setPlayers(profilesRes.data)
-      }
-      
-      if (table === 'buddies') {
-        const buddiesRes = await supabase.from('buddies').select('buddy_id').eq('user_id', currentUser.id)
-        if (buddiesRes.data) {
-          const buddyIds = new Set(buddiesRes.data.map(b => b.buddy_id))
-          const enrichedBuddies = allProfiles.filter(p => buddyIds.has(p.id))
-          setBuddies(enrichedBuddies)
-        }
-      }
-    } catch (err) {
-      console.error('Error refreshing data:', err)
-    }
-  }, [currentUser?.id])
 
   // ── Buddy functions ───────────────────────────────────────────────────
   const addBuddy = async (buddyId: string) => {

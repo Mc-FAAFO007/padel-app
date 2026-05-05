@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Profile, Post, Rating, Match } from '@/lib/types'
 
+type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics'
+
 // Derive level badge from numeric rating
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
   if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
