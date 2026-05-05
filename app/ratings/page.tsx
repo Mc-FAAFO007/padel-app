@@ -45,9 +45,9 @@ function Avatar({ initials, size = 40, rating }: { initials: string; size?: numb
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
-      background: b.bg, border: `2px solid ${b.color}55`,
+      background: b.bg, border: `2px solid ${b.color}35`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: b.color, fontWeight: 900, fontSize: size * 0.32, flexShrink: 0,
+      color: b.color, fontWeight: 800, fontSize: size * 0.32, flexShrink: 0,
     }}>
       {initials}
     </div>
@@ -409,8 +409,8 @@ export default function RatingsPage() {
 
   const s: Record<string, React.CSSProperties> = {
     page:  { minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#014a09', overflowX:'hidden' },
-    inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 56px' },
-    lbl:   { fontSize:10, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 },
+    inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 80px' },
+    lbl:   { fontSize:9, fontWeight:700, color:'rgba(1,74,9,0.35)', textTransform:'uppercase' as const, letterSpacing:'1px' as const, marginBottom:8 },
   }
 
   const navBtn = (active: boolean) => ({
@@ -461,19 +461,18 @@ export default function RatingsPage() {
       <div style={s.inner}>
 
         {/* Header */}
-        <div style={{ padding:'22px 0 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div>
-            <div style={{ fontSize:20, fontWeight:900, color:'#014a09' }}>The Arena</div>
-            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Ratings · Matches · Leaderboard</div>
-          </div>
-
+        <div style={{ padding:'22px 0 8px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div style={{ fontSize:20, fontWeight:800, color:'#014a09', letterSpacing:-0.5 }}>The Arena</div>
         </div>
 
-        {/* Nav */}
-        <div style={{ display:'flex', background:'#014a09', borderRadius:12, padding:3, marginBottom:20, gap:2 }}>
-          <button style={navBtn(view==='leaderboard')} onClick={() => setView('leaderboard')}>Leaderboard</button>
-          <button style={navBtn(view==='log')}         onClick={() => setView('log')}>Log Match</button>
-          <button style={navBtn(view==='my')}          onClick={() => setView('my')}>My Results</button>
+        {/* Nav pills */}
+        <div style={{ display:'flex', gap:6, marginBottom:16 }}>
+          {(['leaderboard','log','my'] as const).map(v => (
+            <button key={v} onClick={() => setView(v)}
+              style={{ background: view===v ? '#014a09' : 'rgba(1,74,9,0.07)', color: view===v ? '#ffcc66' : 'rgba(1,74,9,0.5)', fontSize:10, fontWeight: view===v ? 700 : 600, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const }}>
+              {v === 'leaderboard' ? 'Leaderboard' : v === 'log' ? 'Log Match' : 'My Results'}
+            </button>
+          ))}
         </div>
 
         {/* ══ LEADERBOARD ══ */}
@@ -487,10 +486,9 @@ export default function RatingsPage() {
                 <div key={r.id} onClick={() => !isMe && setViewingPlayer(r)}
                   style={{
                   display:'flex', alignItems:'center', gap:12,
-                  padding:'12px 4px', borderBottom:'1px solid rgba(1,74,9,0.08)',
-                  background: isMe ? 'rgba(1,74,9,0.05)' : 'transparent',
-                  borderRadius: isMe ? 8 : 0,
-                  margin: isMe ? '0 -4px' : 0,
+                  padding:'11px 14px', borderRadius:12, marginBottom:6,
+                  background: isMe ? 'rgba(1,74,9,0.06)' : '#fff',
+                  border: isMe ? '1px solid rgba(1,74,9,0.18)' : '1px solid rgba(1,74,9,0.06)',
                   cursor: isMe ? 'default' : 'pointer',
                 }}>
                   <div style={{ fontSize:13, fontWeight:900, color: i < 3 ? '#014a09' : '#aaa', width:20, textAlign:'center', flexShrink:0, background: i < 3 ? 'rgba(1,74,9,0.1)' : 'transparent', borderRadius:'50%', height:20, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -509,7 +507,7 @@ export default function RatingsPage() {
                   </div>
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{r.rating.toFixed(1)}</div>
-                    <div style={{ height:4, width:60, background:'#e8e0d5', borderRadius:4, overflow:'hidden', marginTop:4 }}>
+                    <div style={{ height:4, width:60, background:'rgba(1,74,9,0.1)', borderRadius:4, overflow:'hidden', marginTop:4 }}>
                       <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4 }} />
                     </div>
                   </div>
@@ -608,7 +606,7 @@ export default function RatingsPage() {
                   <div style={{ ...s.lbl, marginBottom:8 }}>Drag players to assign teams</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {pool.map(r => (
-                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.2)', borderRadius:11, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1 }}>
+                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'#fff', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1 }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
@@ -676,7 +674,7 @@ export default function RatingsPage() {
 
               {/* Player picker — manual entry only */}
               {!isFromSchedule && pickingFor && (
-                <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
+                <div style={{ background:'#fff', borderRadius:16, padding:'10px 12px' }}>
                   <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                     {ratings.filter(r => ![selA1,selA2,selB1,selB2].find(p=>p?.player_id===r.player_id)).map(r => (
@@ -796,16 +794,16 @@ export default function RatingsPage() {
             {currentUser ? (
               <>
                 {/* My rating card */}
-                <div style={{ background:'rgba(2,107,13,0.06)', border:'1px solid rgba(2,107,13,0.2)', borderRadius:16, padding:'16px', display:'flex', alignItems:'center', gap:16 }}>
-                  <div style={{ fontSize:40, fontWeight:900, color:'#026b0d', lineHeight:1 }}>
+                <div style={{ background:'#014a09', borderRadius:16, padding:'16px', display:'flex', alignItems:'center', gap:16 }}>
+                  <div style={{ fontSize:40, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>
                     {currentUser.rating.toFixed(1)}
                   </div>
                   <div>
-                    <div style={{ fontSize:12, color:'#888', marginBottom:3 }}>Your current rating</div>
-                    <div style={{ fontSize:16, fontWeight:800, color:'#014a09' }}>{currentUser.player_name}</div>
+                    <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginBottom:3 }}>Your current rating</div>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#fff' }}>{currentUser.player_name}</div>
                     <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:6 }}>
                       <ConfBadge n={myHistory.length} />
-                      <span style={{ fontSize:11, color:'#888' }}>{myHistory.length} matches · rank #{myRank}</span>
+                      <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{myHistory.length} matches · rank #{myRank}</span>
                     </div>
                   </div>
                 </div>
@@ -834,7 +832,7 @@ export default function RatingsPage() {
                         </div>
                       </div>
 
-                      <div style={{ background:'#f7f2e8', borderRadius:16, padding:'14px', overflowX:'auto' }}>
+                      <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:16, padding:'14px', overflowX:'auto' }}>
                         <div style={{ display:'flex', alignItems:'flex-end', gap:9, minWidth: Math.max(280, myRatingTimeline.length * 56) }}>
                           {myRatingTimeline.map(point => {
                             const height = Math.max(20, ((point.rating - myRatingMin) / Math.max(myRatingMax - myRatingMin, 1)) * 104)
@@ -875,8 +873,8 @@ export default function RatingsPage() {
 
                   return (
                     <div key={m.id} style={{
-                      background:'#fff', border:`1px solid ${won?'rgba(0,102,51,0.3)':'rgba(153,0,51,0.3)'}`,
-                      borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'12px 14px', marginBottom:6,
+                      background:'#fff', borderLeft:`3px solid ${won?'#006633':'#990033'}`,
+                      borderRadius:'0 14px 14px 0', padding:'12px 14px', paddingLeft:11, marginBottom:6,
                     }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                         <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
@@ -938,7 +936,7 @@ export default function RatingsPage() {
                 </div>
                 <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
+              <div style={{ background:'#014a09', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
                 <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
                   <div style={{ fontSize:11, color:'rgba(255,204,102,0.7)', marginBottom:3 }}>Current rating</div>
