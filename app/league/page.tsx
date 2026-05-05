@@ -425,16 +425,16 @@ export default function LeaguePage() {
       <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 80 }}>
 
         {/* Sport switcher */}
-        <div style={{ display: 'flex', gap: 8, padding: '12px 16px 0' }}>
+        <div style={{ display:'flex', background:'#014a09', borderRadius:12, padding:3, marginBottom:20, gap:2, marginTop:16 }}>
           {(['padel', 'tennis'] as const).map(sp => (
             <button key={sp} onClick={() => setSport(sp)} style={{
-              padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-              border: `1.5px solid ${sp === sport ? C.dark : 'rgba(1,74,9,0.2)'}`,
-              color: sp === sport ? C.gold : C.dark,
-              background: sp === sport ? C.dark : 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+              flex:1, border:'none', borderRadius:10, padding:'8px 0',
+              background: sp === sport ? '#026b0d' : 'transparent',
+              color: sp === sport ? '#ffcc66' : 'rgba(255,204,102,0.5)',
+              fontWeight:700, fontSize:11, cursor:'pointer', fontFamily:'inherit',
+              transition:'all 0.2s',
             }}>{sp.charAt(0).toUpperCase() + sp.slice(1)}</button>
           ))}
-          <button style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, border: '1.5px solid rgba(1,74,9,0.2)', color: C.dark, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}>+ Add sport</button>
         </div>
 
         {/* Tonight banner */}
