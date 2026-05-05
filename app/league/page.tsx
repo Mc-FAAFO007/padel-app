@@ -177,8 +177,8 @@ function FixtureCard({
     </div>
   )
   return (
-    <div style={{ background: '#fff', border: `1px solid ${C.cardBorder}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', background: 'rgba(1,74,9,0.04)', borderBottom: `1px solid rgba(1,74,9,0.08)` }}>
+    <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', background: 'rgba(1,74,9,0.03)', borderBottom: '1px solid rgba(1,74,9,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: C.dark, background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px' }}>Round {fixture.round}</div>
           <div style={{ fontSize: 10, color: '#888' }}>Court {fixture.court} · {formatMatchDate(fixture.scheduled_date)} · {formatTime(fixture.scheduled_time)}</div>
@@ -290,7 +290,7 @@ function LogResultModal({
   }
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
-      <div style={{ background: C.bg, borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: '#f5f0e8', borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
         <div style={{ width: 36, height: 4, background: 'rgba(1,74,9,0.2)', borderRadius: 2, margin: '0 auto 18px' }} />
         <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 4 }}>Log Result</div>
         <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Round {fixture.round} · {fixture.team_1_p1_name} & {fixture.team_1_p2_name} vs {fixture.team_2_p1_name} & {fixture.team_2_p2_name}</div>
@@ -305,9 +305,9 @@ function LogResultModal({
         {showSet3 && <SetRow label="Set 3" va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b} tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b} />}
         <button onClick={handleSubmit} disabled={submitting} style={{
           width: '100%', padding: '13px', marginTop: 8,
-          background: submitting ? 'rgba(1,74,9,0.4)' : C.dark,
-          color: C.gold, border: 'none', borderRadius: 10,
-          fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
+          background: submitting ? 'rgba(1,74,9,0.4)' : '#014a09',
+          color: '#ffcc66', border: 'none', borderRadius: 14,
+          fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
         }}>{submitting ? 'Saving...' : 'Save Result'}</button>
       </div>
     </div>
@@ -408,15 +408,12 @@ export default function LeaguePage() {
       )}
 
       {/* ── Header — matches main app style ── */}
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div>
-          <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: -0.5, color: C.dark }}>The League</div>
-          <div style={{ fontSize: 12, color: C.dark, marginTop: 2 }}>Box league · {activeLeague?.name || 'No active league'}</div>
-        </div>
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, letterSpacing: -0.5 }}>The League</div>
         {activeLeague && (
-          <div style={{ background: C.dark, border: `1px solid ${C.mid}`, borderRadius: 10, padding: '5px 14px', textAlign: 'center', minWidth: 70 }}>
-            <div style={{ fontSize: 17, fontWeight: 900, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.85)', marginTop: 2 }}>of {activeLeague.total_rounds}</div>
+          <div style={{ background: C.dark, borderRadius: 12, padding: '5px 12px', textAlign: 'center' as const }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.7)', marginTop: 1 }}>of {activeLeague.total_rounds}</div>
           </div>
         )}
       </div>
@@ -425,21 +422,20 @@ export default function LeaguePage() {
       <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 80 }}>
 
         {/* Sport switcher */}
-        <div style={{ display:'flex', background:'#014a09', borderRadius:12, padding:3, marginBottom:20, gap:2, marginTop:16 }}>
+        <div style={{ display:'flex', gap:6, marginBottom:16, marginTop:12 }}>
           {(['padel', 'tennis'] as const).map(sp => (
             <button key={sp} onClick={() => setSport(sp)} style={{
-              flex:1, border:'none', borderRadius:10, padding:'8px 0',
-              background: sp === sport ? '#026b0d' : 'transparent',
-              color: sp === sport ? '#ffcc66' : 'rgba(255,204,102,0.5)',
-              fontWeight:700, fontSize:11, cursor:'pointer', fontFamily:'inherit',
-              transition:'all 0.2s',
+              background: sp === sport ? '#014a09' : 'rgba(1,74,9,0.07)',
+              color: sp === sport ? '#ffcc66' : 'rgba(1,74,9,0.5)',
+              fontSize:10, fontWeight: sp === sport ? 700 : 600,
+              padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit',
             }}>{sp.charAt(0).toUpperCase() + sp.slice(1)}</button>
           ))}
         </div>
 
         {/* Tonight banner */}
         {todayFixtures.length > 0 && (
-          <div style={{ margin: '14px 16px 0', background: C.dark, borderRadius: 12, padding: '14px 16px' }}>
+          <div style={{ margin: '8px 16px 0', background: C.dark, borderRadius: 16, padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ color: C.gold, fontSize: 14, fontWeight: 600 }}>Tonight — Round {currentRound}</div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
@@ -466,13 +462,13 @@ export default function LeaguePage() {
         )}
 
         {/* Tabs */}
-        <div style={{ display: 'flex', borderBottom: `1.5px solid rgba(1,74,9,0.10)`, margin: '14px 16px 0' }}>
+        <div style={{ display: 'flex', gap:6, margin: '8px 16px 0' }}>
           {(['boxes', 'schedule'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
-              fontSize: 13, fontWeight: 500, padding: '8px 12px 9px',
-              color: tab === t ? C.dark : '#999', background: 'none', border: 'none',
-              borderBottom: `2px solid ${tab === t ? C.dark : 'transparent'}`,
-              marginBottom: -1.5, cursor: 'pointer', fontFamily: 'inherit',
+              background: tab === t ? '#014a09' : 'rgba(1,74,9,0.07)',
+              color: tab === t ? '#ffcc66' : 'rgba(1,74,9,0.5)',
+              fontSize:10, fontWeight: tab === t ? 700 : 600,
+              padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit',
             }}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
           ))}
         </div>
@@ -481,22 +477,26 @@ export default function LeaguePage() {
         {tab === 'boxes' && (
           <div style={{ padding: '14px 16px 0' }}>
             {boxes.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>No league active. Ask the admin to create one.</div>
+              <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 24 }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>🏆</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 6 }}>No active league</div>
+                <div style={{ fontSize: 12, color: 'rgba(1,74,9,0.45)' }}>Ask the admin to create one</div>
+              </div>
             ) : boxes.map((box, bi) => {
               const standings = standingsForBox(box.id)
               const bNumColors = [{ bg: C.gold, color: C.dark }, { bg: 'rgba(1,74,9,0.12)', color: C.dark }, { bg: 'rgba(1,74,9,0.07)', color: C.dark }]
               const bc = bNumColors[bi] || bNumColors[2]
               return (
                 <div key={box.id} style={{ marginBottom: 12 }}>
-                  <div style={{ background: '#fff', border: `1px solid ${C.cardBorder}`, borderRadius: 12, overflow: 'hidden' }}>
-                    <div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden' }}>
+                    <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <div style={{ width: 26, height: 26, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, ...bc }}>{box.box_number}</div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: C.dark }}>{box.name}</div>
                       </div>
                       <div style={{ fontSize: 11, color: '#888' }}>4 players</div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px', gap: 4, padding: '7px 14px', background: 'rgba(1,74,9,0.05)', borderTop: '1px solid rgba(1,74,9,0.08)', borderBottom: '1px solid rgba(1,74,9,0.08)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px', gap: 4, padding: '7px 14px', background: 'rgba(1,74,9,0.04)' }}>
                       {['#','Player','W','L','GD','Pts'].map((h, i) => (
                         <div key={h} style={{ fontSize: 10, fontWeight: 600, color: C.dark, textAlign: i===1 ? 'left' : 'center', letterSpacing: '0.3px' }}>{h}</div>
                       ))}
@@ -521,7 +521,7 @@ export default function LeaguePage() {
                     })}
                   </div>
                   {bi === boxes.length - 1 && (
-                    <div style={{ marginTop: 6, background: 'rgba(1,74,9,0.05)', borderLeft: `3px solid ${C.dark}`, borderRadius: '0 6px 6px 0', padding: '8px 12px', fontSize: 11, color: '#555', lineHeight: 1.5 }}>
+                    <div style={{ marginTop: 6, background: 'rgba(1,74,9,0.05)', borderLeft: `3px solid ${C.dark}`, borderRadius: '0 10px 10px 0', padding: '8px 12px', fontSize: 11, color: 'rgba(1,74,9,0.55)', lineHeight: 1.5 }}>
                       <strong style={{ color: C.dark }}>Promotion:</strong> Top player moves up next season. Bottom player moves down.
                     </div>
                   )}
@@ -555,7 +555,13 @@ export default function LeaguePage() {
                 </div>
               )
             })}
-            {rounds.length === 0 && <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>No fixtures generated yet.</div>}
+            {rounds.length === 0 && (
+              <div style={{ textAlign: 'center', paddingTop: 48 }}>
+                <div style={{ fontSize: 28, marginBottom: 10 }}>📅</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.dark, marginBottom: 6 }}>No fixtures yet</div>
+                <div style={{ fontSize: 12, color: 'rgba(1,74,9,0.45)' }}>Fixtures will appear once a league is created</div>
+              </div>
+            )}
           </div>
         )}
       </div>
