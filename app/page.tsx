@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker'
 import type { Profile, Post, Match } from '@/lib/types'
@@ -109,11 +109,7 @@ function Notif({ msg }: { msg: string|null }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  useEffect(() => {
-    const v = searchParams.get('view')
-    if (v === 'board' || v === 'matches' || v === 'home') setView(v)
-  }, [searchParams])
+
 
   const [currentUser, setCurrentUser] = useState<Profile|null>(null)
   const [players,     setPlayers]     = useState<Profile[]>([])
