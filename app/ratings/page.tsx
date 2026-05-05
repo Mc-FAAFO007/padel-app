@@ -469,13 +469,11 @@ export default function RatingsPage() {
 
         </div>
 
-        {/* Sub nav */}
-        <div style={{ display:'flex', gap:4, marginBottom:20, borderBottom:'1.5px solid rgba(1,74,9,0.10)', paddingBottom:0 }}>
-          {(['leaderboard','log','my'] as const).map((v) => (
-            <button key={v} onClick={() => setView(v)} style={{ fontSize:13, fontWeight:500, padding:'8px 12px 9px', color: view===v ? '#014a09' : '#999', background:'none', border:'none', borderBottom:`2px solid ${view===v ? '#014a09' : 'transparent'}`, marginBottom:-1.5, cursor:'pointer', fontFamily:'inherit' }}>
-              {v==='leaderboard' ? 'Leaderboard' : v==='log' ? 'Log Match' : 'My Results'}
-            </button>
-          ))}
+        {/* Nav */}
+        <div style={{ display:'flex', background:'#014a09', borderRadius:12, padding:3, marginBottom:20, gap:2 }}>
+          <button style={navBtn(view==='leaderboard')} onClick={() => setView('leaderboard')}>Leaderboard</button>
+          <button style={navBtn(view==='log')}         onClick={() => setView('log')}>Log Match</button>
+          <button style={navBtn(view==='my')}          onClick={() => setView('my')}>My Results</button>
         </div>
 
         {/* ══ LEADERBOARD ══ */}
