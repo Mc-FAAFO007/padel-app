@@ -19,7 +19,6 @@ import type {
   BoxStanding,
 } from '@/lib/leagueUtils'
 
-// ─── Colours ──────────────────────────────────────────────────────────────────
 const C = {
   bg:        '#f5f0e8',
   dark:      '#014a09',
@@ -30,7 +29,6 @@ const C = {
   cardBorder:'rgba(1,74,9,0.12)',
 }
 
-// ─── SetRow (identical logic to ratings/page.tsx) ─────────────────────────────
 function SetRow({
   label, va, setVa, vb, setVb, tba, setTba, tbb, setTbb,
 }: {
@@ -104,12 +102,10 @@ function SetRow({
   )
 }
 
-// ─── Score display for a completed fixture ────────────────────────────────────
 function FixtureScores({ result }: { result: LeagueFixtureResult }) {
   const sets1 = result.team_1_sets
   const sets2 = result.team_2_sets
   const numSets = sets1.length
-
   return (
     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
       {Array.from({ length: numSets }).map((_, i) => {
@@ -120,8 +116,7 @@ function FixtureScores({ result }: { result: LeagueFixtureResult }) {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
               <div style={{
                 width: 28, height: 28, borderRadius: 6, display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700,
+                alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700,
                 background: s1 > s2 ? 'rgba(0,102,51,0.10)' : 'rgba(153,0,51,0.10)',
                 color: s1 > s2 ? C.win : C.loss,
               }}>{s1}</div>
@@ -132,9 +127,7 @@ function FixtureScores({ result }: { result: LeagueFixtureResult }) {
                 : <div style={{ fontSize: 9, color: '#bbb', fontWeight: 500 }}>S{i + 1}</div>
               }
             </div>
-            {i < numSets - 1 && (
-              <div style={{ width: 1, height: 32, background: 'rgba(1,74,9,0.08)', margin: '0 1px' }} />
-            )}
+            {i < numSets - 1 && <div style={{ width: 1, height: 32, background: 'rgba(1,74,9,0.08)', margin: '0 1px' }} />}
           </React.Fragment>
         )
       })}
@@ -142,11 +135,8 @@ function FixtureScores({ result }: { result: LeagueFixtureResult }) {
   )
 }
 
-// ─── Fixture Card ─────────────────────────────────────────────────────────────
 function FixtureCard({
-  fixture,
-  currentUserId,
-  onLogResult,
+  fixture, currentUserId, onLogResult,
 }: {
   fixture: LeagueFixture
   currentUserId: string | null
@@ -155,17 +145,13 @@ function FixtureCard({
   const today = isToday(fixture.scheduled_date)
   const played = fixture.status === 'played'
   const upcoming = fixture.status === 'upcoming' && !today
-
   const statusPill = played
     ? { label: 'Played', color: C.win, bg: 'rgba(0,102,51,0.10)' }
     : today
     ? { label: 'Tonight', color: '#9a6800', bg: 'rgba(255,204,102,0.25)' }
     : { label: 'Upcoming', color: '#aaa', bg: 'transparent' }
-
-  // Determine win/loss for name colours
   const t1Won = played && fixture.result?.winning_team === 1
   const t2Won = played && fixture.result?.winning_team === 2
-
   function nameColor(team: 1 | 2) {
     if (!played) return upcoming ? '#bbb' : '#888'
     return team === 1 ? (t1Won ? C.win : C.loss) : (t2Won ? C.win : C.loss)
@@ -174,15 +160,13 @@ function FixtureCard({
     if (!played) return upcoming ? 400 : 500
     return (team === 1 ? t1Won : t2Won) ? 600 : 500
   }
-
   const emptyScores = (
     <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
       {[1, 2, 3].map(i => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 6, display: 'flex',
-            alignItems: 'center', justifyContent: 'center', fontSize: 9,
-            fontWeight: 600,
+            alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600,
             background: upcoming ? 'rgba(1,74,9,0.03)' : 'rgba(1,74,9,0.05)',
             border: upcoming ? 'none' : '1px dashed rgba(1,74,9,0.15)',
             color: upcoming ? '#ddd' : '#ccc',
@@ -192,104 +176,48 @@ function FixtureCard({
       ))}
     </div>
   )
-
   return (
-    <div style={{
-      background: '#fff', border: `1px solid ${C.cardBorder}`,
-      borderRadius: 12, overflow: 'hidden', marginBottom: 10,
-    }}>
-      {/* Top bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '9px 14px', background: 'rgba(1,74,9,0.04)',
-        borderBottom: `1px solid rgba(1,74,9,0.08)`,
-      }}>
+    <div style={{ background: '#fff', border: `1px solid ${C.cardBorder}`, borderRadius: 12, overflow: 'hidden', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', background: 'rgba(1,74,9,0.04)', borderBottom: `1px solid rgba(1,74,9,0.08)` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            fontSize: 10, fontWeight: 600, color: C.dark,
-            background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px',
-          }}>Round {fixture.round}</div>
-          <div style={{ fontSize: 10, color: '#888' }}>
-            Court {fixture.court} · {formatMatchDate(fixture.scheduled_date)} · {formatTime(fixture.scheduled_time)}
-          </div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: C.dark, background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px' }}>Round {fixture.round}</div>
+          <div style={{ fontSize: 10, color: '#888' }}>Court {fixture.court} · {formatMatchDate(fixture.scheduled_date)} · {formatTime(fixture.scheduled_time)}</div>
         </div>
-        <div style={{
-          fontSize: 10, fontWeight: 600,
-          color: statusPill.color, background: statusPill.bg,
-          borderRadius: 5, padding: '2px 8px',
-        }}>{statusPill.label}</div>
+        <div style={{ fontSize: 10, fontWeight: 600, color: statusPill.color, background: statusPill.bg, borderRadius: 5, padding: '2px 8px' }}>{statusPill.label}</div>
       </div>
-
-      {/* Teams + scores */}
       <div style={{ padding: '12px 14px' }}>
-        {/* Team 1 */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          paddingBottom: 7, borderBottom: '1px solid rgba(1,74,9,0.07)',
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 7, borderBottom: '1px solid rgba(1,74,9,0.07)' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: nameFw(1), color: nameColor(1) }}>{fixture.team_1_p1_name}</div>
             <div style={{ fontSize: 13, fontWeight: nameFw(1), color: nameColor(1) }}>{fixture.team_1_p2_name}</div>
           </div>
-          {played && fixture.result
-            ? <FixtureScores result={fixture.result} />
-            : emptyScores
-          }
+          {played && fixture.result ? <FixtureScores result={fixture.result} /> : emptyScores}
         </div>
-
-        {/* Team 2 */}
-        <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          paddingTop: 7,
-        }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 7 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
             <div style={{ fontSize: 13, fontWeight: nameFw(2), color: nameColor(2) }}>{fixture.team_2_p1_name}</div>
             <div style={{ fontSize: 13, fontWeight: nameFw(2), color: nameColor(2) }}>{fixture.team_2_p2_name}</div>
           </div>
           {played && fixture.result
-            ? <FixtureScores result={{
-                ...fixture.result,
-                team_1_sets: fixture.result.team_2_sets,
-                team_2_sets: fixture.result.team_1_sets,
-                tiebreak_team_1: fixture.result.tiebreak_team_2,
-                tiebreak_team_2: fixture.result.tiebreak_team_1,
-              }} />
-            : emptyScores
-          }
+            ? <FixtureScores result={{ ...fixture.result, team_1_sets: fixture.result.team_2_sets, team_2_sets: fixture.result.team_1_sets, tiebreak_team_1: fixture.result.tiebreak_team_2, tiebreak_team_2: fixture.result.tiebreak_team_1 }} />
+            : emptyScores}
         </div>
       </div>
-
-      {/* Log result button — today's fixtures only */}
       {today && !played && (
-        <button
-          onClick={() => onLogResult(fixture)}
-          style={{
-            display: 'block', width: 'calc(100% - 28px)',
-            margin: '0 14px 12px', padding: '9px',
-            background: C.dark, color: C.gold, border: 'none',
-            borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-          }}
-        >+ Log result</button>
+        <button onClick={() => onLogResult(fixture)} style={{
+          display: 'block', width: 'calc(100% - 28px)', margin: '0 14px 12px', padding: '9px',
+          background: C.dark, color: C.gold, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        }}>+ Log result</button>
       )}
     </div>
   )
 }
 
-// ─── Log Result Modal ─────────────────────────────────────────────────────────
 function LogResultModal({
-  fixture,
-  ratings,
-  userId,
-  onClose,
-  onSaved,
-  showNotif,
+  fixture, ratings, userId, onClose, onSaved, showNotif,
 }: {
-  fixture: LeagueFixture
-  ratings: Rating[]
-  userId: string
-  onClose: () => void
-  onSaved: () => void
-  showNotif: (msg: string) => void
+  fixture: LeagueFixture; ratings: Rating[]; userId: string
+  onClose: () => void; onSaved: () => void; showNotif: (msg: string) => void
 }) {
   const [s1a, setS1a] = useState(''); const [s1b, setS1b] = useState('')
   const [s2a, setS2a] = useState(''); const [s2b, setS2b] = useState('')
@@ -298,160 +226,94 @@ function LogResultModal({
   const [tb2a, setTb2a] = useState(''); const [tb2b, setTb2b] = useState('')
   const [tb3a, setTb3a] = useState(''); const [tb3b, setTb3b] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
   function setWinner(a: string, b: string): 'a' | 'b' | null {
     const av = parseInt(a), bv = parseInt(b)
     if (isNaN(av) || isNaN(bv) || (av === 0 && bv === 0)) return null
-    if (av > bv) return 'a'
-    if (bv > av) return 'b'
-    return null
+    if (av > bv) return 'a'; if (bv > av) return 'b'; return null
   }
-
   const set1Winner = setWinner(s1a, s1b)
   const set2Winner = setWinner(s2a, s2b)
   const showSet3 = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
-
-  useEffect(() => {
-    if (!showSet3) { setS3a(''); setS3b(''); setTb3a(''); setTb3b('') }
-  }, [showSet3])
-
-  // Get rating rows for all 4 players
+  useEffect(() => { if (!showSet3) { setS3a(''); setS3b(''); setTb3a(''); setTb3b('') } }, [showSet3])
   const p1r = ratings.find(r => r.player_id === fixture.team_1_p1)
   const p2r = ratings.find(r => r.player_id === fixture.team_1_p2)
   const p3r = ratings.find(r => r.player_id === fixture.team_2_p1)
   const p4r = ratings.find(r => r.player_id === fixture.team_2_p2)
-
   async function handleSubmit() {
     if (!s1a || !s1b || !s2a || !s2b) { showNotif('Enter at least 2 sets'); return }
     if (!p1r || !p2r || !p3r || !p4r) { showNotif('Could not find player ratings'); return }
     setSubmitting(true)
-
     const sets_a = [parseInt(s1a)||0, parseInt(s2a)||0, ...(showSet3 ? [parseInt(s3a)||0] : [])]
     const sets_b = [parseInt(s1b)||0, parseInt(s2b)||0, ...(showSet3 ? [parseInt(s3b)||0] : [])]
-
     const aGames = sets_a.reduce((a, b) => a + b, 0)
     const bGames = sets_b.reduce((a, b) => a + b, 0)
     const aWon = aGames > bGames
-    const wG = Math.max(aGames, bGames)
-    const lG = Math.min(aGames, bGames)
-
+    const wG = Math.max(aGames, bGames), lG = Math.min(aGames, bGames)
     const teamA = (p1r.rating + p2r.rating) / 2
     const teamB = (p3r.rating + p4r.rating) / 2
-
     const newA1 = calcNewRating(p1r.rating, teamA, teamB, aWon, wG, lG, p1r.match_count)
     const newA2 = calcNewRating(p2r.rating, teamA, teamB, aWon, wG, lG, p2r.match_count)
     const newB1 = calcNewRating(p3r.rating, teamB, teamA, !aWon, wG, lG, p3r.match_count)
     const newB2 = calcNewRating(p4r.rating, teamB, teamA, !aWon, wG, lG, p4r.match_count)
-
-    // 1. Write to matches table (ELO)
-    const { data: matchData, error: matchError } = await supabase
-      .from('matches')
-      .insert({
-        team_a1_id: p1r.player_id, team_a1_name: p1r.player_name,
-        team_a2_id: p2r.player_id, team_a2_name: p2r.player_name,
-        team_b1_id: p3r.player_id, team_b1_name: p3r.player_name,
-        team_b2_id: p4r.player_id, team_b2_name: p4r.player_name,
-        sets_a, sets_b,
-        rating_a1_before: p1r.rating, rating_a1_after: newA1,
-        rating_a2_before: p2r.rating, rating_a2_after: newA2,
-        rating_b1_before: p3r.rating, rating_b1_after: newB1,
-        rating_b2_before: p4r.rating, rating_b2_after: newB2,
-      })
-      .select()
-      .single()
-
+    const { data: matchData, error: matchError } = await supabase.from('matches').insert({
+      team_a1_id: p1r.player_id, team_a1_name: p1r.player_name,
+      team_a2_id: p2r.player_id, team_a2_name: p2r.player_name,
+      team_b1_id: p3r.player_id, team_b1_name: p3r.player_name,
+      team_b2_id: p4r.player_id, team_b2_name: p4r.player_name,
+      sets_a, sets_b,
+      rating_a1_before: p1r.rating, rating_a1_after: newA1,
+      rating_a2_before: p2r.rating, rating_a2_after: newA2,
+      rating_b1_before: p3r.rating, rating_b1_after: newB1,
+      rating_b2_before: p4r.rating, rating_b2_after: newB2,
+    }).select().single()
     if (matchError) { showNotif('Error saving match'); setSubmitting(false); return }
-
-    // 2. Update ratings
     await Promise.all([
       supabase.from('ratings').update({ rating: newA1, match_count: p1r.match_count + 1 }).eq('player_id', p1r.player_id),
       supabase.from('ratings').update({ rating: newA2, match_count: p2r.match_count + 1 }).eq('player_id', p2r.player_id),
       supabase.from('ratings').update({ rating: newB1, match_count: p3r.match_count + 1 }).eq('player_id', p3r.player_id),
       supabase.from('ratings').update({ rating: newB2, match_count: p4r.match_count + 1 }).eq('player_id', p4r.player_id),
     ])
-
-    // 3. Determine tiebreak info
     const tbSet = (s1a==='7'||s1b==='7') ? 1 : (s2a==='7'||s2b==='7') ? 2 : showSet3 && (s3a==='7'||s3b==='7') ? 3 : null
-    const tbA = tbSet === 1 ? tb1a : tbSet === 2 ? tb2a : tb3a
-    const tbB = tbSet === 1 ? tb1b : tbSet === 2 ? tb2b : tb3b
-
-    // 4. Write league_fixture_results
+    const tbA = tbSet===1 ? tb1a : tbSet===2 ? tb2a : tb3a
+    const tbB = tbSet===1 ? tb1b : tbSet===2 ? tb2b : tb3b
     const { error: resultError } = await supabase.from('league_fixture_results').insert({
-      fixture_id: fixture.id,
-      match_id: matchData.id,
-      team_1_sets: sets_a,
-      team_2_sets: sets_b,
+      fixture_id: fixture.id, match_id: matchData.id,
+      team_1_sets: sets_a, team_2_sets: sets_b,
       tiebreak_set: tbSet,
       tiebreak_team_1: tbA ? parseInt(tbA) : null,
       tiebreak_team_2: tbB ? parseInt(tbB) : null,
-      winning_team: aWon ? 1 : 2,
-      logged_by: userId,
+      winning_team: aWon ? 1 : 2, logged_by: userId,
     })
-
     if (resultError) { showNotif('Error saving result'); setSubmitting(false); return }
-
-    // 5. Update fixture status
     await supabase.from('league_fixtures').update({ status: 'played' }).eq('id', fixture.id)
-
-    showNotif('Result saved!')
-    onSaved()
-    onClose()
+    showNotif('Result saved!'); onSaved(); onClose()
   }
-
   return (
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
-      zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-    }} onClick={onClose}>
-      <div
-        style={{
-          background: C.bg, borderRadius: '20px 20px 0 0',
-          padding: '20px 20px 36px', width: '100%', maxWidth: 420,
-        }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Handle */}
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={onClose}>
+      <div style={{ background: C.bg, borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
         <div style={{ width: 36, height: 4, background: 'rgba(1,74,9,0.2)', borderRadius: 2, margin: '0 auto 18px' }} />
-
         <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 4 }}>Log Result</div>
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>
-          Round {fixture.round} · {fixture.team_1_p1_name} & {fixture.team_1_p2_name} vs {fixture.team_2_p1_name} & {fixture.team_2_p2_name}
-        </div>
-
-        {/* Team headers */}
+        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Round {fixture.round} · {fixture.team_1_p1_name} & {fixture.team_1_p2_name} vs {fixture.team_2_p1_name} & {fixture.team_2_p2_name}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, marginBottom: 8 }}>
           <div />
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>
-            {fixture.team_1_p1_name?.split(' ')[0]} & {fixture.team_1_p2_name?.split(' ')[0]}
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>{fixture.team_1_p1_name?.split(' ')[0]} & {fixture.team_1_p2_name?.split(' ')[0]}</div>
           <div />
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>
-            {fixture.team_2_p1_name?.split(' ')[0]} & {fixture.team_2_p2_name?.split(' ')[0]}
-          </div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>{fixture.team_2_p1_name?.split(' ')[0]} & {fixture.team_2_p2_name?.split(' ')[0]}</div>
         </div>
-
         <SetRow label="Set 1" va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b} tba={tb1a} setTba={setTb1a} tbb={tb1b} setTbb={setTb1b} />
         <SetRow label="Set 2" va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b} tba={tb2a} setTba={setTb2a} tbb={tb2b} setTbb={setTb2b} />
-        {showSet3 && (
-          <SetRow label="Set 3" va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b} tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b} />
-        )}
-
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          style={{
-            width: '100%', padding: '13px', marginTop: 8,
-            background: submitting ? 'rgba(1,74,9,0.4)' : C.dark,
-            color: C.gold, border: 'none', borderRadius: 10,
-            fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
-          }}
-        >{submitting ? 'Saving...' : 'Save Result'}</button>
+        {showSet3 && <SetRow label="Set 3" va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b} tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b} />}
+        <button onClick={handleSubmit} disabled={submitting} style={{
+          width: '100%', padding: '13px', marginTop: 8,
+          background: submitting ? 'rgba(1,74,9,0.4)' : C.dark,
+          color: C.gold, border: 'none', borderRadius: 10,
+          fontSize: 15, fontWeight: 700, cursor: submitting ? 'not-allowed' : 'pointer',
+        }}>{submitting ? 'Saving...' : 'Save Result'}</button>
       </div>
     </div>
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function LeaguePage() {
   const router = useRouter()
   const [loading, setLoading]           = useState(true)
@@ -483,286 +345,168 @@ export default function LeaguePage() {
     }
     if (!session) { router.push('/login'); return }
     setUserId(session.user.id)
-
-    // Load ratings for ELO calc
     const { data: ratingsData } = await supabase.from('ratings').select('*')
     setRatings(ratingsData || [])
-
-    // Load leagues for current sport
-    const { data: leagueData } = await supabase
-      .from('leagues')
-      .select('*')
-      .eq('sport', sport)
-      .order('created_at', { ascending: false })
+    const { data: leagueData } = await supabase.from('leagues').select('*').eq('sport', sport).order('created_at', { ascending: false })
     const leagueList: LeagueRow[] = leagueData || []
     setLeagues(leagueList)
-
-    // Pick first active league, else first upcoming
     const active = leagueList.find(l => l.status === 'active') || leagueList[0] || null
     setActiveLeague(active)
-
     if (active) await loadLeagueData(active.id, ratingsData || [])
     setLoading(false)
   }, [router, sport])
 
   async function loadLeagueData(leagueId: string, ratingsData: Rating[]) {
-    // Load boxes
-    const { data: boxData } = await supabase
-      .from('league_boxes')
-      .select('*')
-      .eq('league_id', leagueId)
-      .order('box_number')
+    const { data: boxData } = await supabase.from('league_boxes').select('*').eq('league_id', leagueId).order('box_number')
     const boxList: LeagueBox[] = boxData || []
     setBoxes(boxList)
-
-    // Load box players
     const boxIds = boxList.map(b => b.id)
     if (boxIds.length === 0) { setBoxPlayers([]); setFixtures([]); return }
-
-    const { data: playerData } = await supabase
-      .from('league_box_players')
-      .select('*')
-      .in('box_id', boxIds)
-
-    // Join player names from ratings
+    const { data: playerData } = await supabase.from('league_box_players').select('*').in('box_id', boxIds)
     const players: LeagueBoxPlayer[] = (playerData || []).map((p: LeagueBoxPlayer) => {
       const r = ratingsData.find(r => r.player_id === p.player_id)
       return { ...p, player_name: r?.player_name || 'Unknown', rating: r?.rating, match_count: r?.match_count }
     })
     setBoxPlayers(players)
-
-    // Load fixtures + results
-    const { data: fixtureData } = await supabase
-      .from('league_fixtures')
-      .select('*')
-      .eq('league_id', leagueId)
-      .order('round')
-      .order('box_id')
-
+    const { data: fixtureData } = await supabase.from('league_fixtures').select('*').eq('league_id', leagueId).order('round').order('box_id')
     const fixtureIds = (fixtureData || []).map((f: LeagueFixture) => f.id)
-    const { data: resultData } = await supabase
-      .from('league_fixture_results')
-      .select('*')
-      .in('fixture_id', fixtureIds.length > 0 ? fixtureIds : ['none'])
-
-    // Join player names and results onto fixtures
+    const { data: resultData } = await supabase.from('league_fixture_results').select('*').in('fixture_id', fixtureIds.length > 0 ? fixtureIds : ['none'])
     const fixturesWithNames: LeagueFixture[] = (fixtureData || []).map((f: LeagueFixture) => {
       const result = (resultData || []).find((r: LeagueFixtureResult) => r.fixture_id === f.id)
       const pName = (id: string) => ratingsData.find(r => r.player_id === id)?.player_name || 'Unknown'
-      return {
-        ...f,
-        team_1_p1_name: pName(f.team_1_p1),
-        team_1_p2_name: pName(f.team_1_p2),
-        team_2_p1_name: pName(f.team_2_p1),
-        team_2_p2_name: pName(f.team_2_p2),
-        result: result || undefined,
-      }
+      return { ...f, team_1_p1_name: pName(f.team_1_p1), team_1_p2_name: pName(f.team_1_p2), team_2_p1_name: pName(f.team_2_p1), team_2_p2_name: pName(f.team_2_p2), result: result || undefined }
     })
     setFixtures(fixturesWithNames)
   }
 
   useEffect(() => { loadData() }, [loadData])
 
-  // ── Today's fixtures across all boxes ────────────────────────────────────
   const todayFixtures = fixtures.filter(f => isToday(f.scheduled_date))
-
-  // Group today by time slot
   const slot1 = todayFixtures.filter(f => f.scheduled_time === activeLeague?.match_time_slot_1)
   const slot2 = todayFixtures.filter(f => f.scheduled_time === activeLeague?.match_time_slot_2)
-
-  // Current round = first round with any pending/upcoming fixture today, else latest played
   const currentRound = activeLeague
     ? (todayFixtures[0]?.round ?? Math.max(...fixtures.filter(f => f.status === 'played').map(f => f.round), 0))
     : 0
 
-  // ── Standings per box ─────────────────────────────────────────────────────
   function standingsForBox(boxId: string): BoxStanding[] {
-    const players = boxPlayers.filter(p => p.box_id === boxId)
-    const boxFixtures = fixtures.filter(f => f.box_id === boxId)
-    return calcStandings(players, boxFixtures)
+    return calcStandings(boxPlayers.filter(p => p.box_id === boxId), fixtures.filter(f => f.box_id === boxId))
   }
 
-  // ── Round sections for schedule tab ──────────────────────────────────────
   const rounds = Array.from(new Set(fixtures.map(f => f.round))).sort((a, b) => a - b)
 
-  // ── Styles ────────────────────────────────────────────────────────────────
-  const s = {
-    page:    { background: C.bg, minHeight: '100vh', paddingBottom: 80, fontFamily: 'DM Sans, sans-serif' } as React.CSSProperties,
-    header:  { background: C.dark, padding: '16px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' } as React.CSSProperties,
-    content: { padding: '14px 16px 0' } as React.CSSProperties,
-    secLbl:  { fontSize: 11, fontWeight: 600, color: C.dark, letterSpacing: '0.8px', textTransform: 'uppercase' as const, marginBottom: 10 },
-  }
-
   if (loading) return (
-    <div style={{ ...s.page, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans',sans-serif" }}>
       <div style={{ color: C.dark, fontSize: 14, fontWeight: 500 }}>Loading league...</div>
     </div>
   )
 
   return (
-    <div style={s.page}>
-      {/* Notif */}
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans',sans-serif" }}>
+
       {notif && (
-        <div style={{
-          position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
-          background: 'rgba(1,74,9,0.12)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(2,107,13,0.4)', borderRadius: 14,
-          padding: '11px 22px', zIndex: 9999, color: C.dark,
-          fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap',
-        }}>{notif}</div>
+        <div style={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', background: 'rgba(1,74,9,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(2,107,13,0.4)', borderRadius: 14, padding: '11px 22px', zIndex: 9999, color: C.dark, fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap' }}>{notif}</div>
       )}
 
-      {/* Header */}
-      <div style={s.header}>
-        <div>
-          <div style={{ color: C.gold, fontSize: 18, fontWeight: 600 }}>The League</div>
-          <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 2 }}>
-            Box league · {activeLeague?.name || 'No active league'}
+      {/* ── Header — full width dark green ── */}
+      <div style={{ background: C.dark }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', padding: '16px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ color: C.gold, fontSize: 18, fontWeight: 600 }}>The League</div>
+            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 2 }}>Box league · {activeLeague?.name || 'No active league'}</div>
           </div>
+          {activeLeague && (
+            <div style={{ background: 'rgba(255,204,102,0.18)', border: '1px solid rgba(255,204,102,0.35)', borderRadius: 20, padding: '4px 11px', color: C.gold, fontSize: 11, fontWeight: 500 }}>
+              Wk {currentRound} / {activeLeague.total_rounds}
+            </div>
+          )}
         </div>
-        {activeLeague && (
-          <div style={{
-            background: 'rgba(255,204,102,0.18)', border: '1px solid rgba(255,204,102,0.35)',
-            borderRadius: 20, padding: '4px 11px', color: C.gold, fontSize: 11, fontWeight: 500,
-          }}>Wk {currentRound} / {activeLeague.total_rounds}</div>
-        )}
       </div>
 
-      {/* Sport switcher */}
-      <div style={{ display: 'flex', gap: 8, padding: '12px 16px 0' }}>
-        {(['padel', 'tennis'] as const).map(sp => (
-          <button key={sp} onClick={() => setSport(sp)} style={{
-            padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-            border: `1.5px solid ${sp === sport ? C.dark : 'rgba(1,74,9,0.2)'}`,
-            color: sp === sport ? C.gold : C.dark,
-            background: sp === sport ? C.dark : 'transparent', cursor: 'pointer',
-          }}>{sp.charAt(0).toUpperCase() + sp.slice(1)}</button>
-        ))}
-        <button style={{
-          padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-          border: '1.5px solid rgba(1,74,9,0.2)', color: C.dark, background: 'transparent', cursor: 'pointer',
-        }}>+ Add sport</button>
-      </div>
+      {/* ── All content centred at 480px ── */}
+      <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 80 }}>
 
-      {/* Tonight banner */}
-      {todayFixtures.length > 0 && (
-        <div style={{
-          margin: '14px 16px 0', background: C.dark, borderRadius: 12, padding: '14px 16px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <div style={{ color: C.gold, fontSize: 14, fontWeight: 600 }}>Tonight — Round {currentRound}</div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
-              {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
+        {/* Sport switcher */}
+        <div style={{ display: 'flex', gap: 8, padding: '12px 16px 0' }}>
+          {(['padel', 'tennis'] as const).map(sp => (
+            <button key={sp} onClick={() => setSport(sp)} style={{
+              padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
+              border: `1.5px solid ${sp === sport ? C.dark : 'rgba(1,74,9,0.2)'}`,
+              color: sp === sport ? C.gold : C.dark,
+              background: sp === sport ? C.dark : 'transparent', cursor: 'pointer', fontFamily: 'inherit',
+            }}>{sp.charAt(0).toUpperCase() + sp.slice(1)}</button>
+          ))}
+          <button style={{ padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, border: '1.5px solid rgba(1,74,9,0.2)', color: C.dark, background: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}>+ Add sport</button>
+        </div>
+
+        {/* Tonight banner */}
+        {todayFixtures.length > 0 && (
+          <div style={{ margin: '14px 16px 0', background: C.dark, borderRadius: 12, padding: '14px 16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ color: C.gold, fontSize: 14, fontWeight: 600 }}>Tonight — Round {currentRound}</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
             </div>
+            {[slot1, slot2].filter(s => s.length > 0).map((slotFixtures, si) => (
+              <div key={si} style={{ marginBottom: si === 0 && slot2.length > 0 ? 8 : 0 }}>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: 5 }}>{formatTime(slotFixtures[0].scheduled_time)}</div>
+                <div style={{ display: 'grid', gridTemplateColumns: slotFixtures.length > 1 ? '1fr 1fr' : '1fr', gap: 8 }}>
+                  {slotFixtures.map(f => {
+                    const box = boxes.find(b => b.id === f.box_id)
+                    return (
+                      <div key={f.id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px' }}>
+                        <div style={{ fontSize: 9, color: 'rgba(255,204,102,0.7)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 5 }}>Court {f.court} · {box?.name}</div>
+                        <div style={{ fontSize: 11, color: '#fff', fontWeight: 500, lineHeight: 1.4 }}>{f.team_1_p1_name}<br />{f.team_1_p2_name}</div>
+                        <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', margin: '3px 0', fontWeight: 500 }}>vs</div>
+                        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>{f.team_2_p1_name}<br />{f.team_2_p2_name}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
-          {[slot1, slot2].filter(s => s.length > 0).map((slotFixtures, si) => (
-            <div key={si} style={{ marginBottom: si === 0 && slot2.length > 0 ? 8 : 0 }}>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: 5 }}>
-                {formatTime(slotFixtures[0].scheduled_time)}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: slotFixtures.length > 1 ? '1fr 1fr' : '1fr', gap: 8 }}>
-                {slotFixtures.map(f => {
-                  const box = boxes.find(b => b.id === f.box_id)
-                  return (
-                    <div key={f.id} style={{ background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '9px 11px' }}>
-                      <div style={{ fontSize: 9, color: 'rgba(255,204,102,0.7)', fontWeight: 700, letterSpacing: '0.5px', marginBottom: 5 }}>
-                        Court {f.court} · {box?.name}
-                      </div>
-                      <div style={{ fontSize: 11, color: '#fff', fontWeight: 500, lineHeight: 1.4 }}>
-                        {f.team_1_p1_name}<br />{f.team_1_p2_name}
-                      </div>
-                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', margin: '3px 0', fontWeight: 500 }}>vs</div>
-                      <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>
-                        {f.team_2_p1_name}<br />{f.team_2_p2_name}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+        )}
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: `1.5px solid rgba(1,74,9,0.10)`, margin: '14px 16px 0' }}>
+          {(['boxes', 'schedule'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              fontSize: 13, fontWeight: 500, padding: '8px 12px 9px',
+              color: tab === t ? C.dark : '#999', background: 'none', border: 'none',
+              borderBottom: `2px solid ${tab === t ? C.dark : 'transparent'}`,
+              marginBottom: -1.5, cursor: 'pointer', fontFamily: 'inherit',
+            }}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
           ))}
         </div>
-      )}
 
-      {/* Tabs */}
-      <div style={{
-        display: 'flex', borderBottom: `1.5px solid rgba(1,74,9,0.10)`,
-        margin: '14px 16px 0',
-      }}>
-        {(['boxes', 'schedule'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            fontSize: 13, fontWeight: 500, padding: '8px 12px 9px',
-            color: tab === t ? C.dark : '#999', background: 'none', border: 'none',
-            borderBottom: `2px solid ${tab === t ? C.dark : 'transparent'}`,
-            marginBottom: -1.5, cursor: 'pointer', fontFamily: 'inherit',
-          }}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
-        ))}
-      </div>
-
-      {/* ── BOXES TAB ── */}
-      {tab === 'boxes' && (
-        <div style={s.content}>
-          {boxes.length === 0 ? (
-            <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>
-              No league active. Ask the admin to create one.
-            </div>
-          ) : (
-            boxes.map((box, bi) => {
+        {/* Boxes tab */}
+        {tab === 'boxes' && (
+          <div style={{ padding: '14px 16px 0' }}>
+            {boxes.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>No league active. Ask the admin to create one.</div>
+            ) : boxes.map((box, bi) => {
               const standings = standingsForBox(box.id)
-              const bNumColors = [
-                { bg: C.gold, color: C.dark },
-                { bg: 'rgba(1,74,9,0.12)', color: C.dark },
-                { bg: 'rgba(1,74,9,0.07)', color: C.dark },
-              ]
+              const bNumColors = [{ bg: C.gold, color: C.dark }, { bg: 'rgba(1,74,9,0.12)', color: C.dark }, { bg: 'rgba(1,74,9,0.07)', color: C.dark }]
               const bc = bNumColors[bi] || bNumColors[2]
               return (
                 <div key={box.id} style={{ marginBottom: 12 }}>
-                  <div style={{
-                    background: '#fff', border: `1px solid ${C.cardBorder}`,
-                    borderRadius: 12, overflow: 'hidden',
-                  }}>
-                    {/* Box header */}
+                  <div style={{ background: '#fff', border: `1px solid ${C.cardBorder}`, borderRadius: 12, overflow: 'hidden' }}>
                     <div style={{ padding: '11px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div style={{
-                          width: 26, height: 26, borderRadius: 6, display: 'flex',
-                          alignItems: 'center', justifyContent: 'center',
-                          fontSize: 12, fontWeight: 700, ...bc,
-                        }}>{box.box_number}</div>
+                        <div style={{ width: 26, height: 26, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, ...bc }}>{box.box_number}</div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: C.dark }}>{box.name}</div>
                       </div>
                       <div style={{ fontSize: 11, color: '#888' }}>4 players</div>
                     </div>
-
-                    {/* Table head */}
-                    <div style={{
-                      display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px',
-                      gap: 4, padding: '7px 14px',
-                      background: 'rgba(1,74,9,0.05)',
-                      borderTop: '1px solid rgba(1,74,9,0.08)',
-                      borderBottom: '1px solid rgba(1,74,9,0.08)',
-                    }}>
-                      {['#', 'Player', 'W', 'L', 'GD', 'Pts'].map((h, i) => (
-                        <div key={h} style={{
-                          fontSize: 10, fontWeight: 600, color: C.dark,
-                          textAlign: i === 1 ? 'left' : 'center', letterSpacing: '0.3px',
-                        }}>{h}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px', gap: 4, padding: '7px 14px', background: 'rgba(1,74,9,0.05)', borderTop: '1px solid rgba(1,74,9,0.08)', borderBottom: '1px solid rgba(1,74,9,0.08)' }}>
+                      {['#','Player','W','L','GD','Pts'].map((h, i) => (
+                        <div key={h} style={{ fontSize: 10, fontWeight: 600, color: C.dark, textAlign: i===1 ? 'left' : 'center', letterSpacing: '0.3px' }}>{h}</div>
                       ))}
                     </div>
-
-                    {/* Rows */}
                     {standings.map((st, i) => {
-                      const isTop = i === 0
-                      const isBot = i === standings.length - 1
+                      const isTop = i === 0, isBot = i === standings.length - 1
                       const gd = st.games_for - st.games_against
                       return (
-                        <div key={st.player_id} style={{
-                          display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px',
-                          gap: 4, padding: '9px 14px',
-                          borderBottom: i < standings.length - 1 ? '1px solid rgba(1,74,9,0.06)' : 'none',
-                          background: isTop ? 'rgba(0,102,51,0.04)' : isBot ? 'rgba(153,0,51,0.03)' : 'transparent',
-                          alignItems: 'center',
-                        }}>
+                        <div key={st.player_id} style={{ display: 'grid', gridTemplateColumns: '20px 1fr 28px 28px 28px 36px', gap: 4, padding: '9px 14px', borderBottom: i < standings.length - 1 ? '1px solid rgba(1,74,9,0.06)' : 'none', background: isTop ? 'rgba(0,102,51,0.04)' : isBot ? 'rgba(153,0,51,0.03)' : 'transparent', alignItems: 'center' }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>{i + 1}</div>
                           <div style={{ fontSize: 13, fontWeight: 500, color: '#1a1a1a', display: 'flex', alignItems: 'center', gap: 5 }}>
                             {st.player_name}
@@ -777,106 +521,73 @@ export default function LeaguePage() {
                       )
                     })}
                   </div>
-
-                  {/* Promo note after last box */}
                   {bi === boxes.length - 1 && (
-                    <div style={{
-                      marginTop: 6, background: 'rgba(1,74,9,0.05)',
-                      borderLeft: `3px solid ${C.dark}`, borderRadius: '0 6px 6px 0',
-                      padding: '8px 12px', fontSize: 11, color: '#555', lineHeight: 1.5,
-                    }}>
-                      <strong style={{ color: C.dark }}>Promotion:</strong> Top player in each box moves up next season. Bottom player moves down.
+                    <div style={{ marginTop: 6, background: 'rgba(1,74,9,0.05)', borderLeft: `3px solid ${C.dark}`, borderRadius: '0 6px 6px 0', padding: '8px 12px', fontSize: 11, color: '#555', lineHeight: 1.5 }}>
+                      <strong style={{ color: C.dark }}>Promotion:</strong> Top player moves up next season. Bottom player moves down.
                     </div>
                   )}
                 </div>
               )
-            })
-          )}
-        </div>
-      )}
+            })}
+          </div>
+        )}
 
-      {/* ── SCHEDULE TAB ── */}
-      {tab === 'schedule' && (
-        <div style={s.content}>
-          {rounds.map(round => {
-            const roundFixtures = fixtures.filter(f => f.round === round)
-            const roundDate = roundFixtures[0]?.scheduled_date || ''
-            const done = roundFixtures.every(f => f.status === 'played')
-            const isNow = roundFixtures.some(f => isToday(f.scheduled_date))
-            const dotColor = done ? 'rgba(1,74,9,0.3)' : isNow ? C.gold : 'rgba(1,74,9,0.15)'
-
-            return (
-              <div key={round} style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor }} />
-                    <div style={{ fontSize: 11, fontWeight: 600, color: C.dark, letterSpacing: '0.5px' }}>
-                      Round {round}{done ? ' — Complete' : isNow ? ' — Tonight' : round === Math.max(...rounds) ? ' — Final' : ''}
+        {/* Schedule tab */}
+        {tab === 'schedule' && (
+          <div style={{ padding: '14px 16px 0' }}>
+            {rounds.map(round => {
+              const roundFixtures = fixtures.filter(f => f.round === round)
+              const roundDate = roundFixtures[0]?.scheduled_date || ''
+              const done = roundFixtures.every(f => f.status === 'played')
+              const isNow = roundFixtures.some(f => isToday(f.scheduled_date))
+              const dotColor = done ? 'rgba(1,74,9,0.3)' : isNow ? C.gold : 'rgba(1,74,9,0.15)'
+              return (
+                <div key={round} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor }} />
+                      <div style={{ fontSize: 11, fontWeight: 600, color: C.dark, letterSpacing: '0.5px' }}>
+                        Round {round}{done ? ' — Complete' : isNow ? ' — Tonight' : round === Math.max(...rounds) ? ' — Final' : ''}
+                      </div>
                     </div>
+                    <div style={{ fontSize: 11, color: '#888' }}>{formatMatchDate(roundDate)}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: '#888' }}>{formatMatchDate(roundDate)}</div>
+                  {roundFixtures.map(f => <FixtureCard key={f.id} fixture={f} currentUserId={userId} onLogResult={setLogFixture} />)}
                 </div>
-                {roundFixtures.map(f => (
-                  <FixtureCard
-                    key={f.id}
-                    fixture={f}
-                    currentUserId={userId}
-                    onLogResult={setLogFixture}
-                  />
-                ))}
-              </div>
-            )
-          })}
-          {rounds.length === 0 && (
-            <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>
-              No fixtures generated yet.
-            </div>
-          )}
-        </div>
-      )}
+              )
+            })}
+            {rounds.length === 0 && <div style={{ textAlign: 'center', color: '#888', fontSize: 14, paddingTop: 40 }}>No fixtures generated yet.</div>}
+          </div>
+        )}
+      </div>
 
       {/* Log Result Modal */}
       {logFixture && userId && (
-        <LogResultModal
-          fixture={logFixture}
-          ratings={ratings}
-          userId={userId}
-          onClose={() => setLogFixture(null)}
-          onSaved={() => activeLeague && loadLeagueData(activeLeague.id, ratings)}
-          showNotif={showNotif}
-        />
+        <LogResultModal fixture={logFixture} ratings={ratings} userId={userId} onClose={() => setLogFixture(null)} onSaved={() => activeLeague && loadLeagueData(activeLeague.id, ratings)} showNotif={showNotif} />
       )}
 
       {/* Bottom Nav */}
-      <nav style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 420, background: '#fff',
-        borderTop: `1px solid rgba(1,74,9,0.12)`,
-        display: 'flex', padding: '6px 0 10px', zIndex: 100,
-      }}>
-        {[
-          { label: 'Home',     path: '/',         icon: <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
-          { label: 'Board',    path: '/board',    icon: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
-          { label: 'League',   path: '/league',   icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
-          { label: 'Arena',    path: '/ratings',  icon: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
-          { label: 'Schedule', path: '/schedule', icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></> },
-        ].map(({ label, path, icon }) => {
-          const active = path === '/league'
-          return (
-            <button key={label} onClick={() => router.push(path)} style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              gap: 3, fontSize: 10, color: active ? C.dark : '#aaa', fontWeight: 500,
-              background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-              <svg width="18" height="18" fill="none" stroke={active ? C.dark : 'currentColor'} strokeWidth="1.8" viewBox="0 0 24 24">
-                {icon}
-              </svg>
-              {label}
-              {active && <div style={{ width: 4, height: 4, borderRadius: '50%', background: C.gold }} />}
-            </button>
-          )
-        })}
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#fff', borderTop: `1px solid rgba(1,74,9,0.12)`, display: 'flex', padding: '6px 0 10px', zIndex: 100 }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', width: '100%' }}>
+          {[
+            { label: 'Home',     path: '/',        icon: <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
+            { label: 'Board',    path: '/board',   icon: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
+            { label: 'League',   path: '/league',  icon: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
+            { label: 'Arena',    path: '/ratings', icon: <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
+            { label: 'Schedule', path: '/schedule',icon: <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></> },
+          ].map(({ label, path, icon }) => {
+            const active = path === '/league'
+            return (
+              <button key={label} onClick={() => router.push(path)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, fontSize: 10, color: active ? C.dark : '#aaa', fontWeight: 500, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <svg width="18" height="18" fill="none" stroke={active ? C.dark : 'currentColor'} strokeWidth="1.8" viewBox="0 0 24 24">{icon}</svg>
+                {label}
+                {active && <div style={{ width: 4, height: 4, borderRadius: '50%', background: C.gold }} />}
+              </button>
+            )
+          })}
+        </div>
       </nav>
     </div>
   )
 }
+

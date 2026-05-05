@@ -6,12 +6,16 @@ import type { Profile, Post, Rating, Match } from '@/lib/types'
 
 type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics'
 
-// Derive level badge from numeric rating
+const C = {
+  bg: '#f5f0e8', dark: '#014a09', mid: '#026b0d', gold: '#ffcc66',
+  win: '#006633', loss: '#990033', cardBorder: 'rgba(1,74,9,0.12)',
+}
+
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
   if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
   if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
   if (rating >= 2.6) return { level:'3', color:'#006633', bg:'rgba(0,102,51,0.10)', desc:'Casual' }
-  return              { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Beginner' }
+  return                     { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)', desc:'Beginner' }
 }
 
 export default function AdminPage() {
@@ -20,16 +24,10 @@ export default function AdminPage() {
   const [tab, setTab] = useState<AdminTab>('dashboard')
   const [loading, setLoading] = useState(true)
   const [notif, setNotif] = useState<string | null>(null)
-
-  // Data states
   const [users, setUsers] = useState<Profile[]>([])
   const [posts, setPosts] = useState<Post[]>([])
   const [ratings, setRatings] = useState<Rating[]>([])
   const [matches, setMatches] = useState<Match[]>([])
-
-  // Edit states
-  const [editingUser, setEditingUser] = useState<Partial<Profile> | null>(null)
-  const [editingPost, setEditingPost] = useState<Partial<Post> | null>(null)
   const [editingRating, setEditingRating] = useState<Partial<Rating> | null>(null)
 
   const showNotif = (msg: string) => {
@@ -39,34 +37,16 @@ export default function AdminPage() {
 
   const loadData = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      router.push('/login')
-      return
-    }
-
-    // Check if user is admin
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*, is_admin')
-      .eq('id', session.user.id)
-      .single()
-
-    if (!profileData?.is_admin) {
-      router.push('/')
-      showNotif('Admin access denied')
-      return
-    }
-
+    if (!session) { router.push('/login'); return }
+    const { data: profileData } = await supabase.from('profiles').select('*, is_admin').eq('id', session.user.id).single()
+    if (!profileData?.is_admin) { router.push('/'); return }
     setCurrentUser(profileData)
-
-    // Load all data
     const [usersRes, postsRes, ratingsRes, matchesRes] = await Promise.all([
       supabase.from('profiles').select('*, is_admin').order('created_at'),
       supabase.from('posts').select('*').order('created_at', { ascending: false }),
       supabase.from('ratings').select('*').order('rating', { ascending: false }),
       supabase.from('matches').select('*').order('created_at', { ascending: false }),
     ])
-
     setUsers((usersRes.data as Profile[]) || [])
     setPosts(postsRes.data as Post[] || [])
     setRatings(ratingsRes.data as Rating[] || [])
@@ -74,423 +54,329 @@ export default function AdminPage() {
     setLoading(false)
   }, [router])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  useEffect(() => { loadData() }, [loadData])
 
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f5f0e8', color: '#014a09' }}>
-        <div style={{ fontSize: 16, fontWeight: 700 }}>Loading admin panel…</div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background: C.bg, fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ fontSize:14, fontWeight:700, color: C.dark }}>Loading admin panel…</div>
+    </div>
+  )
 
-  if (!currentUser) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#f5f0e8', color: '#990033' }}>
-        <div style={{ fontSize: 16, fontWeight: 700 }}>Access denied. Admin only.</div>
-      </div>
-    )
-  }
+  if (!currentUser) return (
+    <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background: C.bg, fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ fontSize:14, fontWeight:700, color: C.loss }}>Access denied. Admin only.</div>
+    </div>
+  )
+
+  const tabs: AdminTab[] = ['dashboard','users','posts','ratings','matches','analytics']
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f0e8', fontFamily: "'DM Sans', sans-serif", color: '#014a09', padding: '20px' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 900, margin: 0, marginBottom: 4 }}>Admin Panel</h1>
-          <div style={{ fontSize: 13, color: '#888' }}>Logged in as {currentUser.name} • Admin</div>
-        </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button
-            onClick={() => router.push('/')}
-            style={{ background: '#026b0d', border: 'none', borderRadius: 10, padding: '10px 20px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-            ← Back to App
-          </button>
-          <button
-            onClick={() => { supabase.auth.signOut(); router.push('/login') }}
-            style={{ background: '#990033', border: 'none', borderRadius: 10, padding: '10px 20px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-            Sign Out
-          </button>
-        </div>
-      </div>
+    <div style={{ minHeight:'100vh', background: C.bg, fontFamily:"'DM Sans',sans-serif", color: C.dark }}>
 
-      {/* Notification */}
+      {/* Notif */}
       {notif && (
-        <div style={{ background: 'rgba(1, 74, 9, 0.12)', border: '1px solid rgba(1, 74, 9, 0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, color: '#014a09', fontWeight: 700, fontSize: 13 }}>
-          {notif}
-        </div>
+        <div style={{
+          position:'fixed', top:18, left:'50%', transform:'translateX(-50%)',
+          background:'rgba(1,74,9,0.12)', backdropFilter:'blur(12px)',
+          border:'1px solid rgba(2,107,13,0.4)', borderRadius:14,
+          padding:'11px 22px', zIndex:9999, color: C.dark,
+          fontWeight:700, fontSize:14, whiteSpace:'nowrap',
+        }}>{notif}</div>
       )}
 
-      {/* Tab Navigation */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 32 }}>
-        {(['dashboard', 'users', 'posts', 'ratings', 'matches', 'analytics'] as AdminTab[]).map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            style={{
-              background: tab === t ? '#014a09' : '#fff',
-              border: `1px solid ${tab === t ? '#014a09' : '#ddd'}`,
-              color: tab === t ? '#ffcc66' : '#555',
-              borderRadius: 10,
-              padding: '12px 0',
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontSize: 12,
-              textTransform: 'capitalize',
-            }}>
-            {t}
-          </button>
-        ))}
+      {/* Header */}
+      <div style={{ background: C.dark, padding:'16px 16px 12px' }}>
+        <div style={{ maxWidth:900, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <div>
+            <div style={{ color: C.gold, fontSize:18, fontWeight:600 }}>Admin Panel</div>
+            <div style={{ color:'rgba(255,255,255,0.55)', fontSize:12, marginTop:2 }}>
+              {currentUser.name} · Admin
+            </div>
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={() => router.push('/')} style={{
+              background:'rgba(255,204,102,0.15)', border:'1px solid rgba(255,204,102,0.3)',
+              borderRadius:20, padding:'6px 14px', color: C.gold,
+              fontWeight:600, fontSize:12, cursor:'pointer', fontFamily:'inherit',
+            }}>← Back to App</button>
+            <button onClick={() => { supabase.auth.signOut(); router.push('/login') }} style={{
+              background:'rgba(153,0,51,0.3)', border:'1px solid rgba(153,0,51,0.5)',
+              borderRadius:20, padding:'6px 14px', color:'#ffaaaa',
+              fontWeight:600, fontSize:12, cursor:'pointer', fontFamily:'inherit',
+            }}>Sign Out</button>
+          </div>
+        </div>
       </div>
 
-      {/* Dashboard Tab */}
-      {tab === 'dashboard' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, border: '1px solid #e0e0e0' }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Total Users</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#014a09' }}>{users.length}</div>
-          </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, border: '1px solid #e0e0e0' }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Open Game Posts</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#026b0d' }}>{posts.filter(p => p.spots_needed > 0).length}</div>
-          </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, border: '1px solid #e0e0e0' }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Active Ratings</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#000099' }}>{ratings.length}</div>
-          </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, border: '1px solid #e0e0e0' }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Total Matches</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#cc9900' }}>{matches.length}</div>
-          </div>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 20, border: '1px solid #e0e0e0' }}>
-            <div style={{ fontSize: 12, color: '#888', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Admins</div>
-            <div style={{ fontSize: 32, fontWeight: 900, color: '#990033' }}>{users.filter(u => u.is_admin).length}</div>
-          </div>
+      {/* Tab nav */}
+      <div style={{ background:'#fff', borderBottom:`1px solid ${C.cardBorder}` }}>
+        <div style={{ maxWidth:900, margin:'0 auto', display:'flex', overflowX:'auto' }}>
+          {tabs.map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              padding:'12px 18px', fontWeight:600, fontSize:13,
+              color: tab===t ? C.dark : '#888', background:'none', border:'none',
+              borderBottom: `2px solid ${tab===t ? C.dark : 'transparent'}`,
+              cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap',
+              textTransform:'capitalize',
+            }}>{t}</button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Users Tab */}
-      {tab === 'users' && (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0', overflowX: 'auto' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>User Management ({users.length})</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e0e0e0' }}>
-                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Name</th>
-                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Level</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Admin</th>
-                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Joined</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                  <td style={{ padding: '12px 8px' }}>{u.name}</td>
-                  <td style={{ padding: '12px 8px' }}>L{u.level}</td>
-                  <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={u.is_admin}
-                      onChange={async (e) => {
-                        const { error } = await supabase
-                          .from('profiles')
-                          .update({ is_admin: e.target.checked })
-                          .eq('id', u.id)
-                        if (error) showNotif('Error updating admin status')
-                        else {
-                          showNotif(`${u.name} ${e.target.checked ? 'is now an admin' : 'is no longer an admin'}`)
-                          setUsers(users.map(x => x.id === u.id ? { ...x, is_admin: e.target.checked } : x))
-                        }
-                      }}
-                      style={{ cursor: 'pointer', width: 18, height: 18 }}
-                    />
-                  </td>
-                  <td style={{ padding: '12px 8px', fontSize: 12, color: '#888' }}>{new Date(u.created_at).toLocaleDateString()}</td>
-                  <td style={{ padding: '12px 8px', textAlign: 'center' }}>
-                    <button
-                      onClick={async () => {
-                        if (confirm(`Delete user ${u.name}? This will remove all their data.`)) {
-                          const { error } = await supabase
-                            .from('profiles')
-                            .delete()
-                            .eq('id', u.id)
-                          if (error) showNotif('Error deleting user')
-                          else {
+      {/* Content */}
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'20px 16px 60px' }}>
+
+        {/* Dashboard */}
+        {tab==='dashboard' && (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:12 }}>
+            {[
+              { label:'Total Users',     val:users.length,                           color: C.dark },
+              { label:'Open Posts',      val:posts.filter(p=>p.spots_needed>0).length, color: C.mid },
+              { label:'Active Ratings',  val:ratings.length,                         color:'#000099' },
+              { label:'Total Matches',   val:matches.length,                         color:'#cc9900' },
+              { label:'Admins',          val:users.filter(u=>u.is_admin).length,     color: C.loss },
+            ].map(({ label, val, color }) => (
+              <div key={label} style={{
+                background:'#fff', border:`1px solid ${C.cardBorder}`,
+                borderRadius:12, padding:'16px 18px',
+              }}>
+                <div style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>{label}</div>
+                <div style={{ fontSize:28, fontWeight:900, color }}>{val}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Users */}
+        {tab==='users' && (
+          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+              <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Users ({users.length})</div>
+            </div>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <thead>
+                  <tr style={{ background:'rgba(1,74,9,0.04)' }}>
+                    {['Name','Level','Admin','Joined','Actions'].map(h => (
+                      <th key={h} style={{ padding:'10px 14px', fontWeight:700, color: C.dark, textAlign: h==='Actions'||h==='Admin' ? 'center' : 'left', fontSize:11, letterSpacing:'0.3px' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.id} style={{ borderTop:`1px solid ${C.cardBorder}` }}>
+                      <td style={{ padding:'11px 14px', fontWeight:600 }}>{u.name}</td>
+                      <td style={{ padding:'11px 14px', color:'#888' }}>L{u.level}</td>
+                      <td style={{ padding:'11px 14px', textAlign:'center' }}>
+                        <input type="checkbox" checked={!!u.is_admin} onChange={async e => {
+                          await supabase.from('profiles').update({ is_admin: e.target.checked }).eq('id', u.id)
+                          setUsers(users.map(x => x.id===u.id ? { ...x, is_admin: e.target.checked } : x))
+                          showNotif(`${u.name} ${e.target.checked ? 'is now admin' : 'removed from admin'}`)
+                        }} style={{ cursor:'pointer', width:16, height:16 }} />
+                      </td>
+                      <td style={{ padding:'11px 14px', fontSize:12, color:'#888' }}>{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td style={{ padding:'11px 14px', textAlign:'center' }}>
+                        <button onClick={async () => {
+                          if (confirm(`Delete ${u.name}?`)) {
+                            await supabase.from('profiles').delete().eq('id', u.id)
+                            setUsers(users.filter(x => x.id!==u.id))
                             showNotif(`${u.name} deleted`)
-                            setUsers(users.filter(x => x.id !== u.id))
                           }
-                        }
-                      }}
-                      style={{ background: '#ff6b6b', border: 'none', borderRadius: 6, padding: '6px 12px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Posts Tab */}
-      {tab === 'posts' && (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Game Posts Management ({posts.length})</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {posts.map(p => (
-              <div key={p.id} style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>{p.player_name}</div>
-                  <div style={{ fontSize: 12, color: '#888', marginBottom: 4 }}>L{p.level} • {p.slot}</div>
-                  <div style={{ fontSize: 12, color: '#555' }}>Spots: {p.spots_needed} • Note: {p.note || '(none)'}</div>
-                </div>
-                <button
-                  onClick={async () => {
-                    if (confirm(`Delete ${p.player_name}'s post?`)) {
-                      const { error } = await supabase
-                        .from('posts')
-                        .delete()
-                        .eq('id', p.id)
-                      if (error) showNotif('Error deleting post')
-                      else {
-                        showNotif('Post deleted')
-                        setPosts(posts.filter(x => x.id !== p.id))
-                      }
-                    }
-                  }}
-                  style={{ background: '#ff6b6b', border: 'none', borderRadius: 6, padding: '8px 14px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  Delete
-                </button>
-              </div>
-            ))}
-            {posts.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>No posts</div>}
-          </div>
-        </div>
-      )}
-
-      {/* Ratings Tab */}
-      {tab === 'ratings' && (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0', overflowX: 'auto' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Ratings Management ({ratings.length})</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid #e0e0e0' }}>
-                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Player</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Rating</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Matches</th>
-                <th style={{ textAlign: 'left', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Updated</th>
-                <th style={{ textAlign: 'center', padding: '12px 8px', fontWeight: 800, color: '#666' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ratings.map(r => (
-                <tr key={r.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                  <td style={{ padding: '12px 8px', fontWeight: 600 }}>{r.player_name}</td>
-                  <td style={{ padding: '12px 8px', textAlign: 'center', fontWeight: 700, fontSize: 14 }}>{r.rating.toFixed(1)}</td>
-                  <td style={{ padding: '12px 8px', textAlign: 'center', color: '#666' }}>{r.match_count}</td>
-                  <td style={{ padding: '12px 8px', fontSize: 12, color: '#888' }}>{new Date(r.updated_at).toLocaleDateString()}</td>
-                  <td style={{ padding: '12px 8px', textAlign: 'center', display: 'flex', gap: 6, justifyContent: 'center' }}>
-                    <button
-                      onClick={() => setEditingRating(r)}
-                      style={{ background: '#000099', border: 'none', borderRadius: 6, padding: '6px 12px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
-                      Edit
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (confirm(`Delete rating for ${r.player_name}?`)) {
-                          const { error } = await supabase
-                            .from('ratings')
-                            .delete()
-                            .eq('id', r.id)
-                          if (error) showNotif('Error deleting rating')
-                          else {
-                            showNotif('Rating deleted')
-                            setRatings(ratings.filter(x => x.id !== r.id))
-                          }
-                        }
-                      }}
-                      style={{ background: '#ff6b6b', border: 'none', borderRadius: 6, padding: '6px 12px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Edit Rating Modal */}
-          {editingRating && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-              <div style={{ background: '#fff', borderRadius: 16, padding: 24, maxWidth: 400, width: '90%' }}>
-                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16 }}>Edit Rating</h3>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#666' }}>Rating</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="1"
-                    max="7"
-                    value={editingRating.rating || 3.5}
-                    onChange={(e) => setEditingRating({ ...editingRating, rating: parseFloat(e.target.value) })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', fontSize: 14 }}
-                  />
-                </div>
-                <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 4, color: '#666' }}>Matches</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={editingRating.match_count || 0}
-                    onChange={(e) => setEditingRating({ ...editingRating, match_count: parseInt(e.target.value) })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', fontSize: 14 }}
-                  />
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button
-                    onClick={async () => {
-                      const newLevel = ratingToLevel(editingRating.rating).level
-                      const { error: ratingError } = await supabase
-                        .from('ratings')
-                        .update({
-                          rating: editingRating.rating,
-                          match_count: editingRating.match_count,
-                          updated_at: new Date().toISOString(),
-                        })
-                        .eq('id', editingRating.id)
-                      if (ratingError) {
-                        showNotif('Error updating rating')
-                        return
-                      }
-                      const { error: profileError } = await supabase
-                        .from('profiles')
-                        .update({ level: newLevel })
-                        .eq('id', editingRating.player_id)
-                      if (profileError) {
-                        showNotif('Rating updated but error syncing level')
-                      } else {
-                        showNotif('Rating updated')
-                        setUsers(users.map(u => u.id === editingRating.player_id ? { ...u, level: newLevel } : u))
-                      }
-                      setRatings(ratings.map(r => r.id === editingRating.id ? { ...r, ...editingRating } as Rating : r))
-                      setEditingRating(null)
-                    }}
-                    style={{ flex: 1, background: '#014a09', border: 'none', borderRadius: 8, padding: '12px', color: '#ffcc66', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditingRating(null)}
-                    style={{ flex: 1, background: '#f0f0f0', border: 'none', borderRadius: 8, padding: '12px', color: '#666', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
+                        }} style={{ background: C.loss, border:'none', borderRadius:6, padding:'5px 12px', color:'#fff', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:12 }}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Matches Tab */}
-      {tab === 'matches' && (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 20 }}>Match History ({matches.length})</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {matches.slice(0, 20).map(m => (
-              <div key={m.id} style={{ border: '1px solid #e0e0e0', borderRadius: 10, padding: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700 }}>
-                    {m.team_a1_name} & {m.team_a2_name} vs {m.team_b1_name} & {m.team_b2_name}
-                  </div>
-                  <button
-                    onClick={async () => {
-                      if (confirm(`Delete this match?`)) {
-                        const { error } = await supabase
-                          .from('matches')
-                          .delete()
-                          .eq('id', m.id)
-                        if (error) showNotif('Error deleting match')
-                        else {
-                          showNotif('Match deleted')
-                          setMatches(matches.filter(x => x.id !== m.id))
-                        }
-                      }
-                    }}
-                    style={{ background: '#ff6b6b', border: 'none', borderRadius: 6, padding: '6px 12px', color: '#fff', fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', fontSize: 12 }}>
-                    Delete
-                  </button>
-                </div>
-                <div style={{ fontSize: 13, color: '#666', display: 'flex', gap: 20 }}>
-                  <div>Sets A: {m.sets_a.join(', ')}</div>
-                  <div>Sets B: {m.sets_b.join(', ')}</div>
-                  <div style={{ color: '#888' }}>{new Date(m.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-            ))}
-            {matches.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>No matches</div>}
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Analytics Tab */}
-      {tab === 'analytics' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Top Players by Rating</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {ratings.slice(0, 5).map((r, i) => (
-                <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 8, borderBottom: '1px solid #f0f0f0' }}>
+        {/* Posts */}
+        {tab==='posts' && (
+          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+              <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Game Posts ({posts.length})</div>
+            </div>
+            <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
+              {posts.map(p => (
+                <div key={p.id} style={{
+                  border:`1px solid ${C.cardBorder}`, borderRadius:10,
+                  padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'center',
+                }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>#{i + 1} {r.player_name}</div>
-                    <div style={{ fontSize: 11, color: '#888' }}>{r.match_count} matches</div>
+                    <div style={{ fontWeight:700, fontSize:14, marginBottom:3 }}>{p.player_name}</div>
+                    <div style={{ fontSize:12, color:'#888' }}>L{p.level} · {p.slot} · {p.spots_needed} spots</div>
+                    {p.note && <div style={{ fontSize:12, color:'#555', marginTop:2 }}>{p.note}</div>}
                   </div>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>{r.rating.toFixed(1)}</div>
+                  <button onClick={async () => {
+                    if (confirm(`Delete ${p.player_name}'s post?`)) {
+                      await supabase.from('posts').delete().eq('id', p.id)
+                      setPosts(posts.filter(x => x.id!==p.id))
+                      showNotif('Post deleted')
+                    }
+                  }} style={{ background: C.loss, border:'none', borderRadius:6, padding:'6px 12px', color:'#fff', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:12, flexShrink:0 }}>Delete</button>
+                </div>
+              ))}
+              {posts.length===0 && <div style={{ textAlign:'center', padding:'30px', color:'#888' }}>No posts</div>}
+            </div>
+          </div>
+        )}
+
+        {/* Ratings */}
+        {tab==='ratings' && (
+          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+              <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Ratings ({ratings.length})</div>
+            </div>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <thead>
+                  <tr style={{ background:'rgba(1,74,9,0.04)' }}>
+                    {['Player','Rating','Matches','Updated','Actions'].map(h => (
+                      <th key={h} style={{ padding:'10px 14px', fontWeight:700, color: C.dark, textAlign: h==='Actions'||h==='Rating'||h==='Matches' ? 'center' : 'left', fontSize:11 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {ratings.map(r => (
+                    <tr key={r.id} style={{ borderTop:`1px solid ${C.cardBorder}` }}>
+                      <td style={{ padding:'11px 14px', fontWeight:600 }}>{r.player_name}</td>
+                      <td style={{ padding:'11px 14px', textAlign:'center', fontWeight:800, fontSize:15, color: C.dark }}>{r.rating.toFixed(1)}</td>
+                      <td style={{ padding:'11px 14px', textAlign:'center', color:'#666' }}>{r.match_count}</td>
+                      <td style={{ padding:'11px 14px', fontSize:12, color:'#888' }}>{new Date(r.updated_at).toLocaleDateString()}</td>
+                      <td style={{ padding:'11px 14px', textAlign:'center', display:'flex', gap:6, justifyContent:'center' }}>
+                        <button onClick={() => setEditingRating(r)} style={{ background: C.dark, border:'none', borderRadius:6, padding:'5px 12px', color: C.gold, fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:12 }}>Edit</button>
+                        <button onClick={async () => {
+                          if (confirm(`Delete rating for ${r.player_name}?`)) {
+                            await supabase.from('ratings').delete().eq('id', r.id)
+                            setRatings(ratings.filter(x => x.id!==r.id))
+                            showNotif('Rating deleted')
+                          }
+                        }} style={{ background: C.loss, border:'none', borderRadius:6, padding:'5px 12px', color:'#fff', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:12 }}>Delete</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Edit Rating Modal */}
+            {editingRating && (
+              <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 }}>
+                <div style={{ background: C.bg, borderRadius:16, padding:24, maxWidth:380, width:'90%', fontFamily:"'DM Sans',sans-serif" }}>
+                  <div style={{ fontSize:16, fontWeight:700, color: C.dark, marginBottom:16 }}>Edit Rating — {editingRating.player_name}</div>
+                  {[
+                    { label:'Rating (1.0–7.0)', key:'rating', type:'number', step:'0.1', min:'1', max:'7' },
+                    { label:'Match Count',       key:'match_count', type:'number', min:'0' },
+                  ].map(({ label, key, ...rest }) => (
+                    <div key={key} style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:'#888', marginBottom:5, textTransform:'uppercase', letterSpacing:'0.3px' }}>{label}</div>
+                      <input
+                        {...rest}
+                        value={(editingRating as any)[key] || 0}
+                        onChange={e => setEditingRating({ ...editingRating, [key]: parseFloat(e.target.value) })}
+                        style={{ width:'100%', padding:'10px 12px', border:`1px solid ${C.cardBorder}`, borderRadius:8, fontFamily:'inherit', fontSize:15, fontWeight:700, color: C.dark, background:'#fff', outline:'none' }}
+                      />
+                    </div>
+                  ))}
+                  <div style={{ display:'flex', gap:10, marginTop:18 }}>
+                    <button onClick={async () => {
+                      const newLevel = ratingToLevel(editingRating.rating!).level
+                      await supabase.from('ratings').update({ rating: editingRating.rating, match_count: editingRating.match_count, updated_at: new Date().toISOString() }).eq('id', editingRating.id)
+                      await supabase.from('profiles').update({ level: newLevel }).eq('id', editingRating.player_id)
+                      setRatings(ratings.map(r => r.id===editingRating.id ? { ...r, ...editingRating } as Rating : r))
+                      setEditingRating(null)
+                      showNotif('Rating updated')
+                    }} style={{ flex:1, background: C.dark, border:'none', borderRadius:10, padding:'12px', color: C.gold, fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Save</button>
+                    <button onClick={() => setEditingRating(null)} style={{ flex:1, background:'rgba(1,74,9,0.08)', border:'none', borderRadius:10, padding:'12px', color: C.dark, fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Matches */}
+        {tab==='matches' && (
+          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+              <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Match History ({matches.length})</div>
+            </div>
+            <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
+              {matches.slice(0,30).map(m => (
+                <div key={m.id} style={{ border:`1px solid ${C.cardBorder}`, borderRadius:10, padding:'12px 14px' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color: C.dark, lineHeight:1.4 }}>
+                      {m.team_a1_name} & {m.team_a2_name}<br />
+                      <span style={{ fontWeight:400, color:'#888', fontSize:11 }}>vs</span><br />
+                      {m.team_b1_name} & {m.team_b2_name}
+                    </div>
+                    <button onClick={async () => {
+                      if (confirm('Delete this match?')) {
+                        await supabase.from('matches').delete().eq('id', m.id)
+                        setMatches(matches.filter(x => x.id!==m.id))
+                        showNotif('Match deleted')
+                      }
+                    }} style={{ background: C.loss, border:'none', borderRadius:6, padding:'5px 10px', color:'#fff', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:11, flexShrink:0 }}>Delete</button>
+                  </div>
+                  <div style={{ fontSize:12, color:'#888', display:'flex', gap:16 }}>
+                    <span>A: {m.sets_a.join('-')}</span>
+                    <span>B: {m.sets_b.join('-')}</span>
+                    <span>{new Date(m.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+              {matches.length===0 && <div style={{ textAlign:'center', padding:'30px', color:'#888' }}>No matches</div>}
+            </div>
+          </div>
+        )}
+
+        {/* Analytics */}
+        {tab==='analytics' && (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:14 }}>
+            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Top Players by Rating</div>
+              {ratings.slice(0,5).map((r,i) => (
+                <div key={r.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}` }}>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:600 }}>#{i+1} {r.player_name}</div>
+                    <div style={{ fontSize:11, color:'#888' }}>{r.match_count} matches</div>
+                  </div>
+                  <div style={{ fontSize:15, fontWeight:800, color: C.dark }}>{r.rating.toFixed(1)}</div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Level Distribution</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['1', '2', '3', '4'].map(level => {
-                const count = users.filter(u => u.level === level).length
-                const labels = { '1': 'Elite', '2': 'Competitive', '3': 'Casual', '4': 'Beginner' }
+            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Level Distribution</div>
+              {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#006633'],['4','Beginner','#990033']].map(([level,desc,color]) => {
+                const count = users.filter(u => u.level===level).length
                 return (
-                  <div key={level} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>L{level} <span style={{ color: '#888' }}>({labels[level as keyof typeof labels]})</span></div>
-                    <div style={{ fontWeight: 800, fontSize: 14 }}>{count}</div>
+                  <div key={level} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}` }}>
+                    <div style={{ fontSize:13 }}>L{level} <span style={{ color:'#888' }}>{desc}</span></div>
+                    <div style={{ fontSize:15, fontWeight:800, color }}>{count}</div>
                   </div>
                 )
               })}
             </div>
-          </div>
-
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, border: '1px solid #e0e0e0' }}>
-            <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 16 }}>Player Activity</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span>Avg Matches per Player</span>
-                <span style={{ fontWeight: 700 }}>{(ratings.reduce((sum, r) => sum + r.match_count, 0) / ratings.length || 0).toFixed(1)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span>Total Matches Played</span>
-                <span style={{ fontWeight: 700 }}>{matches.length}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span>Active Game Posts</span>
-                <span style={{ fontWeight: 700 }}>{posts.filter(p => p.spots_needed > 0).length}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span>Avg Rating</span>
-                <span style={{ fontWeight: 700 }}>{(ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length || 0).toFixed(1)}</span>
-              </div>
+            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Activity</div>
+              {[
+                ['Avg Matches / Player', (ratings.reduce((s,r)=>s+r.match_count,0)/ratings.length||0).toFixed(1)],
+                ['Total Matches Played', matches.length],
+                ['Active Game Posts',    posts.filter(p=>p.spots_needed>0).length],
+                ['Avg Rating',           (ratings.reduce((s,r)=>s+r.rating,0)/ratings.length||0).toFixed(1)],
+              ].map(([label,val]) => (
+                <div key={label as string} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}`, fontSize:13 }}>
+                  <span style={{ color:'#555' }}>{label}</span>
+                  <span style={{ fontWeight:700, color: C.dark }}>{val}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
+
