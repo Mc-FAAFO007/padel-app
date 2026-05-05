@@ -18,45 +18,36 @@ function slotColor(slot: string) {
   const period = slot.split(' ')[1] as string
   return PERIOD_COLOR[period] || { color:'#026b0d', bg:'rgba(0,198,162,0.12)' }
 }
-
 function formatSlotDisplay(slot: string): string {
-  // slot format: "Wednesday 12:00 pm · 90 min"
-  // output: "Wednesday, 12:00 – 1:30 pm"
   try {
     const dotIndex = slot.indexOf(' · ')
     if (dotIndex === -1) return slot
-    const timePart = slot.slice(0, dotIndex)   // "Wednesday 12:00 pm"
-    const durPart  = slot.slice(dotIndex + 3)  // "90 min"
+    const timePart = slot.slice(0, dotIndex)
+    const durPart  = slot.slice(dotIndex + 3)
     const mins     = parseInt(durPart) || 60
-
-    // Parse time
-    const parts = timePart.split(' ')           // ["Wednesday", "12:00", "pm"]
+    const parts = timePart.split(' ')
     const day   = parts[0]
-    const time  = parts[1]                     // "12:00"
-    const ampm  = parts[2]                     // "pm"
+    const time  = parts[1]
+    const ampm  = parts[2]
     const [hStr, mStr] = time.split(':')
     let h = parseInt(hStr), m = parseInt(mStr)
     if (ampm === 'pm' && h !== 12) h += 12
     if (ampm === 'am' && h === 12) h = 0
-
     const endTotal = h * 60 + m + mins
     const endH = Math.floor(endTotal / 60) % 24
     const endM = endTotal % 60
     const endAmpm = endH < 12 ? 'am' : 'pm'
     const endH12 = endH % 12 === 0 ? 12 : endH % 12
     const endTime = `${endH12}:${endM.toString().padStart(2,'0')} ${endAmpm}`
-
     return `${day}, ${time} – ${endTime}`
-  } catch {
-    return slot
-  }
+  } catch { return slot }
 }
+
 const levels    = ['1','2','3','4']
 const levelColor: Record<string,string> = { '1':'#cc9900','2':'#000099','3':'#006633','4':'#990033' }
 const levelBg:    Record<string,string> = { '1':'rgba(204,153,0,0.12)','2':'rgba(0,0,153,0.10)','3':'rgba(0,102,51,0.10)','4':'rgba(153,0,51,0.12)' }
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Competitive','3':'Casual','4':'Beginner' }
 
-// Derive level badge from numeric rating
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
   if (rating >= 5.6) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)', desc:'Elite' }
   if (rating >= 4.1) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)', desc:'Competitive' }
@@ -79,11 +70,26 @@ function getCompatScore(a: Profile, b: Profile) {
   return shared * 3 + levelScore
 }
 
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const C = { bg:'#f5f0e8', dark:'#014a09', mid:'#026b0d', gold:'#ffcc66', win:'#006633', loss:'#990033' }
+
+// ─── Shared style helpers ─────────────────────────────────────────────────────
+const card: React.CSSProperties  = { background:'#fff', borderRadius:16, padding:'12px 14px' }
+const card2: React.CSSProperties = { background:'rgba(1,74,9,0.05)', borderRadius:16, padding:'12px 14px' }
+const sec: React.CSSProperties   = { fontSize:9, fontWeight:700, letterSpacing:'1px', textTransform:'uppercase' as const, color:'rgba(1,74,9,0.35)' }
+
+function pill(active: boolean): React.CSSProperties {
+  return active
+    ? { background:'#014a09', color:'#ffcc66', fontSize:10, fontWeight:700, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0 }
+    : { background:'rgba(1,74,9,0.07)', color:'rgba(1,74,9,0.5)', fontSize:10, fontWeight:600, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0 }
+}
+
 // ─── Atoms ───────────────────────────────────────────────────────────────────
 function Avatar({ initials, size=40, level }: { initials:string, size?:number, level?:string }) {
-  const c = level ? levelColor[level] : '#00c6a2'
+  const c  = level ? levelColor[level] : '#014a09'
+  const bg = level ? levelBg[level]    : 'rgba(1,74,9,0.08)'
   return (
-    <div style={{ width:size, height:size, borderRadius:'50%', background:`linear-gradient(135deg,${c}45,${c}18)`, border:`2px solid ${c}55`, display:'flex', alignItems:'center', justifyContent:'center', color:c, fontWeight:900, fontSize:size*0.3, flexShrink:0, boxShadow:`0 0 10px ${c}28` }}>
+    <div style={{ width:size, height:size, borderRadius:'50%', background:bg, border:`2px solid ${c}35`, display:'flex', alignItems:'center', justifyContent:'center', color:c, fontWeight:800, fontSize:size*0.32, flexShrink:0 }}>
       {initials}
     </div>
   )
@@ -91,7 +97,7 @@ function Avatar({ initials, size=40, level }: { initials:string, size?:number, l
 
 function LevelBadge({ level, small=false }: { level:string, small?:boolean }) {
   return (
-    <span style={{ background:levelBg[level], color:levelColor[level], border:`1px solid ${levelColor[level]}40`, borderRadius:20, padding:small?'1px 7px':'2px 10px', fontSize:small?10:11, fontWeight:800, whiteSpace:'nowrap' }}>
+    <span style={{ background:levelBg[level], color:levelColor[level], borderRadius:20, padding:small?'2px 8px':'3px 10px', fontSize:small?9:10, fontWeight:700, whiteSpace:'nowrap' }}>
       L{level} · {levelDesc[level]}
     </span>
   )
@@ -100,8 +106,92 @@ function LevelBadge({ level, small=false }: { level:string, small?:boolean }) {
 function Notif({ msg }: { msg: string|null }) {
   if (!msg) return null
   return (
-    <div style={{ position:'fixed', top:18, left:'50%', transform:'translateX(-50%)', background:'rgba(2,107,13,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(2,107,13,0.4)', borderRadius:14, padding:'11px 22px', zIndex:9999, color:'#026b0d', fontWeight:700, fontSize:14, whiteSpace:'nowrap', boxShadow:'0 4px 24px rgba(0,198,162,0.2)' }}>
+    <div style={{ position:'fixed', top:18, left:'50%', transform:'translateX(-50%)', background:'rgba(2,107,13,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(2,107,13,0.4)', borderRadius:14, padding:'11px 22px', zIndex:9999, color:'#026b0d', fontWeight:700, fontSize:14, whiteSpace:'nowrap' }}>
       {msg}
+    </div>
+  )
+}
+
+function PageHeader({ title, rating, right }: { title: string; rating?: number|null; right?: React.ReactNode }) {
+  return (
+    <div style={{ padding:'22px 0 8px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+      <div style={{ fontSize:20, fontWeight:800, color:C.dark, letterSpacing:-0.5 }}>{title}</div>
+      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+        {rating != null && (
+          <div style={{ background:C.dark, color:C.gold, fontSize:13, fontWeight:800, padding:'5px 12px', borderRadius:14 }}>
+            {rating.toFixed(1)}
+          </div>
+        )}
+        {right}
+      </div>
+    </div>
+  )
+}
+
+// ─── Schedule Card (shared between board + profile) ───────────────────────────
+function ScheduleCard({
+  p, isOwner, players, currentUser, liveRating,
+  onEdit, onDelete, onCancelSpot, onLogScore, router,
+}: {
+  p: any; isOwner: boolean; players: Profile[]; currentUser: Profile; liveRating: number|null;
+  onEdit: (p: any) => void; onDelete: (id: number) => void; onCancelSpot: (id: number) => void;
+  onLogScore: (p: any) => void; router: any;
+}) {
+  const c = levelColor[p.level]
+  const interestedPlayers = players.filter((pl: any) => p.interested_ids.includes(pl.id))
+  const organiser = players.find((pl: any) => pl.id === p.player_id)
+  const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
+  const emptySlots  = Math.max(0, 4 - filledSlots.length)
+  return (
+    <div style={{ ...card, borderLeft:`3px solid ${c}`, borderRadius:'0 16px 16px 0', paddingLeft:11, display:'flex', flexDirection:'column', gap:10 }}>
+      <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+        <Avatar initials={p.player_avatar} size={36} level={p.level} />
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' as const }}>
+            <span style={{ fontWeight:700, fontSize:13, color:C.dark }}>{p.player_name}</span>
+            <LevelBadge level={p.level} small />
+            {isOwner && <span style={{ fontSize:9, fontWeight:700, color:C.dark, background:'rgba(1,74,9,0.1)', borderRadius:5, padding:'1px 5px' }}>YOUR GAME</span>}
+          </div>
+          <div style={{ fontSize:10, color:'rgba(1,74,9,0.45)', marginTop:2 }}>{formatSlotDisplay(p.slot)}</div>
+        </div>
+        {isOwner && (
+          <div style={{ display:'flex', gap:5 }}>
+            <button onClick={() => onEdit(p)} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
+            <button onClick={() => onDelete(p.id)} style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:7, padding:'3px 8px', color:'#990033', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+          </div>
+        )}
+      </div>
+      {p.note && <div style={{ fontSize:12, color:'rgba(1,74,9,0.55)', fontStyle:'italic' }}>"{p.note}"</div>}
+      <div>
+        <div style={{ ...sec, marginBottom:6 }}>Players ({filledSlots.length}/4)</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+          {filledSlots.map((pl: any, i: number) => pl && (
+            <div key={pl.id} onClick={() => { sessionStorage.setItem('arenaTab','leaderboard'); sessionStorage.setItem('viewPlayer', pl.id); router.push('/ratings') }}
+              style={{ background:i===0?`${levelColor[pl.level]}12`:'rgba(0,102,51,0.06)', border:`1px solid ${i===0?levelColor[pl.level]+'30':'rgba(0,102,51,0.15)'}`, borderRadius:10, padding:'7px 9px', display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
+              <Avatar initials={pl.avatar} size={22} level={pl.level} />
+              <div style={{ minWidth:0 }}>
+                <div style={{ fontSize:11, fontWeight:700, color:C.dark, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name}</div>
+                <div style={{ fontSize:9, color:i===0?levelColor[pl.level]:C.win, fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
+              </div>
+            </div>
+          ))}
+          {Array.from({length:emptySlots}).map((_,i) => (
+            <div key={`open-${i}`} style={{ background:'rgba(0,0,0,0.02)', border:'1px dashed rgba(1,74,9,0.15)', borderRadius:10, padding:'7px 9px', display:'flex', alignItems:'center', justifyContent:'center', minHeight:40 }}>
+              <span style={{ fontSize:11, color:'rgba(1,74,9,0.3)' }}>○ Open</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {filledSlots.length === 4 && (
+        <button onClick={() => onLogScore(p)} style={{ background:C.dark, border:'none', borderRadius:10, padding:'10px', cursor:'pointer', color:C.gold, fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+          Log Match Score →
+        </button>
+      )}
+      {!isOwner && (
+        <button onClick={() => onCancelSpot(p.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:12, fontFamily:'inherit', width:'100%' }}>
+          Cancel my spot
+        </button>
+      )}
     </div>
   )
 }
@@ -110,311 +200,168 @@ function Notif({ msg }: { msg: string|null }) {
 export default function HomePage() {
   const router = useRouter()
 
-
-  const [currentUser, setCurrentUser] = useState<Profile|null>(null)
-  const [players,     setPlayers]     = useState<Profile[]>([])
-  const [posts,       setPosts]       = useState<(Post & { interested_ids: string[] })[]>([])
-  const [view,        setView]        = useState<'home'|'board'|'arena'|'matches'|'profile'>('home')
-  const [profileTab,  setProfileTab]  = useState<'edit'|'results'|'buddies'>('edit')
+  const [currentUser,   setCurrentUser]   = useState<Profile|null>(null)
+  const [players,       setPlayers]       = useState<Profile[]>([])
+  const [posts,         setPosts]         = useState<(Post & { interested_ids: string[] })[]>([])
+  const [view,          setView]          = useState<'home'|'board'|'arena'|'profile'>('home')
+  const [profileTab,    setProfileTab]    = useState<'edit'|'schedule'|'results'|'buddies'>('edit')
   const [ratingHistory, setRatingHistory] = useState<Match[]>([])
-  const [editName,    setEditName]    = useState('')
-  const [editLevel,   setEditLevel]   = useState('')
-  const [editSlots,   setEditSlots]   = useState<string[]>([])
-  const [editLoading, setEditLoading] = useState(false)
-  const [boardLevel,  setBoardLevel]  = useState('All')
-  const [selected,    setSelected]    = useState<Profile|null>(null)
-  const [filter,      setFilter]      = useState({ level:'All', slot:'All' })
-  const [fLevels,     setFLevels]     = useState<string[]>([])
-  const [showForm,    setShowForm]    = useState(false)
-  const [showLevelGuide, setShowLevelGuide] = useState(false)
-  const [notif,       setNotif]       = useState<string|null>(null)
-  const [loading,     setLoading]     = useState(true)
-  const [liveRating,   setLiveRating]   = useState<number|null>(null)
-  const [buddies, setBuddies] = useState<Profile[]>([])
-  const [allProfiles, setAllProfiles] = useState<Profile[]>([])
+  const [editName,      setEditName]      = useState('')
+  const [editLevel,     setEditLevel]     = useState('')
+  const [editSlots,     setEditSlots]     = useState<string[]>([])
+  const [editLoading,   setEditLoading]   = useState(false)
+  const [boardLevel,    setBoardLevel]    = useState('All')
+  const [selected,      setSelected]      = useState<Profile|null>(null)
+  const [filter,        setFilter]        = useState({ level:'All', slot:'All' })
+  const [fLevels,       setFLevels]       = useState<string[]>([])
+  const [showForm,      setShowForm]      = useState(false)
+  const [showLevelGuide,setShowLevelGuide]= useState(false)
+  const [notif,         setNotif]         = useState<string|null>(null)
+  const [loading,       setLoading]       = useState(true)
+  const [liveRating,    setLiveRating]    = useState<number|null>(null)
+  const [buddies,       setBuddies]       = useState<Profile[]>([])
+  const [allProfiles,   setAllProfiles]   = useState<Profile[]>([])
   const [buddyFilterLevel, setBuddyFilterLevel] = useState<string>('')
   const [buddyFilterAvailability, setBuddyFilterAvailability] = useState<string>('')
 
   // Post form state
-  const [fDay,      setFDay]     = useState('')
-  const [fTime,     setFTime]    = useState('')
-  const [fDuration, setFDuration] = useState('')
-  const [fSpots,    setFSpots]   = useState(3)
-  const [fNote,     setFNote]    = useState('')
-  const [editingPost, setEditingPost] = useState<number|null>(null)
+  const [fDay,          setFDay]          = useState('')
+  const [fTime,         setFTime]         = useState('')
+  const [fDuration,     setFDuration]     = useState('')
+  const [fSpots,        setFSpots]        = useState(3)
+  const [fNote,         setFNote]         = useState('')
+  const [editingPost,   setEditingPost]   = useState<number|null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<number|null>(null)
-  const [addingMember, setAddingMember] = useState<number|null>(null)
-  const [fInvited, setFInvited] = useState<string[]>([])
+  const [addingMember,  setAddingMember]  = useState<number|null>(null)
+  const [fInvited,      setFInvited]      = useState<string[]>([])
   const [fPlayerSearch, setFPlayerSearch] = useState('')
   const [showPlayerSearch, setShowPlayerSearch] = useState(false)
 
-  function showNotif(msg: string) {
-    setNotif(msg)
-    setTimeout(() => setNotif(null), 2800)
-  }
+  function showNotif(msg: string) { setNotif(msg); setTimeout(() => setNotif(null), 2800) }
 
-  // ── Load session + data ───────────────────────────────────────────────────
+  // ── Load data ─────────────────────────────────────────────────────────────
   const loadData = useCallback(async (userId: string) => {
     try {
       const profileRes = await supabase.from('profiles').select('*, is_admin').eq('id', userId).single()
-
       if (profileRes.error) {
-        // Only redirect to onboarding if profile genuinely doesn't exist
-        // PGRST116 = row not found, anything else is a network/server error
-        if (profileRes.error.code === 'PGRST116') {
-          router.push('/onboarding')
-        } else {
-          console.error('Profile fetch error:', profileRes.error)
-          setLoading(false)
-        }
+        if (profileRes.error.code === 'PGRST116') router.push('/onboarding')
+        else { console.error('Profile fetch error:', profileRes.error); setLoading(false) }
         return
       }
-
       setCurrentUser(profileRes.data)
-
       const [playersRes, postsRes, matchesRes] = await Promise.all([
         supabase.from('profiles').select('*').order('created_at'),
         supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false }),
-        supabase.from('matches')
-          .select('*')
-          .or(`team_a1_id.eq.${userId},team_a2_id.eq.${userId},team_b1_id.eq.${userId},team_b2_id.eq.${userId}`)
-          .order('created_at', { ascending: true }),
+        supabase.from('matches').select('*').or(`team_a1_id.eq.${userId},team_a2_id.eq.${userId},team_b1_id.eq.${userId},team_b2_id.eq.${userId}`).order('created_at', { ascending:true }),
       ])
-
       setPlayers(playersRes.data || [])
-
-      const enrichedPosts = (postsRes.data || []).map((p: any) => ({
-        ...p,
-        interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
-      }))
+      const enrichedPosts = (postsRes.data || []).map((p: any) => ({ ...p, interested_ids:(p.post_interests||[]).map((i:any)=>i.player_id) }))
       setPosts(enrichedPosts)
       setRatingHistory(matchesRes.data || [])
-
-      // Fetch live rating for header pill and sync level on profile
       const ratingRes = await supabase.from('ratings').select('rating').eq('player_id', userId).single()
       if (ratingRes.data) {
         const rating = ratingRes.data.rating
         setLiveRating(rating)
-        // Sync profile level if rating has moved them to a new level
         const derivedLevel = ratingToLevel(rating).level
         if (profileRes.data && profileRes.data.level !== derivedLevel) {
           await supabase.from('profiles').update({ level: derivedLevel }).eq('id', userId)
           profileRes.data.level = derivedLevel
         }
       }
-
-      // Load buddies data
       const allProfilesRes = await supabase.from('profiles').select('*').order('name')
-      if (allProfilesRes.data) {
-        setAllProfiles(allProfilesRes.data)
-      }
-
+      if (allProfilesRes.data) setAllProfiles(allProfilesRes.data)
       const buddiesRes = await supabase.from('buddies').select('buddy_id').eq('user_id', userId)
       if (buddiesRes.data && allProfilesRes.data) {
         const buddyIds = new Set(buddiesRes.data.map(b => b.buddy_id))
-        const enrichedBuddies = allProfilesRes.data.filter(p => buddyIds.has(p.id))
-        setBuddies(enrichedBuddies)
+        setBuddies(allProfilesRes.data.filter(p => buddyIds.has(p.id)))
       }
-
       setLoading(false)
-    } catch (err) {
-      console.error('loadData error:', err)
-      setLoading(false)
-    }
+    } catch (err) { console.error('loadData error:', err); setLoading(false) }
   }, [router])
 
   useEffect(() => {
     const mainView = sessionStorage.getItem('mainView')
-    if (mainView === 'board' || mainView === 'matches') {
-      setView(mainView as any)
-      sessionStorage.removeItem('mainView')
-    }
+    if (mainView === 'board') { setView('board'); sessionStorage.removeItem('mainView') }
+    else if (mainView === 'matches') { setView('profile'); setProfileTab('schedule'); sessionStorage.removeItem('mainView') }
   }, [])
 
   useEffect(() => {
     let sessionChecked = false
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       sessionChecked = true
-      if (session?.user) {
-        loadData(session.user.id)
-      } else if (event === 'SIGNED_OUT') {
-        router.push('/login')
-      } else if (event === 'INITIAL_SESSION' && !session) {
-        router.push('/login')
-      }
+      if (session?.user) loadData(session.user.id)
+      else if (event === 'SIGNED_OUT') router.push('/login')
+      else if (event === 'INITIAL_SESSION' && !session) router.push('/login')
     })
-
-    // Fallback: if onAuthStateChange never fires after 3s, check manually
     const fallback = setTimeout(() => {
-      if (!sessionChecked) {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session?.user) loadData(session.user.id)
-          else router.push('/login')
-        })
-      }
+      if (!sessionChecked) supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) loadData(session.user.id)
+        else router.push('/login')
+      })
     }, 3000)
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(fallback)
-    }
+    return () => { subscription.unsubscribe(); clearTimeout(fallback) }
   }, [loadData, router])
 
-  // ── Refresh specific data tables ────────────────────────────────────────
   const refreshSpecificData = useCallback(async (table: string) => {
     if (!currentUser?.id) return
-
     try {
       if (table === 'posts' || table === 'post_interests') {
-        const postsRes = await supabase
-          .from('posts')
-          .select('*, post_interests(player_id)')
-          .order('created_at', { ascending: false })
-
-        if (postsRes.data) {
-          const enrichedPosts = postsRes.data.map((p: any) => ({
-            ...p,
-            interested_ids: (p.post_interests || []).map((i: any) => i.player_id)
-          }))
-          setPosts(enrichedPosts)
-        }
+        const postsRes = await supabase.from('posts').select('*, post_interests(player_id)').order('created_at', { ascending:false })
+        if (postsRes.data) setPosts(postsRes.data.map((p:any) => ({ ...p, interested_ids:(p.post_interests||[]).map((i:any)=>i.player_id) })))
       }
-
       if (table === 'matches' || table === 'ratings') {
         const [matchesRes, ratingRes] = await Promise.all([
-          supabase
-            .from('matches')
-            .select('*')
-            .or(`team_a1_id.eq.${currentUser.id},team_a2_id.eq.${currentUser.id},team_b1_id.eq.${currentUser.id},team_b2_id.eq.${currentUser.id}`)
-            .order('created_at', { ascending: true }),
+          supabase.from('matches').select('*').or(`team_a1_id.eq.${currentUser.id},team_a2_id.eq.${currentUser.id},team_b1_id.eq.${currentUser.id},team_b2_id.eq.${currentUser.id}`).order('created_at', { ascending:true }),
           supabase.from('ratings').select('rating').eq('player_id', currentUser.id).single()
         ])
-
         if (matchesRes.data) setRatingHistory(matchesRes.data)
         if (ratingRes.data) setLiveRating(ratingRes.data.rating)
       }
-
       if (table === 'profiles') {
         const profilesRes = await supabase.from('profiles').select('*').order('created_at')
         if (profilesRes.data) setPlayers(profilesRes.data)
       }
-
       if (table === 'buddies') {
         const buddiesRes = await supabase.from('buddies').select('buddy_id').eq('user_id', currentUser.id)
         if (buddiesRes.data) {
           const buddyIds = new Set(buddiesRes.data.map(b => b.buddy_id))
-          const enrichedBuddies = allProfiles.filter(p => buddyIds.has(p.id))
-          setBuddies(enrichedBuddies)
+          setBuddies(allProfiles.filter(p => buddyIds.has(p.id)))
         }
       }
-    } catch (err) {
-      console.error('Error refreshing data:', err)
-    }
-  }, [currentUser?.id])
+    } catch (err) { console.error('Error refreshing data:', err) }
+  }, [currentUser?.id, allProfiles])
 
   useEffect(() => {
-    const handleRealtimeUpdate = (payload: any) => {
-      console.log('Real-time update detected:', payload.eventType, 'on table:', payload.table)
-      refreshSpecificData(payload.table)
-    }
-
-    const channel = supabase
-      .channel('app-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'posts' },
-        handleRealtimeUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'post_interests' },
-        handleRealtimeUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'profiles' },
-        handleRealtimeUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'matches' },
-        handleRealtimeUpdate
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'buddies' },
-        handleRealtimeUpdate
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✓ Real-time updates enabled')
-        }
-      })
-
-    return () => {
-      channel.unsubscribe()
-    }
+    const channel = supabase.channel('app-updates')
+      .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, (p:any) => refreshSpecificData(p.table))
+      .on('postgres_changes', { event:'*', schema:'public', table:'post_interests' }, (p:any) => refreshSpecificData(p.table))
+      .on('postgres_changes', { event:'*', schema:'public', table:'profiles' }, (p:any) => refreshSpecificData(p.table))
+      .on('postgres_changes', { event:'*', schema:'public', table:'matches' }, (p:any) => refreshSpecificData(p.table))
+      .on('postgres_changes', { event:'*', schema:'public', table:'buddies' }, (p:any) => refreshSpecificData(p.table))
+      .subscribe()
+    return () => { channel.unsubscribe() }
   }, [refreshSpecificData])
 
-  // ── Buddy functions ───────────────────────────────────────────────────
+  // ── Buddy functions ───────────────────────────────────────────────────────
   const addBuddy = async (buddyId: string) => {
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      showNotif('Not logged in')
-      return
-    }
-
-    const { error } = await supabase
-      .from('buddies')
-      .insert([{ user_id: session.user.id, buddy_id: buddyId }])
-
-    if (error) {
-      console.error('Error adding buddy:', error)
-      showNotif(`Error adding buddy: ${error.message}`)
-      return
-    }
-
+    if (!session) { showNotif('Not logged in'); return }
+    const { error } = await supabase.from('buddies').insert([{ user_id: session.user.id, buddy_id: buddyId }])
+    if (error) { showNotif(`Error adding buddy: ${error.message}`); return }
     const buddy = allProfiles.find(p => p.id === buddyId)
-    if (buddy) {
-      setBuddies([...buddies, buddy])
-    } else {
-      console.error('Buddy not found in allProfiles:', buddyId, allProfiles)
-    }
+    if (buddy) setBuddies([...buddies, buddy])
     showNotif('Buddy added!')
   }
-
   const removeBuddy = async (buddyId: string) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return
-
-    const { error } = await supabase
-      .from('buddies')
-      .delete()
-      .eq('user_id', session.user.id)
-      .eq('buddy_id', buddyId)
-
-    if (error) {
-      showNotif('Error removing buddy')
-      return
-    }
-
+    const { error } = await supabase.from('buddies').delete().eq('user_id', session.user.id).eq('buddy_id', buddyId)
+    if (error) { showNotif('Error removing buddy'); return }
     setBuddies(buddies.filter(b => b.id !== buddyId))
     showNotif('Buddy removed')
   }
-
-  const getFilteredBuddies = () => {
-    return buddies.filter(buddy => {
-      if (buddyFilterLevel && buddy.level !== buddyFilterLevel) return false
-      if (buddyFilterAvailability && !buddy.availability.includes(buddyFilterAvailability)) return false
-      return true
-    })
-  }
-
-  const getAvailableToAdd = () => {
-    const buddyIds = new Set(buddies.map(b => b.id))
-    return allProfiles.filter(p => p.id !== currentUser?.id && !buddyIds.has(p.id))
-  }
+  const getFilteredBuddies = () => buddies.filter(b => (!buddyFilterLevel || b.level === buddyFilterLevel) && (!buddyFilterAvailability || b.availability.includes(buddyFilterAvailability)))
+  const getAvailableToAdd  = () => { const ids = new Set(buddies.map(b => b.id)); return allProfiles.filter(p => p.id !== currentUser?.id && !ids.has(p.id)) }
 
   // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
@@ -422,49 +369,29 @@ export default function HomePage() {
     if (fLevels.length === 0) { showNotif('Select at least one level'); return }
     const fSlot = `${fDay} ${fTime} · ${fDuration}`
     if (editingPost) {
-      const { error } = await supabase.from('posts').update({
-        level: fLevels[0], allowed_levels: fLevels,
-        slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
-      }).eq('id', editingPost)
+      const { error } = await supabase.from('posts').update({ level:fLevels[0], allowed_levels:fLevels, slot:fSlot, spots_needed:fSpots, note:fNote.trim() }).eq('id', editingPost)
       if (error) { showNotif('Error updating: ' + error.message); return }
-      showNotif('Game updated!')
-      setEditingPost(null)
+      showNotif('Game updated!'); setEditingPost(null)
     } else {
-      const { error } = await supabase.from('posts').insert({
-        player_id: currentUser.id,
-        player_name: currentUser.name,
-        player_avatar: currentUser.avatar,
-        level: fLevels[0], allowed_levels: fLevels,
-        slot: fSlot, spots_needed: fSpots, note: fNote.trim(),
-      })
+      const { error } = await supabase.from('posts').insert({ player_id:currentUser.id, player_name:currentUser.name, player_avatar:currentUser.avatar, level:fLevels[0], allowed_levels:fLevels, slot:fSlot, spots_needed:fSpots, note:fNote.trim() })
       if (error) { showNotif('Error posting: ' + error.message); return }
-      // Add invited players — fetch the newly created post and add interests
       if (fInvited.length > 0) {
         await new Promise(r => setTimeout(r, 600))
-        const { data: newPost } = await supabase
-          .from('posts').select('id').eq('player_id', currentUser.id)
-          .order('created_at', { ascending: false }).limit(1).single()
-        if (newPost?.id) {
-          const insertResults = await Promise.all(
-            fInvited.map(pid => supabase.from('post_interests').insert({ post_id: newPost.id, player_id: pid }))
-          )
-          const insertErrors = insertResults.filter(r => r.error)
-          if (insertErrors.length > 0) console.error('Interest insert errors:', insertErrors.map(r => r.error))
-        }
+        const { data: newPost } = await supabase.from('posts').select('id').eq('player_id', currentUser.id).order('created_at', { ascending:false }).limit(1).single()
+        if (newPost?.id) await Promise.all(fInvited.map(pid => supabase.from('post_interests').insert({ post_id:newPost.id, player_id:pid })))
       }
       showNotif('Game posted!')
     }
     setShowForm(false); setFDay(''); setFTime(''); setFDuration(''); setFSpots(3); setFNote(''); setFLevels([]); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false)
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
+    supabase.auth.getSession().then(({ data:{ session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
   async function handleAddMember(postId: number, playerId: string) {
     const already = posts.find(p => p.id === postId)?.interested_ids.includes(playerId)
     if (already) { showNotif('Player already in this game'); return }
-    await supabase.from('post_interests').insert({ post_id: postId, player_id: playerId })
-    setAddingMember(null)
-    showNotif('Player added!')
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
+    await supabase.from('post_interests').insert({ post_id:postId, player_id:playerId })
+    setAddingMember(null); showNotif('Player added!')
+    supabase.auth.getSession().then(({ data:{ session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
   async function handleInterest(postId: number) {
@@ -474,259 +401,194 @@ export default function HomePage() {
     const allowedLevels = post.allowed_levels || [post.level]
     const myCurrentLevel = liveRating ? ratingToLevel(liveRating).level : currentUser.level
     if (!allowedLevels.includes(myCurrentLevel) && !post.interested_ids.includes(currentUser.id)) {
-      showNotif('This game is restricted to ' + allowedLevels.map((l: string) => `L${l}`).join(', '))
-      return
+      showNotif('This game is restricted to ' + allowedLevels.map((l:string) => `L${l}`).join(', ')); return
     }
     const already = post.interested_ids.includes(currentUser.id)
     if (already) {
       const { error } = await supabase.from('post_interests').delete().eq('post_id', postId).eq('player_id', currentUser.id)
-      if (error) { showNotif('Error removing interest'); console.error(error); return }
+      if (error) { showNotif('Error removing interest'); return }
       showNotif('Spot removed')
     } else {
-      // Check if post is already full
-      if (post.interested_ids.length >= post.spots_needed) {
-        showNotif('This game is already full')
-        return
-      }
-      const { error } = await supabase.from('post_interests').insert({ post_id: postId, player_id: currentUser.id })
-      if (error) { showNotif('Error joining game'); console.error(error); return }
+      if (post.interested_ids.length >= post.spots_needed) { showNotif('This game is already full'); return }
+      const { error } = await supabase.from('post_interests').insert({ post_id:postId, player_id:currentUser.id })
+      if (error) { showNotif('Error joining game'); return }
       showNotif('You joined the game!')
     }
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
+    supabase.auth.getSession().then(({ data:{ session } }) => { if (session?.user) loadData(session.user.id) })
   }
 
-  async function handleDeletePost(postId: number) {
-    setDeleteConfirm(postId)
-  }
-
+  async function handleDeletePost(postId: number) { setDeleteConfirm(postId) }
   async function confirmDeletePost(postId: number) {
     await supabase.from('posts').delete().eq('id', postId)
-    setDeleteConfirm(null)
-    showNotif('Post removed')
-    supabase.auth.getSession().then(({ data: { session } }) => { if (session?.user) loadData(session.user.id) })
+    setDeleteConfirm(null); showNotif('Post removed')
+    supabase.auth.getSession().then(({ data:{ session } }) => { if (session?.user) loadData(session.user.id) })
+  }
+  function handleSignOut() { supabase.auth.signOut().then(() => router.push('/login')) }
+
+  function openEditPost(p: any) {
+    const slot = p.slot; const dotIdx = slot.indexOf(' · ')
+    const timePart = dotIdx > -1 ? slot.slice(0, dotIdx) : slot
+    const durPart  = dotIdx > -1 ? slot.slice(dotIdx + 3) : ''
+    const parts = timePart.split(' ')
+    setFDay(parts[0]||''); setFTime(parts.slice(1).join(' ')||'')
+    setFDuration(durPart||''); setFSpots(p.spots_needed)
+    setFNote(p.note||''); setFLevels(p.allowed_levels||[p.level])
+    setEditingPost(p.id); setShowForm(true); setView('board')
   }
 
-  function handleSignOut() {
-    supabase.auth.signOut().then(() => router.push('/login'))
+  function handleLogScore(p: any) {
+    const gamePlayers = [p.player_id, ...p.interested_ids]
+    sessionStorage.setItem('arenaTab', 'log')
+    sessionStorage.setItem('prefillGame', JSON.stringify({ postId:p.id, playerIds:gamePlayers }))
+    router.push('/ratings')
   }
 
   // ── Derived data ──────────────────────────────────────────────────────────
-  const boardPosts  = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels || [p.level]).includes(boardLevel))
-  const openPosts   = posts.filter(p => p.interested_ids.length < p.spots_needed) // spots_needed max interested
-  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels || [p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
-
-  const filtered = players.filter(p =>
-    (filter.level === 'All' || p.level === filter.level) &&
-    (filter.slot  === 'All' || p.availability.includes(filter.slot))
-  )
-
-  const matches = selected
-    ? players.filter(p => p.id !== selected.id)
-        .map(p => ({ ...p, score: getCompatScore(selected, p) }))
-        .sort((a,b) => b.score - a.score)
-    : []
+  const boardPosts = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels||[p.level]).includes(boardLevel))
+  const openPosts  = posts.filter(p => p.interested_ids.length < p.spots_needed)
+  const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels||[p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
 
   const ratingTimeline = currentUser ? ratingHistory.map(m => {
     const onA = [m.team_a1_id, m.team_a2_id].includes(currentUser.id)
-    const before = m.team_a1_id === currentUser.id ? m.rating_a1_before
-      : m.team_a2_id === currentUser.id ? m.rating_a2_before
-      : m.team_b1_id === currentUser.id ? m.rating_b1_before
-      : m.rating_b2_before
-    const after = m.team_a1_id === currentUser.id ? m.rating_a1_after
-      : m.team_a2_id === currentUser.id ? m.rating_a2_after
-      : m.team_b1_id === currentUser.id ? m.rating_b1_after
-      : m.rating_b2_after
-    const aSum = m.sets_a.reduce((a:number,b:number)=>a+b,0)
-    const bSum = m.sets_b.reduce((a:number,b:number)=>a+b,0)
+    const before = m.team_a1_id===currentUser.id?m.rating_a1_before:m.team_a2_id===currentUser.id?m.rating_a2_before:m.team_b1_id===currentUser.id?m.rating_b1_before:m.rating_b2_before
+    const after  = m.team_a1_id===currentUser.id?m.rating_a1_after :m.team_a2_id===currentUser.id?m.rating_a2_after :m.team_b1_id===currentUser.id?m.rating_b1_after :m.rating_b2_after
+    const aSum = m.sets_a.reduce((a:number,b:number)=>a+b,0), bSum = m.sets_b.reduce((a:number,b:number)=>a+b,0)
     const won = onA ? aSum > bSum : bSum > aSum
-    return { id: m.id, date: m.created_at, rating: after, before, won }
+    return { id:m.id, date:m.created_at, rating:after, before, won }
   }) : []
+  const ratingMin = ratingTimeline.length ? Math.min(...ratingTimeline.map(p=>p.rating),1) : 1
+  const ratingMax = ratingTimeline.length ? Math.max(...ratingTimeline.map(p=>p.rating),7) : 7
+  const ratingTrend = ratingTimeline.length ? ratingTimeline[ratingTimeline.length-1].rating - ratingTimeline[0].rating : 0
 
-  const ratingMin = ratingTimeline.length ? Math.min(...ratingTimeline.map(p => p.rating), 1) : 1
-  const ratingMax = ratingTimeline.length ? Math.max(...ratingTimeline.map(p => p.rating), 7) : 7
-  const ratingTrend = ratingTimeline.length ? ratingTimeline[ratingTimeline.length - 1].rating - ratingTimeline[0].rating : 0
-
-  if (loading) {
-    return (
-      <div style={{ minHeight:'100vh', background:'#f5f0e8', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
-        <div style={{ color:'#026b0d', fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
-        <button onClick={() => { window.location.href = '/login' }} style={{ marginTop:8, background:'transparent', border:'1px solid rgba(255,255,255,0.15)', borderRadius:10, padding:'8px 20px', color:'#555', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
-          Not loading? Click here
-        </button>
-      </div>
-    )
-  }
-
-  // ── Styles ────────────────────────────────────────────────────────────────
-  const navBtnStyle = (active: boolean): React.CSSProperties => ({
-    border:'none', borderRadius:10, padding:'8px 0',
-    background: active ? '#026b0d' : 'transparent',
-    color: active ? '#ffcc66' : 'rgba(255,204,102,0.5)',
-    fontWeight:700, fontSize:11, cursor:'pointer', fontFamily:'inherit',
-    transition:'all 0.2s', display:'flex', flexDirection:'column', alignItems:'center', gap:2,
-  })
+  if (loading) return (
+    <div style={{ minHeight:'100vh', background:C.bg, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16, fontFamily:"'DM Sans',sans-serif" }}>
+      <div style={{ color:C.dark, fontSize:14, fontWeight:600 }}>Loading Court Connections…</div>
+      <button onClick={() => { window.location.href = '/login' }} style={{ background:'transparent', border:'1px solid rgba(1,74,9,0.2)', borderRadius:10, padding:'8px 20px', color:'rgba(1,74,9,0.5)', fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>
+        Not loading? Click here
+      </button>
+    </div>
+  )
 
   return (
-    <div style={{ minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#000', overflowX:'hidden', position:'relative' }}>
+    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:"'DM Sans',sans-serif", color:'#000', overflowX:'hidden' }}>
       <Notif msg={notif} />
-
-      <div style={{ position:'relative', zIndex:1, maxWidth:480, margin:'0 auto', padding:'0 16px 90px' }}>
-
-        {/* Header */}
-        <div style={{ padding:'22px 0 18px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div>
-            <div style={{ marginBottom:3 }}>
-              <span style={{ fontSize:22, fontWeight:900, letterSpacing:-0.5, color:'#014a09' }}>Court Connections</span>
-            </div>
-            <div style={{ fontSize:12, color:'#014a09' }}>Connect with players at your level.</div>
-          </div>
-          {currentUser && (()=>{
-            const rd = liveRating ? ratingToLevel(liveRating) : ratingToLevel(3.5)
-            return (
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
-                  onClick={() => { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability); setView('profile') }}>
-                  <Avatar initials={currentUser.avatar} size={34} level={rd.level} />
-                  <div style={{ background:'#014a09', border:'1px solid #026b0d', borderRadius:10, padding:'5px 14px', textAlign:'center', minWidth:90 }}>
-                    <div style={{ fontSize:17, fontWeight:900, color:'#ffcc66', lineHeight:1.1 }}>
-                      {liveRating ? liveRating.toFixed(1) : '--'}
-                    </div>
-                    <div style={{ fontSize:9, fontWeight:700, color:'rgba(255,204,102,0.85)', marginTop:2, whiteSpace:'nowrap' }}>
-                      L{rd.level} · {rd.desc}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })()}
-        </div>
-
-
+      <div style={{ maxWidth:480, margin:'0 auto', padding:'0 16px 90px' }}>
 
         {/* ══ HOME ══ */}
-        {view==='home' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            <div style={{ background:'#f0ebe0', border:'1px solid #d4c9b8', borderRadius:20, padding:'26px 22px' }}>
-              <div style={{ fontSize:27, fontWeight:900, lineHeight:1.2, color:'#1a0a0a', marginBottom:10 }}>
-                Need players?<br /><span style={{ color:'#026b0d' }}>No problem.</span>
+        {view === 'home' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+            {/* Greeting header */}
+            <div style={{ padding:'26px 0 4px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
+              <div>
+                <div style={{ fontSize:12, color:'rgba(1,74,9,0.45)', marginBottom:3 }}>Welcome back,</div>
+                <div style={{ fontSize:23, fontWeight:800, color:C.dark, letterSpacing:-0.5 }}>{currentUser?.name}</div>
               </div>
-              <div style={{ fontSize:13, color:'#6b5050', lineHeight:1.6, marginBottom:18 }}>
-                Post when you need players and get matched by level. Track your rating in The Arena.
-              </div>
-              <div style={{ display:'flex', gap:9 }}>
-                <button onClick={() => setView('board')} style={{ flex:1, background:'#026b0d', border:'none', borderRadius:12, padding:'12px 0', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Game Board</button>
-                <button onClick={() => setView('arena')} style={{ flex:1, background:'transparent', border:'1px solid #bbb', borderRadius:12, padding:'12px 0', color:'#555', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>The Arena</button>
+              {liveRating && (
+                <div style={{ background:C.dark, color:C.gold, fontSize:16, fontWeight:800, padding:'6px 14px', borderRadius:16 }}>
+                  {liveRating.toFixed(1)}
+                </div>
+              )}
+            </div>
+
+            {/* Intro card */}
+            <div style={{ background:C.dark, borderRadius:16, padding:'14px 16px' }}>
+              <div style={{ fontSize:13, fontWeight:700, color:C.gold, marginBottom:5 }}>Court Connections</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', lineHeight:1.65 }}>
+                Your club's home for organised padel — post games, track your live ELO rating, and compete in club leagues.
               </div>
             </div>
 
-
-
-            <div>
-              <div style={{ fontSize:12, fontWeight:800, color:'#014a09', textTransform:'uppercase', letterSpacing:0.8, marginBottom:10, display:'flex', justifyContent:'space-between' }}>
-                <span>Open Games</span>
-                <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:'#026b0d', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
-              </div>
-              {openPosts.map(p => (
-                <div key={p.id} onClick={() => { setBoardLevel(p.level); setView('board') }} style={{ background:'#fff', border:`1px solid ${levelColor[p.level]}20`, borderLeft:`3px solid ${levelColor[p.level]}`, borderRadius:12, padding:'11px 14px', display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:8 }}>
-                  <Avatar initials={p.player_avatar} size={32} level={p.level} />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontWeight:700, fontSize:13, color:'#4a3030' }}>{p.player_name}</div>
-                    <div style={{ fontSize:11, color:'#555' }}>{p.slot}</div>
-                  </div>
-                  <div style={{ flexShrink:0, textAlign:'right' }}>
-                    <LevelBadge level={p.level} small />
-                    <div style={{ fontSize:10, color:'#4ade80', fontWeight:700, marginTop:3 }}>{Math.max(0, p.spots_needed - p.interested_ids.length)} spot{Math.max(0, p.spots_needed - p.interested_ids.length)!==1?'s':''} open</div>
-                  </div>
-                </div>
+            {/* Feature grid */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+              {[
+                { icon:'⊞', title:'Game Board',   sub:'Post & join open games',          action: () => setView('board') },
+                { icon:'⚔️', title:'The Arena',    sub:'Live ratings & leaderboard',      action: () => setView('arena') },
+                { icon:'🏆', title:'League',       sub:'Compete in club seasons',         action: () => router.push('/league') },
+                { icon:'📅', title:'My Schedule',  sub:'Your upcoming games',             action: () => { setView('profile'); setProfileTab('schedule') } },
+              ].map(({ icon, title, sub, action }) => (
+                <button key={title} onClick={action} style={{ ...card, textAlign:'left' as const, border:'none', cursor:'pointer', fontFamily:'inherit', padding:'14px 12px' }}>
+                  <div style={{ fontSize:22, marginBottom:7 }}>{icon}</div>
+                  <div style={{ fontSize:11, fontWeight:700, color:C.dark, marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:9, color:'rgba(1,74,9,0.45)', lineHeight:1.4 }}>{sub}</div>
+                </button>
               ))}
             </div>
+
+            {/* Open games */}
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={sec}>Open Games</div>
+              <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:C.mid, fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
+            </div>
+
+            {openPosts.length === 0 ? (
+              <div style={{ ...card2, textAlign:'center' as const, padding:'24px', color:'rgba(1,74,9,0.4)', fontSize:13 }}>
+                No open games right now — be the first to post!
+              </div>
+            ) : openPosts.slice(0, 2).map(p => {
+              const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
+              return (
+                <div key={p.id} onClick={() => setView('board')} style={{ ...card, display:'flex', alignItems:'center', gap:10, cursor:'pointer' }}>
+                  <Avatar initials={p.player_avatar} size={36} level={p.level} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontWeight:700, fontSize:13, color:C.dark }}>{p.player_name}</div>
+                    <div style={{ fontSize:11, color:'rgba(1,74,9,0.5)', marginTop:1 }}>{formatSlotDisplay(p.slot)}</div>
+                  </div>
+                  <div style={{ flexShrink:0, textAlign:'right' as const }}>
+                    <LevelBadge level={p.level} small />
+                    <div style={{ fontSize:10, color:C.win, fontWeight:700, marginTop:4 }}>{spotsLeft} spot{spotsLeft!==1?'s':''} open</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
 
         {/* ══ BOARD ══ */}
-        {view==='board' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-              <div>
-                <div style={{ fontSize:17, fontWeight:900, color:'#014a09' }}>Game Board</div>
-                <div style={{ fontSize:12, color:'#888', marginTop:2 }}>Players looking to fill their game</div>
-              </div>
-              {!showForm && (
+        {view === 'board' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <PageHeader title="Game Board" rating={liveRating} right={
+              !showForm ? (
                 <button onClick={() => {
-                  // Reset all form fields fresh each time
-                  setFDay(''); setFTime(''); setFDuration('')
-                  setFSpots(3); setFNote(''); setFInvited([])
-                  setFPlayerSearch(''); setShowPlayerSearch(false)
-                  setEditingPost(null)
-                  // Auto-select current level derived from live rating
-                  if (currentUser) {
-                    const currentLevel = liveRating ? ratingToLevel(liveRating).level : currentUser.level
-                    setFLevels([currentLevel])
-                  }
+                  setFDay(''); setFTime(''); setFDuration(''); setFSpots(3); setFNote(''); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false); setEditingPost(null)
+                  if (currentUser) setFLevels([liveRating ? ratingToLevel(liveRating).level : currentUser.level])
                   setShowForm(true)
-                }} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
-              )}
-            </div>
+                }} style={{ background:C.dark, border:'none', borderRadius:12, padding:'8px 14px', color:C.gold, fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>+ Post</button>
+              ) : undefined
+            } />
 
             {/* Post form */}
             {showForm && currentUser && (
-              <div style={{ background:'#fff', border:`1px solid ${levelColor[currentUser.level]}30`, borderRadius:18, padding:'18px 16px', display:'flex', flexDirection:'column', gap:14 }}>
-                <div style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
-                {/* Auto-update spots based on invited players: total 4 slots, minus organiser, minus invited */}
+              <div style={{ ...card, display:'flex', flexDirection:'column', gap:14 }}>
+                <div style={{ fontWeight:800, fontSize:14, color:C.dark }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
                 {(()=>{ const auto = Math.max(1, 3 - fInvited.length); if (fSpots !== auto && !editingPost) setTimeout(()=>setFSpots(auto),0); return null })()}
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>When?</div>
+                  <div style={{ fontSize:11, color:'#888', fontWeight:700, marginBottom:7, textTransform:'uppercase' as const, letterSpacing:0.5 }}>When?</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                    <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color: fDay ? '#014a09' : '#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                    <select value={fDay} onChange={e => setFDay(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:fDay?C.dark:'#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
                       <option value="" disabled>Day</option>
-                      {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
-                        <option key={d} value={d} style={{ background:'#1a1a1a', color:'#4a3030' }}>{d}</option>
-                      ))}
+                      {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
-                    <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color: fTime ? '#014a09' : '#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
+                    <select value={fTime} onChange={e => setFTime(e.target.value)} style={{ background:'#fff', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:fTime?C.dark:'#aaa', fontSize:13, fontFamily:'inherit', outline:'none', cursor:'pointer', width:'100%' }}>
                       <option value="" disabled>Time</option>
-                      {Array.from({ length: 31 }, (_, i) => {
-                        const totalMins = 7 * 60 + i * 30
-                        const h24 = Math.floor(totalMins / 60)
-                        const mins = totalMins % 60
-                        const h12 = h24 % 12 === 0 ? 12 : h24 % 12
-                        const ampm = h24 < 12 ? 'am' : 'pm'
-                        const label = `${h12}:${mins.toString().padStart(2,'0')} ${ampm}`
-                        return <option key={label} value={label} style={{ background:'#1a1a1a', color:'#4a3030' }}>{label}</option>
-                      })}
+                      {Array.from({ length:31 }, (_,i) => { const t=7*60+i*30,h24=Math.floor(t/60),m=t%60,h12=h24%12===0?12:h24%12,ap=h24<12?'am':'pm'; const l=`${h12}:${m.toString().padStart(2,'0')} ${ap}`; return <option key={l} value={l}>{l}</option> })}
                     </select>
                   </div>
-                  {fDay && fTime && (
-                    <div style={{ marginTop:7, fontSize:12, color:'#026b0d', fontWeight:600 }}>
-                      📅 {fDay} at {fTime}
-                    </div>
-                  )}
+                  {fDay && fTime && <div style={{ marginTop:7, fontSize:12, color:C.mid, fontWeight:600 }}>📅 {fDay} at {fTime}</div>}
                 </div>
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Duration</div>
+                  <div style={{ fontSize:11, color:'#888', fontWeight:700, marginBottom:7, textTransform:'uppercase' as const, letterSpacing:0.5 }}>Duration</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
                     {['60 min','90 min'].map(d => (
-                      <button key={d} onClick={() => setFDuration(d)} style={{
-                        border:`1px solid ${fDuration===d?'#026b0d':'#ddd'}`,
-                        background: fDuration===d?'#014a09':'rgba(0,0,0,0.02)',
-                        color: fDuration===d?'#ffcc66':'#888',
-                        borderRadius:10, padding:'11px 0', fontSize:13, fontWeight:700,
-                        cursor:'pointer', fontFamily:'inherit',
-                      }}>{d}</button>
+                      <button key={d} onClick={() => setFDuration(d)} style={{ border:`1px solid ${fDuration===d?C.mid:'#ddd'}`, background:fDuration===d?C.dark:'rgba(0,0,0,0.02)', color:fDuration===d?C.gold:'#888', borderRadius:10, padding:'11px 0', fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{d}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Open to levels (select all that apply)</div>
+                  <div style={{ fontSize:11, color:'#888', fontWeight:700, marginBottom:7, textTransform:'uppercase' as const, letterSpacing:0.5 }}>Open to levels</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {levels.map(l => (
-                      <button key={l} onClick={() => setFLevels(prev => prev.includes(l) ? prev.filter(x=>x!==l) : [...prev,l])} style={{
-                        border:`1px solid ${fLevels.includes(l)?levelColor[l]+'80':'rgba(1,74,9,0.15)'}`,
-                        background: fLevels.includes(l)?levelBg[l]:'rgba(0,0,0,0.02)',
-                        color: fLevels.includes(l)?levelColor[l]:'#888',
-                        borderRadius:10, padding:'10px 0', fontWeight:700, cursor:'pointer', fontFamily:'inherit',
-                        display:'flex', flexDirection:'column', alignItems:'center', gap:2,
-                      }}>
+                      <button key={l} onClick={() => setFLevels(prev => prev.includes(l) ? prev.filter(x=>x!==l) : [...prev,l])} style={{ border:`1px solid ${fLevels.includes(l)?levelColor[l]+'80':'rgba(1,74,9,0.15)'}`, background:fLevels.includes(l)?levelBg[l]:'rgba(0,0,0,0.02)', color:fLevels.includes(l)?levelColor[l]:'#888', borderRadius:10, padding:'10px 0', fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
                         <span style={{ fontSize:14, fontWeight:900 }}>L{l}</span>
                         <span style={{ fontSize:10, opacity:0.8 }}>{levelDesc[l]}</span>
                       </button>
@@ -734,141 +596,112 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Add players (optional)</div>
+                  <div style={{ fontSize:11, color:'#888', fontWeight:700, marginBottom:7, textTransform:'uppercase' as const, letterSpacing:0.5 }}>Add players (optional)</div>
                   {fInvited.length > 0 && (
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom:8 }}>
-                      {fInvited.map(pid => {
-                        const p = players.find((x:any) => x.id === pid)
-                        if (!p) return null
-                        return (
-                          <div key={pid} style={{ display:'flex', alignItems:'center', gap:5, background:levelBg[p.level], border:`1px solid ${levelColor[p.level]}40`, borderRadius:20, padding:'4px 10px 4px 6px' }}>
-                            <Avatar initials={p.avatar} size={20} level={p.level} />
-                            <span style={{ fontSize:12, fontWeight:700, color:levelColor[p.level] }}>{p.name}</span>
-                            <button onClick={() => setFInvited((prev:string[]) => prev.filter((x:string)=>x!==pid))} style={{ background:'none', border:'none', color:'#888', fontSize:13, cursor:'pointer', padding:'0 0 0 2px', lineHeight:1, fontFamily:'inherit' }}>✕</button>
-                          </div>
-                        )
-                      })}
+                    <div style={{ display:'flex', flexWrap:'wrap' as const, gap:6, marginBottom:8 }}>
+                      {fInvited.map(pid => { const p = players.find((x:any)=>x.id===pid); if (!p) return null; return (
+                        <div key={pid} style={{ display:'flex', alignItems:'center', gap:5, background:levelBg[p.level], border:`1px solid ${levelColor[p.level]}40`, borderRadius:20, padding:'4px 10px 4px 6px' }}>
+                          <Avatar initials={p.avatar} size={20} level={p.level} />
+                          <span style={{ fontSize:12, fontWeight:700, color:levelColor[p.level] }}>{p.name}</span>
+                          <button onClick={() => setFInvited(prev=>prev.filter(x=>x!==pid))} style={{ background:'none', border:'none', color:'#888', fontSize:13, cursor:'pointer', padding:'0 0 0 2px', lineHeight:1, fontFamily:'inherit' }}>✕</button>
+                        </div>
+                      )})}
                     </div>
                   )}
                   <div style={{ position:'relative' }}>
                     <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'#aaa', pointerEvents:'none' }}>🔍</span>
-                    <input
-                      type="text"
-                      placeholder="Search members…"
-                      value={fPlayerSearch}
-                      onChange={e => { setFPlayerSearch(e.target.value); setShowPlayerSearch(true) }}
-                      onFocus={() => setShowPlayerSearch(true)}
-                      style={{ width:'100%', background:'#fff', border:`1px solid ${showPlayerSearch?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'10px 14px 10px 36px', color:'#014a09', fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' as const }}
-                    />
+                    <input type="text" placeholder="Search members…" value={fPlayerSearch}
+                      onChange={e=>{setFPlayerSearch(e.target.value);setShowPlayerSearch(true)}}
+                      onFocus={()=>setShowPlayerSearch(true)}
+                      style={{ width:'100%', background:'#fff', border:`1px solid ${showPlayerSearch?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'10px 14px 10px 36px', color:C.dark, fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' as const }} />
                   </div>
                   {showPlayerSearch && (() => {
-                    const results = players.filter((p:any) => p.id !== currentUser.id && !fInvited.includes(p.id) && p.name.toLowerCase().includes(fPlayerSearch.toLowerCase()))
+                    const results = players.filter((p:any)=>p.id!==currentUser.id&&!fInvited.includes(p.id)&&p.name.toLowerCase().includes(fPlayerSearch.toLowerCase()))
                     return (
                       <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:10, marginTop:6, overflow:'hidden', maxHeight:200, overflowY:'auto' }}>
-                        {results.length === 0 ? (
-                          <div style={{ padding:'14px', fontSize:12, color:'#888', textAlign:'center' }}>No members found</div>
-                        ) : results.map((p:any, idx:number) => (
-                          <button key={p.id} onClick={() => { setFInvited((prev:string[]) => [...prev, p.id]); setFPlayerSearch(''); setShowPlayerSearch(false) }}
-                            style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'transparent', border:'none', borderBottom: idx < results.length-1 ? '1px solid rgba(1,74,9,0.07)' : 'none', cursor:'pointer', fontFamily:'inherit', textAlign:'left' as const }}>
-                            <Avatar initials={p.avatar} size={28} level={p.level} />
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{p.name}</div>
-                              <div style={{ fontSize:10, color:'#888' }}>L{p.level} · {levelDesc[p.level]}</div>
-                            </div>
-                            <span style={{ fontSize:11, fontWeight:700, color:'#026b0d' }}>+ Add</span>
-                          </button>
-                        ))}
+                        {results.length===0 ? <div style={{ padding:'14px', fontSize:12, color:'#888', textAlign:'center' as const }}>No members found</div>
+                          : results.map((p:any,idx:number)=>(
+                            <button key={p.id} onClick={()=>{setFInvited(prev=>[...prev,p.id]);setFPlayerSearch('');setShowPlayerSearch(false)}}
+                              style={{ width:'100%', display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'transparent', border:'none', borderBottom:idx<results.length-1?'1px solid rgba(1,74,9,0.07)':'none', cursor:'pointer', fontFamily:'inherit', textAlign:'left' as const }}>
+                              <Avatar initials={p.avatar} size={28} level={p.level} />
+                              <div style={{ flex:1 }}>
+                                <div style={{ fontSize:13, fontWeight:700, color:C.dark }}>{p.name}</div>
+                                <div style={{ fontSize:10, color:'#888' }}>L{p.level} · {levelDesc[p.level]}</div>
+                              </div>
+                              <span style={{ fontSize:11, fontWeight:700, color:C.mid }}>+ Add</span>
+                            </button>
+                          ))}
                       </div>
                     )
                   })()}
                 </div>
                 <div>
-                  <div style={{ fontSize:11, color:'#555', fontWeight:700, marginBottom:7, textTransform:'uppercase', letterSpacing:0.5 }}>Players needed</div>
-                  <div style={{ display:'flex', gap:8 }}>
-                    <div style={{ flex:1, border:'1px solid #026b0d', background:'#014a09', color:'#ffcc66', borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, textAlign:'center', fontFamily:'inherit' }}>{fSpots}</div>
-                  </div>
+                  <div style={{ fontSize:11, color:'#888', fontWeight:700, marginBottom:7, textTransform:'uppercase' as const, letterSpacing:0.5 }}>Players needed</div>
+                  <div style={{ flex:1, border:`1px solid ${C.mid}`, background:C.dark, color:C.gold, borderRadius:8, padding:'9px 0', fontSize:18, fontWeight:900, textAlign:'center' as const }}>{fSpots}</div>
                 </div>
-                <textarea value={fNote} onChange={e => setFNote(e.target.value)} placeholder="Optional message…" maxLength={120} style={{ width:'100%', boxSizing:'border-box', resize:'none', background:'rgba(1,74,9,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
+                <textarea value={fNote} onChange={e=>setFNote(e.target.value)} placeholder="Optional message…" maxLength={120}
+                  style={{ width:'100%', boxSizing:'border-box' as const, resize:'none' as const, background:'rgba(1,74,9,0.04)', border:'1px solid #ddd', borderRadius:10, padding:'10px 12px', color:'#888', fontSize:13, fontFamily:'inherit', outline:'none', height:60 }} />
                 <div style={{ display:'flex', gap:8 }}>
-                  <button onClick={() => { setShowForm(false); setEditingPost(null) }} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-                  <button onClick={handlePostSubmit} style={{ flex:2, background:'#014a09', border:'none', borderRadius:10, padding:'10px 0', color:'#ffcc66', fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{editingPost ? 'Save Changes →' : 'Post →'}</button>
+                  <button onClick={()=>{setShowForm(false);setEditingPost(null)}} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:10, padding:'10px 0', color:'#555', fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+                  <button onClick={handlePostSubmit} style={{ flex:2, background:C.dark, border:'none', borderRadius:10, padding:'10px 0', color:C.gold, fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{editingPost?'Save Changes →':'Post →'}</button>
                 </div>
               </div>
             )}
 
-            {/* Level tabs */}
+            {/* Level filter pills */}
             <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
-              <button onClick={() => setBoardLevel('All')} style={{ border:`1px solid ${boardLevel==='All'?'#026b0d':'#ddd'}`, background:boardLevel==='All'?'#014a09':'rgba(1,74,9,0.04)', color:boardLevel==='All'?'#ffcc66':'#888', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
-                All
-                <span style={{ background:boardLevel==='All'?'#ffcc66':'rgba(1,74,9,0.1)', color:boardLevel==='All'?'#014a09':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openPosts.length}</span>
+              <button onClick={()=>setBoardLevel('All')} style={pill(boardLevel==='All')}>
+                All {openPosts.length>0?`(${openPosts.length})`:''}
               </button>
               {levels.map(l => (
-                <button key={l} onClick={() => setBoardLevel(l)} style={{ border:`1px solid ${boardLevel===l?levelColor[l]+'60':'#ddd'}`, background:boardLevel===l?levelBg[l]:'rgba(1,74,9,0.03)', color:boardLevel===l?levelColor[l]:'#888', borderRadius:20, padding:'6px 14px', fontSize:12, fontWeight:800, cursor:'pointer', fontFamily:'inherit', flexShrink:0, display:'flex', alignItems:'center', gap:6 }}>
-                  L{l} · {levelDesc[l]}
-                  {openByLevel[l]>0 && <span style={{ background:boardLevel===l?levelColor[l]:'rgba(1,74,9,0.1)', color:boardLevel===l?'#fff':'#888', borderRadius:'50%', width:18, height:18, fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>{openByLevel[l]}</span>}
+                <button key={l} onClick={()=>setBoardLevel(l)} style={pill(boardLevel===l)}>
+                  L{l} · {levelDesc[l]}{openByLevel[l]>0?` (${openByLevel[l]})`:''}
                 </button>
               ))}
             </div>
 
             {/* Posts */}
-            {boardPosts.length===0 ? (
-              <div style={{ textAlign:'center', padding:'40px 0' }}>
+            {boardPosts.length === 0 ? (
+              <div style={{ textAlign:'center' as const, padding:'40px 0' }}>
                 <div style={{ fontSize:30 }}>📋</div>
-                <div style={{ color:'#014a09', fontWeight:700, marginTop:10 }}>{boardLevel==='All'?'No games posted yet':`No posts for L${boardLevel} yet`}</div>
+                <div style={{ color:C.dark, fontWeight:700, marginTop:10 }}>{boardLevel==='All'?'No games posted yet':`No posts for L${boardLevel} yet`}</div>
                 <div style={{ fontSize:12, color:'#888', marginTop:5 }}>Be the first to post a game!</div>
               </div>
             ) : boardPosts.map(post => {
-              const isOwner   = currentUser?.id === post.player_id
+              const isOwner  = currentUser?.id === post.player_id
               const alreadyIn = currentUser && post.interested_ids.includes(currentUser.id)
-              const spotsLeft = Math.max(0, post.spots_needed - post.interested_ids.length) // spots_needed max interested
+              const spotsLeft = Math.max(0, post.spots_needed - post.interested_ids.length)
               const full      = spotsLeft <= 0
               const c         = levelColor[post.level]
               return (
-                <div key={post.id} style={{ background:'#fff', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
-                  <div style={{ display:'flex', alignItems:'flex-start', gap:11 }}>
-                    <Avatar initials={post.player_avatar} size={38} level={post.level} />
+                <div key={post.id} style={{ ...card, borderLeft:`3px solid ${c}`, borderRadius:'0 16px 16px 0', paddingLeft:11, display:'flex', flexDirection:'column', gap:10 }}>
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                    <Avatar initials={post.player_avatar} size={36} level={post.level} />
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
-                        <span style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{post.player_name}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' as const }}>
+                        <span style={{ fontWeight:800, fontSize:14, color:C.dark }}>{post.player_name}</span>
                         <LevelBadge level={post.level} small />
                       </div>
-                      <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' }}>
-                        {(post.allowed_levels || [post.level]).map((l: string) => (
-                          <span key={l} style={{ background:levelBg[l], color:levelColor[l], border:`1px solid ${levelColor[l]}40`, borderRadius:6, padding:'1px 6px', fontSize:9, fontWeight:800 }}>L{l}</span>
+                      <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' as const }}>
+                        {(post.allowed_levels||[post.level]).map((l:string)=>(
+                          <span key={l} style={{ background:levelBg[l], color:levelColor[l], borderRadius:6, padding:'1px 6px', fontSize:9, fontWeight:800 }}>L{l}</span>
                         ))}
-                        <span style={{ fontSize:10, color:'#555' }}>{timeAgo(post.created_at)}</span>
+                        <span style={{ fontSize:10, color:'rgba(1,74,9,0.4)' }}>{timeAgo(post.created_at)}</span>
                       </div>
                     </div>
                     {isOwner && (
                       <div style={{ display:'flex', gap:5 }}>
-                        <button onClick={() => {
-                          const slot = post.slot
-                          const dotIdx = slot.indexOf(' · ')
-                          const timePart = dotIdx > -1 ? slot.slice(0, dotIdx) : slot
-                          const durPart = dotIdx > -1 ? slot.slice(dotIdx + 3) : ''
-                          const parts = timePart.split(' ')
-                          setFDay(parts[0] || '')
-                          setFTime(parts.slice(1).join(' ') || '')
-                          setFDuration(durPart || '')
-                          setFSpots(post.spots_needed)
-                          setFNote(post.note || '')
-                          setFLevels(post.allowed_levels || [post.level])
-                          setEditingPost(post.id)
-                          setShowForm(true)
-                        }} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
-                        <button onClick={() => handleDeletePost(post.id)} style={{ background:'rgba(2,107,13,0.08)', border:'1px solid rgba(2,107,13,0.2)', borderRadius:7, padding:'3px 8px', color:'#026b0d', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+                        <button onClick={()=>openEditPost(post)} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
+                        <button onClick={()=>handleDeletePost(post.id)} style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:7, padding:'3px 8px', color:'#990033', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
                       </div>
                     )}
                   </div>
-                  {/* Time display */}
-                  <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
-                    <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
+                  <div style={{ display:'flex', gap:7, flexWrap:'wrap' as const, alignItems:'center' }}>
+                    <span style={{ background:'rgba(1,74,9,0.07)', color:C.dark, borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
                       📅 {formatSlotDisplay(post.slot)}
                     </span>
                   </div>
-                  {post.note && <div style={{ fontSize:13, color:'#6b5050', lineHeight:1.5, fontStyle:'italic' }}>"{post.note}"</div>}
-
-                  {/* Player slots */}
+                  {post.note && <div style={{ fontSize:13, color:'rgba(1,74,9,0.55)', lineHeight:1.5, fontStyle:'italic' }}>"{post.note}"</div>}
                   {(()=>{
                     const totalSlots = post.spots_needed + 1
                     const interestedPlayers = players.filter(p => post.interested_ids.includes(p.id))
@@ -881,28 +714,23 @@ export default function HomePage() {
                     const levelAllowed = currentUser && allowedLevels.includes(myLevel!)
                     return (
                       <div>
-                        <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
+                        <div style={{ ...sec, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
                         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                          {filledSlots.map((p:any, i:number) => p && (
-                            <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[p.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
-                              <Avatar initials={p.avatar} size={24} level={p.level} />
+                          {filledSlots.map((p:any,i:number) => p && (
+                            <div key={p.id} style={{ background:i===0?`${levelColor[p.level]}12`:'rgba(0,102,51,0.06)', border:`1px solid ${i===0?levelColor[p.level]+'30':'rgba(0,102,51,0.15)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7 }}>
+                              <Avatar initials={p.avatar} size={22} level={p.level} />
                               <div style={{ minWidth:0 }}>
-                                <div style={{ fontSize:11, fontWeight:700, color:'#4a3030', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.name}</div>
-                                <div style={{ fontSize:9, color:i===0?levelColor[p.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
+                                <div style={{ fontSize:11, fontWeight:700, color:C.dark, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' as const }}>{p.name}</div>
+                                <div style={{ fontSize:9, color:i===0?levelColor[p.level]:C.win, fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
                               </div>
                             </div>
                           ))}
                           {Array.from({length:emptySlots}).map((_,i)=>(
-                            <button key={`empty-${i}`}
-                              disabled={!canJoin}
-                              onClick={() => {
-                                if (!currentUser) { showNotif('Please sign in to join'); return }
-                                if (!levelAllowed) { showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`); return }
-                                handleInterest(post.id)
-                              }}
-                              style={{ background:canJoin&&levelAllowed?'#fff':'rgba(0,0,0,0.02)', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44, opacity: canJoin&&levelAllowed ? 1 : 0.6 }}>
-                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?'#026b0d':'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
-                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?'#026b0d':'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
+                            <button key={`empty-${i}`} disabled={!canJoin}
+                              onClick={()=>{ if(!currentUser){showNotif('Please sign in');return} if(!levelAllowed){showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`);return} handleInterest(post.id) }}
+                              style={{ background:canJoin&&levelAllowed?'#fff':'rgba(0,0,0,0.02)', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44, opacity:canJoin&&levelAllowed?1:0.6 }}>
+                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?C.mid:'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
+                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?C.mid:'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
                             </button>
                           ))}
                         </div>
@@ -910,7 +738,7 @@ export default function HomePage() {
                     )
                   })()}
                   {alreadyIn && !isOwner && (
-                    <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(2,107,13,0.06)', border:'1px solid rgba(2,107,13,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#026b0d', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                    <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
                       Cancel my spot
                     </button>
                   )}
@@ -919,512 +747,233 @@ export default function HomePage() {
             })}
           </div>
         )}
+
         {/* ══ ARENA ══ */}
-        {view==='arena' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:16, paddingTop:8 }}>
-            <div style={{ textAlign:'center', paddingBottom:4 }}>
-              <div style={{ fontSize:32, marginBottom:10 }}>⚔️</div>
-              <div style={{ fontSize:20, fontWeight:900, color:'#014a09', marginBottom:6 }}>The Arena</div>
-              <div style={{ fontSize:12, color:'#026b0d', fontWeight:600 }}>Ratings · Leaderboard · Match Log</div>
+        {view === 'arena' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+            <PageHeader title="The Arena" rating={liveRating} />
+
+            {/* Pills */}
+            <div style={{ display:'flex', gap:6 }}>
+              <button style={pill(true)}>Leaderboard</button>
+              <button onClick={()=>{sessionStorage.setItem('arenaTab','log');router.push('/ratings')}} style={pill(false)}>Log Match</button>
+              <button onClick={()=>router.push('/league')} style={pill(false)}>League</button>
             </div>
-            <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px 16px' }}>
-              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8 }}>
-                Every match counts — <span style={{ color:'#4a3030', fontWeight:600 }}>yes, even that one you'd rather forget.</span>
-                {' '}The Arena is your club's live rating system. Log your results, track your rating on the <span style={{ color:'#026b0d', fontWeight:700 }}>1.0–7.0 scale</span>, and see exactly where you stand on the leaderboard.
+
+            {/* Intro */}
+            <div style={{ ...card, padding:'16px' }}>
+              <div style={{ fontSize:13, color:'rgba(1,74,9,0.7)', lineHeight:1.75 }}>
+                Every match counts — <span style={{ fontWeight:700, color:C.dark }}>yes, even that one you'd rather forget.</span>{' '}
+                The Arena is your club's live rating system. Log your results, track your rating on the <span style={{ fontWeight:700, color:C.mid }}>1.0–7.0 scale</span>, and see exactly where you stand on the leaderboard.
               </div>
-              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8, marginTop:12 }}>
-                The more you play, the sharper your rating gets — which means better matchups, more competitive games, and <span style={{ color:'#4a3030', fontWeight:600 }}>no more being destroyed by someone who "said they were a beginner".</span>
+              <div style={{ fontSize:13, color:'rgba(1,74,9,0.7)', lineHeight:1.75, marginTop:10 }}>
+                The more you play, the sharper your rating gets — which means better matchups, more competitive games, and <span style={{ fontWeight:700, color:C.dark }}>no more being destroyed by someone who "said they were a beginner".</span>
               </div>
-              <div style={{ fontSize:14, color:'#6b5050', lineHeight:1.8, marginTop:12 }}>
-                Fair matches. Happy players. <span style={{ color:'#026b0d', fontWeight:700 }}>Zero excuses.</span>
+              <div style={{ fontSize:13, color:'rgba(1,74,9,0.7)', lineHeight:1.75, marginTop:10 }}>
+                Fair matches. Happy players. <span style={{ fontWeight:700, color:C.mid }}>Zero excuses.</span>
               </div>
             </div>
-            {/* Understanding Your Rating accordion */}
-            <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:14, overflow:'hidden' }}>
-              <button onClick={() => setShowLevelGuide(v => !v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <span style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>Understanding Your Rating</span>
-                <span style={{ fontSize:11, color:'#888', transform: showLevelGuide ? 'rotate(180deg)' : 'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▼</span>
+
+            {/* Rating guide accordion */}
+            <div style={{ ...card, padding:0, overflow:'hidden' }}>
+              <button onClick={()=>setShowLevelGuide(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                <span style={{ fontSize:13, fontWeight:700, color:C.dark }}>Understanding Your Rating</span>
+                <span style={{ fontSize:11, color:'#888', transform:showLevelGuide?'rotate(180deg)':'rotate(0deg)', transition:'transform 0.2s', display:'inline-block' }}>▼</span>
               </button>
               {showLevelGuide && (
                 <div style={{ padding:'0 14px 16px', display:'flex', flexDirection:'column', gap:12 }}>
-                  <div style={{ fontSize:12, color:'#6b5050', lineHeight:1.6, paddingTop:2 }}>
+                  <div style={{ fontSize:12, color:'rgba(1,74,9,0.6)', lineHeight:1.6, paddingTop:2 }}>
                     Your rating moves up or down after every logged match based on the result and your opponents' strength. The more you play, the more accurate it becomes.
                   </div>
                   {[
-                    { level:'1', name:'Elite', range:'5.6 – 7.0', color:levelColor['1'], bg:levelBg['1'],
-                      desc:'Master of the game. You are consistently dominant, with exceptional technical execution and game intelligence. You play with precision, control, and confidence at the highest amateur level. Your wall play is automatic and your shot selection is deliberate.' },
-                    { level:'2', name:'Competitive', range:'4.1 – 5.5', color:levelColor['2'], bg:levelBg['2'],
-                      desc:'A solid club player with real technical ability. You are comfortable with the glass, can execute a bandeja and vibora under pressure, and you move well as a unit with your partner. You compete at a high level and understand how to construct a point. You have likely played in tournaments or at a club competitive level.' },
-                    { level:'3', name:'Casual', range:'2.6 – 4.0', color:levelColor['3'], bg:levelBg['3'],
-                      desc:'You have found your feet on the court and can hold a rally. Wall bounces do not panic you anymore and you are developing your shot repertoire. Games at this level are fun, social, and competitive without being intense. You are building consistency and starting to think tactically.' },
-                    { level:'4', name:'Beginner', range:'1.0 – 2.5', color:levelColor['4'], bg:levelBg['4'],
-                      desc:'New to padel or still finding your footing. You are learning the rules, getting comfortable with the walls, and figuring out court positioning. Every session teaches you something new. Everyone starts here. The only way is up.' },
+                    { level:'1', name:'Elite',       range:'5.6 – 7.0', desc:'Master of the game. Consistently dominant, exceptional technical execution and game intelligence. Wall play is automatic and shot selection is deliberate.' },
+                    { level:'2', name:'Competitive',  range:'4.1 – 5.5', desc:'A solid club player with real technical ability. Comfortable with the glass, can execute a bandeja and vibora under pressure, and moves well as a unit with a partner.' },
+                    { level:'3', name:'Casual',       range:'2.6 – 4.0', desc:'Found your feet on the court and can hold a rally. Wall bounces no longer cause panic and you are developing your shot repertoire. Building consistency and starting to think tactically.' },
+                    { level:'4', name:'Beginner',     range:'1.0 – 2.5', desc:'New to padel or still finding your footing. Learning the rules, getting comfortable with the walls, and figuring out court positioning. The only way is up.' },
                   ].map(l => (
-                    <div key={l.level} style={{ background:l.bg, border:`1px solid ${l.color}25`, borderLeft:`3px solid ${l.color}`, borderRadius:12, padding:'13px 14px' }}>
+                    <div key={l.level} style={{ background:levelBg[l.level], border:`1px solid ${levelColor[l.level]}25`, borderLeft:`3px solid ${levelColor[l.level]}`, borderRadius:12, padding:'13px 14px' }}>
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                          <span style={{ fontSize:13, fontWeight:900, color:l.color }}>L{l.level}</span>
-                          <span style={{ fontSize:13, fontWeight:700, color:l.color }}>{l.name}</span>
+                          <span style={{ fontSize:13, fontWeight:900, color:levelColor[l.level] }}>L{l.level}</span>
+                          <span style={{ fontSize:13, fontWeight:700, color:levelColor[l.level] }}>{l.name}</span>
                         </div>
-                        <span style={{ fontSize:11, color:l.color, fontWeight:700, background:`${l.color}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
+                        <span style={{ fontSize:11, color:levelColor[l.level], fontWeight:700, background:`${levelColor[l.level]}18`, borderRadius:8, padding:'2px 8px' }}>{l.range}</span>
                       </div>
-                      <div style={{ fontSize:12, color:'#6b5050', lineHeight:1.6 }}>{l.desc}</div>
+                      <div style={{ fontSize:12, color:'rgba(1,74,9,0.65)', lineHeight:1.6 }}>{l.desc}</div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
 
+            {/* Quick entry tiles */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-              {([['🏆','Leaderboard','See club rankings','leaderboard'],['🎾','Log Match','Record results','log'],['📈','My Results','Track your rating','my']] as const).map(([icon,title,desc,tab]) => (
-                <button key={title} onClick={() => { sessionStorage.setItem('arenaTab', tab); router.push('/ratings') }}
-                  style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'12px 10px', textAlign:'center', cursor:'pointer', fontFamily:'inherit' }}>
-                  <div style={{ fontSize:20, marginBottom:6 }}>{icon}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:'#014a09', marginBottom:3 }}>{title}</div>
-                  <div style={{ fontSize:10, color:'#888', lineHeight:1.4 }}>{desc}</div>
+              {([['🏆','Leaderboard','See club rankings','leaderboard'],['🎾','Log Match','Record results','log'],['📈','My Results','Track your rating','my']] as const).map(([icon,title,desc,tab])=>(
+                <button key={title} onClick={()=>{sessionStorage.setItem('arenaTab',tab);router.push('/ratings')}} style={{ ...card, textAlign:'center' as const, border:'none', cursor:'pointer', fontFamily:'inherit', padding:'12px 8px' }}>
+                  <div style={{ fontSize:20, marginBottom:5 }}>{icon}</div>
+                  <div style={{ fontSize:10, fontWeight:700, color:C.dark, marginBottom:2 }}>{title}</div>
+                  <div style={{ fontSize:9, color:'rgba(1,74,9,0.45)', lineHeight:1.4 }}>{desc}</div>
                 </button>
               ))}
             </div>
-            <button onClick={() => { sessionStorage.removeItem('arenaTab'); router.push('/ratings') }} style={{ width:'100%', background:'#014a09', border:'none', borderRadius:12, padding:'14px 0', color:'#ffcc66', fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
+
+            <button onClick={()=>{sessionStorage.removeItem('arenaTab');router.push('/ratings')}} style={{ width:'100%', background:C.dark, border:'none', borderRadius:14, padding:'14px', color:C.gold, fontWeight:800, fontSize:15, cursor:'pointer', fontFamily:'inherit' }}>
               Enter The Arena →
             </button>
           </div>
         )}
 
-        {/* ══ MY SCHEDULE ══ */}
-        {view==='matches' && (()=>{
-          if (!currentUser) return (
-            <div style={{ textAlign:'center', padding:'48px 20px' }}>
-              <div style={{ color:'#555', fontWeight:600, marginTop:10 }}>Log in to see your schedule</div>
-            </div>
-          )
-
-          const myPosts = posts.filter(p => p.player_id === currentUser.id)
-          // Check both currentUser.id (profile id) and any matching player_id
-          const joinedPosts = posts.filter(p =>
-            p.player_id !== currentUser.id &&
-            p.interested_ids.some((id: string) => id === currentUser.id)
-          )
-          const schedulePosts = [...myPosts, ...joinedPosts]
-
-          function ScheduleCard({ post: p, isOwner }: { post: any, isOwner: boolean }) {
-            const spotsLeft = Math.max(0, p.spots_needed - p.interested_ids.length)
-            const full = spotsLeft === 0
-            const c = levelColor[p.level]
-            const interestedPlayers = players.filter((pl:any) => p.interested_ids.includes(pl.id))
-            const organiser = players.find((pl:any) => pl.id === p.player_id)
-            const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
-            const emptySlots = Math.max(0, 4 - filledSlots.length)
-            return (
-              <div style={{ background:'#fff', border:`1px solid ${c}20`, borderLeft:`3px solid ${c}`, borderRadius:16, padding:'15px 16px', display:'flex', flexDirection:'column', gap:11 }}>
-                <div style={{ display:'flex', alignItems:'flex-start', gap:11 }}>
-                  <Avatar initials={p.player_avatar} size={38} level={p.level} />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, flexWrap:'wrap' }}>
-                      <span style={{ fontWeight:800, fontSize:14, color:'#014a09' }}>{p.player_name}</span>
-                      <LevelBadge level={p.level} small />
-                      {isOwner && <span style={{ fontSize:9, fontWeight:700, color:'#014a09', background:'rgba(1,74,9,0.1)', borderRadius:5, padding:'1px 5px' }}>YOUR GAME</span>}
-                    </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3, flexWrap:'wrap' }}>
-                      {(p.allowed_levels || [p.level]).map((l:string) => (
-                        <span key={l} style={{ background:levelBg[l], color:levelColor[l], border:`1px solid ${levelColor[l]}40`, borderRadius:6, padding:'1px 6px', fontSize:9, fontWeight:800 }}>L{l}</span>
-                      ))}
-                      <span style={{ fontSize:10, color:'#888' }}>{timeAgo(p.created_at)}</span>
-                    </div>
-                  </div>
-                  {isOwner && (
-                    <div style={{ display:'flex', gap:5 }}>
-                      <button onClick={() => {
-                        const slot = p.slot; const dotIdx = slot.indexOf(' · ')
-                        const timePart = dotIdx > -1 ? slot.slice(0, dotIdx) : slot
-                        const durPart = dotIdx > -1 ? slot.slice(dotIdx + 3) : ''
-                        const parts = timePart.split(' ')
-                        setFDay(parts[0]||''); setFTime(parts.slice(1).join(' ')||'')
-                        setFDuration(durPart||''); setFSpots(p.spots_needed)
-                        setFNote(p.note||''); setFLevels(p.allowed_levels||[p.level])
-                        setEditingPost(p.id); setShowForm(true); setView('board')
-                      }} style={{ background:'rgba(0,0,153,0.08)', border:'1px solid rgba(0,0,153,0.2)', borderRadius:7, padding:'3px 8px', color:'#000099', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Edit</button>
-                      <button onClick={() => handleDeletePost(p.id)} style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:7, padding:'3px 8px', color:'#990033', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
-                    </div>
-                  )}
-                </div>
-                <div style={{ display:'flex', gap:7, flexWrap:'wrap', alignItems:'center' }}>
-                  <span style={{ background:'rgba(0,0,153,0.07)', color:'#000099', border:'1px solid rgba(0,0,153,0.18)', borderRadius:8, padding:'3px 10px', fontSize:12, fontWeight:700 }}>
-                    📅 {formatSlotDisplay(p.slot)}
-                  </span>
-                </div>
-                {p.note && <div style={{ fontSize:13, color:'#888', lineHeight:1.5, fontStyle:'italic' }}>"{p.note}"</div>}
-                <div>
-                  <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Players ({filledSlots.length}/4)</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
-                    {filledSlots.map((pl:any, i:number) => pl && (
-                      <div key={pl.id} onClick={() => { sessionStorage.setItem('arenaTab','leaderboard'); sessionStorage.setItem('viewPlayer', pl.id); router.push('/ratings') }}
-                        style={{ background:i===0?`${levelColor[pl.level]}15`:'rgba(0,102,51,0.07)', border:`1px solid ${i===0?levelColor[pl.level]+'40':'rgba(0,102,51,0.22)'}`, borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', gap:7, cursor:'pointer' }}>
-                        <Avatar initials={pl.avatar} size={24} level={pl.level} />
-                        <div style={{ minWidth:0 }}>
-                          <div style={{ fontSize:11, fontWeight:700, color:'#014a09', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{pl.name}</div>
-                          <div style={{ fontSize:9, color:i===0?levelColor[pl.level]:'#006633', fontWeight:700 }}>{i===0?'Organiser':'Joined'}</div>
-                        </div>
-                      </div>
-                    ))}
-                    {Array.from({length:emptySlots}).map((_,i) => (
-                      <div key={`open-${i}`} style={{ background:'rgba(0,0,0,0.02)', border:'1px solid #ddd', borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44 }}>
-                        <span style={{ fontSize:11, color:'#bbb' }}>○ Open</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* Log score button — only show when game is full (4 players) */}
-                {filledSlots.length === 4 && (
-                  <button onClick={() => {
-                    // Pre-fill teams in Arena Log Match from this game's players
-                    const gamePlayers = filledSlots.map((pl:any) => pl.id)
-                    sessionStorage.setItem('arenaTab', 'log')
-                    sessionStorage.setItem('prefillGame', JSON.stringify({
-                      postId: p.id,
-                      playerIds: gamePlayers,
-                    }))
-                    router.push('/ratings')
-                  }} style={{ background:'#014a09', border:'none', borderRadius:10, padding:'10px 0', cursor:'pointer', color:'#ffcc66', fontWeight:800, fontSize:13, fontFamily:'inherit', width:'100%' }}>
-                    Log Match Score →
-                  </button>
-                )}
-                {!isOwner && (
-                  <button onClick={() => handleInterest(p.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
-                    Cancel my spot
-                  </button>
-                )}
-              </div>
-            )
-          }
-
-          return (
-            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-              <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-                <div>
-                  <div style={{ fontSize:17, fontWeight:900, color:'#014a09' }}>My Schedule</div>
-                  <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{schedulePosts.length} active game{schedulePosts.length!==1?'s':''}</div>
-                </div>
-                <button onClick={() => setView('board')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'9px 15px', color:'#ffcc66', fontWeight:800, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
-              </div>
-
-              {schedulePosts.length === 0 ? (
-                <div style={{ textAlign:'center', padding:'48px 20px' }}>
-                  <div style={{ fontSize:30, marginBottom:12 }}>📅</div>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#014a09', marginBottom:8 }}>No games yet</div>
-                  <div style={{ fontSize:13, color:'#888', marginBottom:16 }}>Post a game or join one from the board</div>
-                  <button onClick={() => setView('board')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'11px 24px', color:'#ffcc66', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
-                </div>
-              ) : schedulePosts.map(p => (
-                <ScheduleCard key={p.id} post={p} isOwner={p.player_id === currentUser.id} />
-              ))}
-            </div>
-          )
-        })()}
-
         {/* ══ PROFILE ══ */}
-        {view==='profile' && currentUser && (
-          <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <Avatar initials={currentUser.avatar} size={52} level={currentUser.level} />
-                <div>
-                  <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{currentUser.name}</div>
-                  <div style={{ fontSize:12, color:'#555', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+        {view === 'profile' && currentUser && (
+          <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+
+            {/* Profile header */}
+            <div style={{ padding:'22px 0 4px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+                <Avatar initials={currentUser.avatar} size={48} level={currentUser.level} />
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:18, fontWeight:800, color:C.dark, letterSpacing:-0.3 }}>{currentUser.name}</div>
+                  <div style={{ fontSize:11, color:'rgba(1,74,9,0.45)', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+                </div>
+                <div style={{ background:C.dark, color:C.gold, fontSize:15, fontWeight:800, padding:'6px 13px', borderRadius:14 }}>
+                  {liveRating?.toFixed(1) || '--'}
                 </div>
               </div>
-              {currentUser.is_admin && (
-                <button 
-                  onClick={() => router.push('/admin')} 
-                  style={{ 
-                    background: '#990033', 
-                    border: 'none', 
-                    borderRadius: 10, 
-                    padding: '10px 16px', 
-                    color: '#fff', 
-                    fontWeight: 700, 
-                    fontSize: 12, 
-                    cursor: 'pointer', 
-                    fontFamily: 'inherit',
-                    whiteSpace: 'nowrap'
-                  }}>
-                  ⚙️ Admin
-                </button>
-              )}
+
+              {/* Pill tabs */}
+              <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
+                {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
+                  <button key={key} onClick={()=>setProfileTab(key as any)} style={pill(profileTab===key)}>{label}</button>
+                ))}
+                {currentUser.is_admin && (
+                  <button onClick={()=>router.push('/admin')} style={{ ...pill(false), background:'rgba(153,0,51,0.1)', color:'#990033' }}>⚙️ Admin</button>
+                )}
+              </div>
             </div>
 
-            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              {['edit','results','buddies'].map(tab => (
-                <button key={tab} onClick={() => setProfileTab(tab as 'edit'|'results'|'buddies')} style={{
-                  flex:1, minWidth:120, background: profileTab===tab ? '#014a09' : '#fff',
-                  border: profileTab===tab ? '1px solid #014a09' : '1px solid #e0d8cc',
-                  color: profileTab===tab ? '#ffcc66' : '#555', borderRadius:12,
-                  padding:'12px 14px', fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit'
-                }}>
-                  {tab === 'edit' ? 'Edit Profile' : tab === 'results' ? 'My Results' : '👥 Buddies'}
-                </button>
-              ))}
-            </div>
-
-            {profileTab === 'edit' ? (
-              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
-                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Edit Profile</div>
-
+            {/* ─ Edit Profile ─ */}
+            {profileTab === 'edit' && (
+              <div style={card}>
+                <div style={{ ...sec, marginBottom:16 }}>Edit Profile</div>
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Name</div>
-                  <input
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    style={{ width:'100%', boxSizing:'border-box', background:'rgba(255,255,255,0.05)', border:'1px solid #ddd', borderRadius:10, padding:'11px 13px', color:'#4a3030', fontSize:14, fontFamily:'inherit', outline:'none' }}
-                  />
+                  <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.5)', textTransform:'uppercase' as const, letterSpacing:0.5, marginBottom:7 }}>Name</div>
+                  <input value={editName} onChange={e=>setEditName(e.target.value)}
+                    style={{ width:'100%', boxSizing:'border-box' as const, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:10, padding:'11px 13px', color:C.dark, fontSize:14, fontFamily:'inherit', outline:'none' }} />
                 </div>
-
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
-                  <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <span style={{ fontSize:13, color:'#6b5050' }}>Assigned by assessment</span>
-                    <span style={{ background:levelBg[currentUser.level], color:levelColor[currentUser.level], border:`1px solid ${levelColor[currentUser.level]}40`, borderRadius:20, padding:'3px 12px', fontSize:12, fontWeight:800 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</span>
+                  <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.5)', textTransform:'uppercase' as const, letterSpacing:0.5, marginBottom:7 }}>Skill Level</div>
+                  <div style={{ background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:10, padding:'11px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:13, color:'rgba(1,74,9,0.5)' }}>Assigned by assessment</span>
+                    <LevelBadge level={currentUser.level} />
                   </div>
-                  <div style={{ fontSize:11, color:'#888', marginTop:6 }}>To change your level, contact your club admin.</div>
+                  <div style={{ fontSize:11, color:'rgba(1,74,9,0.4)', marginTop:6 }}>To change your level, contact your club admin.</div>
                 </div>
-
                 <div style={{ marginBottom:18 }}>
-                  <div style={{ fontSize:11, fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
-                    Availability
-                  </div>
+                  <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.5)', textTransform:'uppercase' as const, letterSpacing:0.5, marginBottom:10 }}>Availability</div>
                   <AvailabilityPicker value={editSlots} onChange={setEditSlots} />
                 </div>
-
-                <button
-                  disabled={editLoading || !editName.trim() || editSlots.length === 0}
-                  onClick={async () => {
-                    if (!editName.trim() || editSlots.length === 0) return
-                    setEditLoading(true)
-                    const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
-                    const newName = editName.trim()
-                    const [profileRes] = await Promise.all([
-                      supabase.from('profiles').update({ name: newName, avatar: initials, availability: editSlots }).eq('id', currentUser.id),
-                      supabase.from('ratings').update({ player_name: newName, avatar: initials }).eq('player_id', currentUser.id),
-                      supabase.from('posts').update({ player_name: newName, player_avatar: initials }).eq('player_id', currentUser.id),
-                    ])
-                    setEditLoading(false)
-                    if (!profileRes.error) {
-                      showNotif('Profile updated!')
-                      supabase.auth.getSession().then(({ data: { session } }) => {
-                        if (session?.user) loadData(session.user.id)
-                      })
-                      setView('home')
-                    } else {
-                      showNotif('Error saving — try again')
-                    }
-                  }}
-                  style={{
-                    width:'100%',
-                    background: editLoading ? 'rgba(1,74,9,0.1)' : '#014a09',
-                    border:'none', borderRadius:12, padding:'13px 0', color:'#ffcc66',
-                    fontWeight:800, fontSize:14, cursor: editLoading ? 'default' : 'pointer', fontFamily:'inherit',
-                    opacity: editLoading ? 0.6 : 1
-                  }}
-                >
-                  {editLoading ? 'Saving…' : 'Save Changes'}
+                <button disabled={editLoading||!editName.trim()||editSlots.length===0} onClick={async()=>{
+                  if(!editName.trim()||editSlots.length===0) return
+                  setEditLoading(true)
+                  const initials = editName.trim().split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
+                  const newName = editName.trim()
+                  const [profileRes] = await Promise.all([
+                    supabase.from('profiles').update({ name:newName, avatar:initials, availability:editSlots }).eq('id',currentUser.id),
+                    supabase.from('ratings').update({ player_name:newName, avatar:initials }).eq('player_id',currentUser.id),
+                    supabase.from('posts').update({ player_name:newName, player_avatar:initials }).eq('player_id',currentUser.id),
+                  ])
+                  setEditLoading(false)
+                  if(!profileRes.error) {
+                    showNotif('Profile updated!')
+                    supabase.auth.getSession().then(({data:{session}})=>{ if(session?.user) loadData(session.user.id) })
+                    setView('home')
+                  } else showNotif('Error saving — try again')
+                }} style={{ width:'100%', background:editLoading?'rgba(1,74,9,0.1)':C.dark, border:'none', borderRadius:12, padding:'13px', color:C.gold, fontWeight:800, fontSize:14, cursor:editLoading?'default':'pointer', fontFamily:'inherit', opacity:editLoading?0.6:1 }}>
+                  {editLoading?'Saving…':'Save Changes'}
                 </button>
-
-                <button
-                  onClick={handleSignOut}
-                  style={{
-                    width:'100%', background:'transparent',
-                    border:'1px solid rgba(2,107,13,0.3)', borderRadius:12, padding:'13px 0',
-                    color:'#026b0d', fontWeight:700, fontSize:14,
-                    cursor:'pointer', fontFamily:'inherit', marginTop:8
-                  }}
-                >
+                <button onClick={()=>supabase.auth.signOut().then(()=>router.push('/login'))} style={{ width:'100%', background:'transparent', border:'none', padding:'12px', color:'rgba(153,0,51,0.7)', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit', marginTop:4, textAlign:'center' as const }}>
                   Sign Out
                 </button>
               </div>
-            ) : profileTab === 'results' ? (
-              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
-                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>Rating Fluctuations</div>
+            )}
+
+            {/* ─ My Schedule ─ */}
+            {profileTab === 'schedule' && (()=>{
+              const myPosts = posts.filter(p => p.player_id === currentUser.id)
+              const joinedPosts = posts.filter(p => p.player_id !== currentUser.id && p.interested_ids.some((id:string)=>id===currentUser.id))
+              const schedulePosts = [...myPosts, ...joinedPosts]
+              return (
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div style={sec}>{schedulePosts.length} active game{schedulePosts.length!==1?'s':''}</div>
+                    <button onClick={()=>setView('board')} style={{ background:C.dark, border:'none', borderRadius:12, padding:'7px 14px', color:C.gold, fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>+ Post Game</button>
+                  </div>
+                  {schedulePosts.length === 0 ? (
+                    <div style={{ ...card2, textAlign:'center' as const, padding:'32px 16px' }}>
+                      <div style={{ fontSize:28, marginBottom:10 }}>📅</div>
+                      <div style={{ fontSize:14, fontWeight:700, color:C.dark, marginBottom:6 }}>No games yet</div>
+                      <div style={{ fontSize:12, color:'rgba(1,74,9,0.5)', marginBottom:14 }}>Post a game or join one from the board</div>
+                      <button onClick={()=>setView('board')} style={{ background:C.dark, border:'none', borderRadius:12, padding:'10px 22px', color:C.gold, fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Browse the board →</button>
+                    </div>
+                  ) : schedulePosts.map(p => (
+                    <ScheduleCard key={p.id} p={p} isOwner={p.player_id===currentUser.id} players={players} currentUser={currentUser} liveRating={liveRating}
+                      onEdit={openEditPost} onDelete={handleDeletePost}
+                      onCancelSpot={handleInterest} onLogScore={handleLogScore} router={router} />
+                  ))}
+                </div>
+              )
+            })()}
+
+            {/* ─ My Results ─ */}
+            {profileTab === 'results' && (
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 {ratingTimeline.length === 0 ? (
-                  <div style={{ textAlign:'center', color:'#888', fontSize:13, padding:'30px 0' }}>
-                    No logged matches yet. Play a game and your rating will show up here.
+                  <div style={{ ...card2, textAlign:'center' as const, padding:'32px 16px' }}>
+                    <div style={{ fontSize:28, marginBottom:10 }}>📈</div>
+                    <div style={{ fontSize:14, fontWeight:700, color:C.dark, marginBottom:6 }}>No matches yet</div>
+                    <div style={{ fontSize:12, color:'rgba(1,74,9,0.5)', marginBottom:14 }}>Log a match to start tracking your rating</div>
+                    <button onClick={()=>{sessionStorage.setItem('arenaTab','log');router.push('/ratings')}} style={{ background:C.dark, border:'none', borderRadius:12, padding:'10px 22px', color:C.gold, fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>Log a match →</button>
                   </div>
                 ) : (
                   <>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:16 }}>
-                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Matches</div>
-                        <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{ratingTimeline.length}</div>
-                      </div>
-                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Current</div>
-                        <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{ratingTimeline[ratingTimeline.length-1].rating.toFixed(1)}</div>
-                      </div>
-                      <div style={{ background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                        <div style={{ fontSize:11, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Trend</div>
-                        <div style={{ fontSize:22, fontWeight:900, color: ratingTrend >= 0 ? '#006633' : '#990033' }}>
-                          {ratingTrend >= 0 ? '+' : ''}{ratingTrend.toFixed(1)}
+                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+                      {[['Matches',ratingTimeline.length],['Current',ratingTimeline[ratingTimeline.length-1].rating.toFixed(1)],['Trend',(ratingTrend>=0?'+':'')+ratingTrend.toFixed(1)]].map(([l,v],i)=>(
+                        <div key={l} style={{ ...card, textAlign:'center' as const }}>
+                          <div style={{ fontSize:10, color:'rgba(1,74,9,0.4)', textTransform:'uppercase' as const, marginBottom:5 }}>{l}</div>
+                          <div style={{ fontSize:20, fontWeight:800, color:i===2?(ratingTrend>=0?C.win:C.loss):C.dark }}>{v}</div>
                         </div>
-                      </div>
+                      ))}
                     </div>
-
-                    <div style={{ background:'#f7f2e8', borderRadius:16, padding:'14px 12px', overflowX:'auto' }}>
-                      <div style={{ display:'flex', alignItems:'flex-end', gap:10, minWidth: ratingTimeline.length * 64 }}>
+                    <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:16, padding:'14px', overflowX:'auto' }}>
+                      <div style={{ display:'flex', alignItems:'flex-end', gap:10, minWidth:ratingTimeline.length*56 }}>
                         {ratingTimeline.map(point => {
-                          const height = Math.max(22, ((point.rating - ratingMin) / Math.max(ratingMax - ratingMin, 1)) * 100)
+                          const h = Math.max(22, ((point.rating-ratingMin)/Math.max(ratingMax-ratingMin,1))*100)
                           return (
-                            <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, minWidth:44 }}>
-                              <div style={{ width:12, height, borderRadius:999, background: point.won ? '#006633' : '#990033' }} />
+                            <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, minWidth:44 }}>
+                              <div style={{ width:12, height:h, borderRadius:999, background:point.won?C.win:C.loss }} />
                               <div style={{ fontSize:10, color:'#555' }}>{point.rating.toFixed(1)}</div>
-                              <div style={{ fontSize:9, color:'#888', lineHeight:1.3, textAlign:'center' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                              <div style={{ fontSize:9, color:'rgba(1,74,9,0.4)', textAlign:'center' as const }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
                             </div>
                           )
                         })}
                       </div>
                     </div>
-
-                    <div style={{ marginTop:18, display:'grid', gap:10 }}>
-                      {ratingTimeline.slice(-3).reverse().map(point => (
-                        <div key={`recent-${point.id}`} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff', border:'1px solid #e0d8cc', borderRadius:12, padding:'10px 12px' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {ratingTimeline.slice(-5).reverse().map(point => (
+                        <div key={`r-${point.id}`} style={{ ...card, borderLeft:`3px solid ${point.won?C.win:C.loss}`, borderRadius:'0 16px 16px 0', paddingLeft:11, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                           <div>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                            <div style={{ fontSize:11, color:'#888' }}>{point.won ? 'Win' : 'Loss'} · {point.before.toFixed(1)} → {point.rating.toFixed(1)}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:C.dark }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            <div style={{ fontSize:11, color:'rgba(1,74,9,0.5)' }}>{point.won?'Win':'Loss'} · {point.before.toFixed(1)} → {point.rating.toFixed(1)}</div>
                           </div>
-                          <div style={{ fontSize:12, fontWeight:800, color: point.won ? '#006633' : '#990033' }}>{point.won ? '+' : ''}{(point.rating - point.before).toFixed(1)}</div>
+                          <div style={{ fontSize:13, fontWeight:800, color:point.won?C.win:C.loss }}>{point.won?'+':''}{(point.rating-point.before).toFixed(1)}</div>
                         </div>
                       ))}
                     </div>
                   </>
                 )}
               </div>
-            ) : (
-              <div style={{ background:'#fff', border:'1px solid #e0d8cc', borderRadius:16, padding:'18px' }}>
-                <div style={{ fontSize:13, fontWeight:800, color:'#026b0d', marginBottom:16, textTransform:'uppercase', letterSpacing:0.5 }}>My Buddies ({buddies.length})</div>
-
-                {/* Filters */}
-                {buddies.length > 0 && (
-                  <div style={{ marginBottom:24, display:'flex', gap:16, flexWrap:'wrap' }}>
-                    <select
-                      value={buddyFilterLevel}
-                      onChange={(e) => setBuddyFilterLevel(e.target.value)}
-                      style={{ padding:'8px 12px', borderRadius:6, border:'1px solid #014a0922', fontSize:13, fontFamily:'inherit' }}
-                    >
-                      <option value="">All Levels</option>
-                      <option value="1">L1 · Elite</option>
-                      <option value="2">L2 · Competitive</option>
-                      <option value="3">L3 · Casual</option>
-                      <option value="4">L4 · Beginner</option>
-                    </select>
-                    <select
-                      value={buddyFilterAvailability}
-                      onChange={(e) => setBuddyFilterAvailability(e.target.value)}
-                      style={{ padding:'8px 12px', borderRadius:6, border:'1px solid #014a0922', fontSize:13, fontFamily:'inherit' }}
-                    >
-                      <option value="">All Times</option>
-                      <option value="Mon Morning">Monday Morning</option>
-                      <option value="Mon Afternoon">Monday Afternoon</option>
-                      <option value="Mon Evening">Monday Evening</option>
-                      <option value="Tue Morning">Tuesday Morning</option>
-                      <option value="Tue Afternoon">Tuesday Afternoon</option>
-                      <option value="Tue Evening">Tuesday Evening</option>
-                      <option value="Wed Morning">Wednesday Morning</option>
-                      <option value="Wed Afternoon">Wednesday Afternoon</option>
-                      <option value="Wed Evening">Wednesday Evening</option>
-                      <option value="Thu Morning">Thursday Morning</option>
-                      <option value="Thu Afternoon">Thursday Afternoon</option>
-                      <option value="Thu Evening">Thursday Evening</option>
-                      <option value="Fri Morning">Friday Morning</option>
-                      <option value="Fri Afternoon">Friday Afternoon</option>
-                      <option value="Fri Evening">Friday Evening</option>
-                      <option value="Sat Morning">Saturday Morning</option>
-                      <option value="Sat Afternoon">Saturday Afternoon</option>
-                      <option value="Sat Evening">Saturday Evening</option>
-                      <option value="Sun Morning">Sunday Morning</option>
-                      <option value="Sun Afternoon">Sunday Afternoon</option>
-                      <option value="Sun Evening">Sunday Evening</option>
-                    </select>
-                  </div>
-                )}
-
-                {/* Buddies Grid */}
-                {getFilteredBuddies().length > 0 ? (
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16, marginBottom:40 }}>
-                    {getFilteredBuddies().map(buddy => (
-                      <div key={buddy.id} style={{ padding:16, background:'#fff', borderRadius:12, border:'1px solid #014a0911', display:'flex', flexDirection:'column', gap:12 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                          <Avatar initials={buddy.avatar} size={48} level={buddy.level} />
-                          <div style={{ flex:1 }}>
-                            <div style={{ fontSize:14, fontWeight:700 }}>{buddy.name}</div>
-                            <LevelBadge level={buddy.level} />
-                          </div>
-                        </div>
-                        <div style={{ fontSize:12, color:'#666', lineHeight:1.5 }}>
-                          {buddy.availability.length > 0 ? buddy.availability.join(', ') : 'No availability'}
-                        </div>
-                        <button
-                          onClick={() => removeBuddy(buddy.id)}
-                          style={{
-                            padding:'8px 12px',
-                            background:'#f5f0e8',
-                            border:'1px solid #990033',
-                            borderRadius:6,
-                            color:'#990033',
-                            fontSize:12,
-                            fontWeight:600,
-                            cursor:'pointer',
-                            fontFamily:'inherit',
-                          }}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ padding:32, background:'#fff', borderRadius:12, border:'1px solid #014a0911', textAlign:'center', color:'#666', marginBottom:40 }}>
-                    {buddies.length === 0 ? "You don't have any buddies yet. Add some below!" : 'No buddies match your filters.'}
-                  </div>
-                )}
-
-                {/* Add Buddies Section */}
-                {getAvailableToAdd().length > 0 && (
-                  <div>
-                    <h3 style={{ fontSize:16, fontWeight:900, marginBottom:16 }}>Add Buddies</h3>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
-                      {getAvailableToAdd().map(profile => (
-                        <div key={profile.id} style={{ padding:16, background:'#fff', borderRadius:12, border:'1px solid #014a0911', display:'flex', flexDirection:'column', gap:12 }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                            <Avatar initials={profile.avatar} size={48} level={profile.level} />
-                            <div style={{ flex:1 }}>
-                              <div style={{ fontSize:14, fontWeight:700 }}>{profile.name}</div>
-                              <LevelBadge level={profile.level} />
-                            </div>
-                          </div>
-                          <div style={{ fontSize:12, color:'#666', lineHeight:1.5 }}>
-                            {profile.availability.length > 0 ? profile.availability.join(', ') : 'No availability'}
-                          </div>
-                          <button
-                            onClick={() => addBuddy(profile.id)}
-                            style={{
-                              padding:'8px 12px',
-                              background:'#014a09',
-                              border:'none',
-                              borderRadius:6,
-                              color:'#f5f0e8',
-                              fontSize:12,
-                              fontWeight:600,
-                              cursor:'pointer',
-                              fontFamily:'inherit',
-                            }}
-                          >
-                            Add Buddy
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
             )}
+
           </div>
         )}
 
@@ -1433,12 +982,12 @@ export default function HomePage() {
       {/* Delete confirmation modal */}
       {deleteConfirm && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
-          <div style={{ background:'#f5f0e8', borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ fontSize:17, fontWeight:800, color:'#014a09' }}>Delete this game?</div>
-            <div style={{ fontSize:13, color:'#888', lineHeight:1.5 }}>This will remove the post and all interested players will be notified it is no longer available.</div>
+          <div style={{ background:C.bg, borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ fontSize:17, fontWeight:800, color:C.dark }}>Delete this game?</div>
+            <div style={{ fontSize:13, color:'rgba(1,74,9,0.6)', lineHeight:1.5 }}>This will remove the post and all interested players will lose their spot.</div>
             <div style={{ display:'flex', gap:10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:12, padding:'12px 0', color:'#666', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
-              <button onClick={() => confirmDeletePost(deleteConfirm)} style={{ flex:1, background:'#026b0d', border:'none', borderRadius:12, padding:'12px 0', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+              <button onClick={()=>setDeleteConfirm(null)} style={{ flex:1, background:'transparent', border:'1px solid #ddd', borderRadius:12, padding:'12px', color:'#666', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+              <button onClick={()=>confirmDeletePost(deleteConfirm)} style={{ flex:1, background:C.dark, border:'none', borderRadius:12, padding:'12px', color:C.gold, fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
             </div>
           </div>
         </div>
@@ -1447,57 +996,46 @@ export default function HomePage() {
       {/* Add member modal */}
       {addingMember && currentUser && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
-          <div style={{ background:'#f5f0e8', borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:14 }}>
+          <div style={{ background:C.bg, borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:14 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ fontSize:17, fontWeight:800, color:'#014a09' }}>Add a member</div>
-              <button onClick={() => setAddingMember(null)} style={{ background:'none', border:'none', color:'#888', fontSize:18, cursor:'pointer' }}>✕</button>
+              <div style={{ fontSize:17, fontWeight:800, color:C.dark }}>Add a member</div>
+              <button onClick={()=>setAddingMember(null)} style={{ background:'none', border:'none', color:'#888', fontSize:18, cursor:'pointer' }}>✕</button>
             </div>
-            <div style={{ fontSize:12, color:'#888' }}>Select a player to add to this game</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8, maxHeight:300, overflowY:'auto' }}>
-              {players
-                .filter(p => p.id !== currentUser.id && !posts.find(post => post.id === addingMember)?.interested_ids.includes(p.id))
-                .map(p => (
-                  <button key={p.id} onClick={() => handleAddMember(addingMember, p.id)}
-                    style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, cursor:'pointer', fontFamily:'inherit', textAlign:'left' }}>
-                    <Avatar initials={p.avatar} size={34} level={p.level} />
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{p.name}</div>
-                      <div style={{ fontSize:11, color:'#888', marginTop:1 }}>L{p.level} · {levelDesc[p.level]}</div>
-                    </div>
-                    <span style={{ fontSize:12, color:'#000099', fontWeight:700 }}>+ Add</span>
-                  </button>
-                ))
-              }
+              {players.filter(p=>p.id!==currentUser.id&&!posts.find(post=>post.id===addingMember)?.interested_ids.includes(p.id)).map(p=>(
+                <button key={p.id} onClick={()=>handleAddMember(addingMember, p.id)} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, cursor:'pointer', fontFamily:'inherit', textAlign:'left' as const }}>
+                  <Avatar initials={p.avatar} size={34} level={p.level} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:C.dark }}>{p.name}</div>
+                    <div style={{ fontSize:11, color:'rgba(1,74,9,0.5)', marginTop:1 }}>L{p.level} · {levelDesc[p.level]}</div>
+                  </div>
+                  <span style={{ fontSize:12, color:'#000099', fontWeight:700 }}>+ Add</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
       )}
 
       {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#fff', borderTop:'1px solid rgba(1,74,9,0.12)', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
-            { v:'home',    label:'Home',     path:null,      icon:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' },
-            { v:'board',   label:'Board',    path:null,      icon:'board' },
-            { v:'league',  label:'League',   path:'/league', icon:'league' },
-            { v:'arena',   label:'Arena',    path:'/ratings',icon:'arena' },
-            { v:'matches', label:'Schedule', path:null, icon:'sched' },
-          ] as const).map(({ v, label, path, icon }) => {
+            { v:'home',    label:'Home',    icon:<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
+            { v:'board',   label:'Board',   icon:<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
+            { v:'arena',   label:'Arena',   icon:<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
+            { v:'profile', label:'Profile', icon:<><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
+          ] as const).map(({ v, label, icon }) => {
             const active = view === v
             return (
-              <button key={v}
-                onClick={() => path ? router.push(path) : setView(v as any)}
-                style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', position:'relative' }}>
-                <svg width="18" height="18" fill="none" stroke={active ? '#014a09' : '#aaa'} strokeWidth="1.8" viewBox="0 0 24 24">
-                  {icon==='board'   && <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></>}
-                  {icon==='league'  && <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>}
-                  {icon==='arena'   && <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>}
-                  {icon==='sched'   && <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>}
-                  {icon==='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' && <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>}
-                </svg>
+              <button key={v} onClick={() => {
+                if (v === 'profile' && currentUser) { setEditName(currentUser.name); setEditLevel(currentUser.level); setEditSlots(currentUser.availability) }
+                setView(v as any)
+              }} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color:active?'#ffcc66':'rgba(255,204,102,0.4)', fontWeight:active?700:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', position:'relative' }}>
+                <svg width="18" height="18" fill="none" stroke={active?'#ffcc66':'rgba(255,204,102,0.4)'} strokeWidth="1.8" viewBox="0 0 24 24">{icon}</svg>
                 {label}
                 {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
-                {v==='board' && openPosts.length > 0 && (
+                {v==='board' && openPosts.length>0 && (
                   <span style={{ position:'absolute', top:0, right:'18%', background:'#ffcc66', color:'#014a09', borderRadius:'50%', width:15, height:15, fontSize:9, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     {openPosts.length}
                   </span>
@@ -1510,4 +1048,3 @@ export default function HomePage() {
     </div>
   )
 }
-
