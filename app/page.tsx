@@ -874,7 +874,7 @@ export default function HomePage() {
 
                   {/* Player slots */}
                   {(()=>{
-                    const totalSlots = 4
+                    const totalSlots = post.spots_needed + 1
                     const interestedPlayers = players.filter(p => post.interested_ids.includes(p.id))
                     const organiser = players.find(p => p.id === post.player_id)
                     const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
