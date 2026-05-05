@@ -991,23 +991,23 @@ export default function RatingsPage() {
       })()}
 
       {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#fff', borderTop:'1px solid rgba(1,74,9,0.12)', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
-          {[
-            { label:'Home',     path:'/',        icon:<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
-            { label:'Board',    path:'/',    icon:<><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></> },
-            { label:'League',   path:'/league',  icon:<><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></> },
-            { label:'Arena',    path:'/ratings', icon:<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/> },
-            { label:'Schedule', path:'/',  icon:<><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></> },
-          ].map(({ label, path, icon }) => {
-            const active = path === '/ratings'
+          {([
+            { label:'Home',    active:false, action:() => router.push('/') },
+            { label:'Board',   active:false, action:() => { sessionStorage.setItem('mainView','board'); router.push('/') } },
+            { label:'Arena',   active:true,  action:() => {} },
+            { label:'Profile', active:false, action:() => router.push('/') },
+          ] as const).map(({ label, active, action }) => {
+            const icons: Record<string, React.ReactNode> = {
+              Home:    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>,
+              Board:   <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"></path></>,
+              Arena:   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>,
+              Profile: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></>,
+            }
             return (
-              <button key={label} onClick={() => {
-                if (label==='Board') { sessionStorage.setItem('mainView','board'); router.push('/') }
-                else if (label==='Schedule') { sessionStorage.setItem('mainView','matches'); router.push('/') }
-                else router.push(path)
-              }} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <svg width="18" height="18" fill="none" stroke={active ? '#014a09' : '#aaa'} strokeWidth="1.8" viewBox="0 0 24 24">{icon}</svg>
+              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color:active?'#ffcc66':'rgba(255,204,102,0.4)', fontWeight:active?700:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                <svg width="18" height="18" fill="none" stroke={active?'#ffcc66':'rgba(255,204,102,0.4)'} strokeWidth="1.8" viewBox="0 0 24 24">{icons[label]}</svg>
                 {label}
                 {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
               </button>

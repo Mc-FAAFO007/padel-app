@@ -547,7 +547,7 @@ export default function HomePage() {
         {/* ══ BOARD ══ */}
         {view === 'board' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <PageHeader title="Game Board" rating={liveRating} right={
+            <PageHeader title="Game Board" right={
               !showForm ? (
                 <button onClick={() => {
                   setFDay(''); setFTime(''); setFDuration(''); setFSpots(3); setFNote(''); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false); setEditingPost(null)
@@ -751,7 +751,7 @@ export default function HomePage() {
         {/* ══ ARENA ══ */}
         {view === 'arena' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <PageHeader title="The Arena" rating={liveRating} />
+            <PageHeader title="The Arena" />
 
             {/* Pills */}
             <div style={{ display:'flex', gap:6 }}>
@@ -835,8 +835,9 @@ export default function HomePage() {
                   <div style={{ fontSize:18, fontWeight:800, color:C.dark, letterSpacing:-0.3 }}>{currentUser.name}</div>
                   <div style={{ fontSize:11, color:'rgba(1,74,9,0.45)', marginTop:2 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
                 </div>
-                <div style={{ background:C.dark, color:C.gold, fontSize:15, fontWeight:800, padding:'6px 13px', borderRadius:14 }}>
-                  {liveRating?.toFixed(1) || '--'}
+                <div style={{ background:C.dark, color:C.gold, fontSize:12, fontWeight:800, padding:'6px 13px', borderRadius:14, textAlign:'center' as const }}>
+                  <div style={{ fontSize:15, lineHeight:1.1 }}>{liveRating?.toFixed(1) || '--'}</div>
+                  {liveRating && <div style={{ fontSize:9, color:'rgba(255,204,102,0.75)', marginTop:2 }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
                 </div>
               </div>
 
