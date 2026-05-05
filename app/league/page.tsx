@@ -407,19 +407,18 @@ export default function LeaguePage() {
         <div style={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', background: 'rgba(1,74,9,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(2,107,13,0.4)', borderRadius: 14, padding: '11px 22px', zIndex: 9999, color: C.dark, fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap' }}>{notif}</div>
       )}
 
-      {/* ── Header — full width dark green ── */}
-      <div style={{ background: C.dark }}>
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '16px 16px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ color: C.gold, fontSize: 18, fontWeight: 600 }}>The League</div>
-            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 2 }}>Box league · {activeLeague?.name || 'No active league'}</div>
-          </div>
-          {activeLeague && (
-            <div style={{ background: 'rgba(255,204,102,0.18)', border: '1px solid rgba(255,204,102,0.35)', borderRadius: 20, padding: '4px 11px', color: C.gold, fontSize: 11, fontWeight: 500 }}>
-              Wk {currentRound} / {activeLeague.total_rounds}
-            </div>
-          )}
+      {/* ── Header — matches main app style ── */}
+      <div style={{ padding: '22px 0 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: -0.5, color: C.dark }}>The League</div>
+          <div style={{ fontSize: 12, color: C.dark, marginTop: 2 }}>Box league · {activeLeague?.name || 'No active league'}</div>
         </div>
+        {activeLeague && (
+          <div style={{ background: C.dark, border: `1px solid ${C.mid}`, borderRadius: 10, padding: '5px 14px', textAlign: 'center', minWidth: 70 }}>
+            <div style={{ fontSize: 17, fontWeight: 900, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
+            <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.85)', marginTop: 2 }}>of {activeLeague.total_rounds}</div>
+          </div>
+        )}
       </div>
 
       {/* ── All content centred at 480px ── */}
