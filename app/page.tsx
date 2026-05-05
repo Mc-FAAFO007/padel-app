@@ -86,40 +86,6 @@ function Avatar({ initials, size=40, level }: { initials:string, size?:number, l
     <div style={{ width:size, height:size, borderRadius:'50%', background:`linear-gradient(135deg,${c}45,${c}18)`, border:`2px solid ${c}55`, display:'flex', alignItems:'center', justifyContent:'center', color:c, fontWeight:900, fontSize:size*0.3, flexShrink:0, boxShadow:`0 0 10px ${c}28` }}>
       {initials}
     </div>
-      {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#fff', borderTop:'1px solid rgba(1,74,9,0.12)', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
-        <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
-          {([
-            { v:'home',    label:'Home',     path:null,      icon:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' },
-            { v:'board',   label:'Board',    path:null,      icon:'board' },
-            { v:'league',  label:'League',   path:'/league', icon:'league' },
-            { v:'arena',   label:'Arena',    path:'/ratings',icon:'arena' },
-            { v:'matches', label:'Schedule', path:null,      icon:'sched' },
-          ] as const).map(({ v, label, path, icon }) => {
-            const active = view === v
-            return (
-              <button key={v}
-                onClick={() => path ? router.push(path) : setView(v as any)}
-                style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', position:'relative' }}>
-                <svg width="18" height="18" fill="none" stroke={active ? '#014a09' : '#aaa'} strokeWidth="1.8" viewBox="0 0 24 24">
-                  {icon==='board'   && <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></>}
-                  {icon==='league'  && <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>}
-                  {icon==='arena'   && <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>}
-                  {icon==='sched'   && <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>}
-                  {icon==='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' && <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>}
-                </svg>
-                {label}
-                {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
-                {v==='board' && openPosts.length > 0 && (
-                  <span style={{ position:'absolute', top:0, right:'18%', background:'#ffcc66', color:'#014a09', borderRadius:'50%', width:15, height:15, fontSize:9, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    {openPosts.length}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </nav>
   )
 }
 
@@ -137,40 +103,6 @@ function Notif({ msg }: { msg: string|null }) {
     <div style={{ position:'fixed', top:18, left:'50%', transform:'translateX(-50%)', background:'rgba(2,107,13,0.12)', backdropFilter:'blur(12px)', border:'1px solid rgba(2,107,13,0.4)', borderRadius:14, padding:'11px 22px', zIndex:9999, color:'#026b0d', fontWeight:700, fontSize:14, whiteSpace:'nowrap', boxShadow:'0 4px 24px rgba(0,198,162,0.2)' }}>
       {msg}
     </div>
-      {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#fff', borderTop:'1px solid rgba(1,74,9,0.12)', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
-        <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
-          {([
-            { v:'home',    label:'Home',     path:null,      icon:'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' },
-            { v:'board',   label:'Board',    path:null,      icon:'board' },
-            { v:'league',  label:'League',   path:'/league', icon:'league' },
-            { v:'arena',   label:'Arena',    path:'/ratings',icon:'arena' },
-            { v:'matches', label:'Schedule', path:null,      icon:'sched' },
-          ] as const).map(({ v, label, path, icon }) => {
-            const active = view === v
-            return (
-              <button key={v}
-                onClick={() => path ? router.push(path) : setView(v as any)}
-                style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color: active ? '#014a09' : '#aaa', fontWeight:500, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', position:'relative' }}>
-                <svg width="18" height="18" fill="none" stroke={active ? '#014a09' : '#aaa'} strokeWidth="1.8" viewBox="0 0 24 24">
-                  {icon==='board'   && <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></>}
-                  {icon==='league'  && <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></>}
-                  {icon==='arena'   && <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>}
-                  {icon==='sched'   && <><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></>}
-                  {icon==='M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' && <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>}
-                </svg>
-                {label}
-                {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
-                {v==='board' && openPosts.length > 0 && (
-                  <span style={{ position:'absolute', top:0, right:'18%', background:'#ffcc66', color:'#014a09', borderRadius:'50%', width:15, height:15, fontSize:9, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    {openPosts.length}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-      </nav>
   )
 }
 
