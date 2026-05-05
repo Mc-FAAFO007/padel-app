@@ -347,14 +347,14 @@ export default function LeaguePage() {
     setUserId(session.user.id)
     const { data: ratingsData } = await supabase.from('ratings').select('*')
     setRatings(ratingsData || [])
-    const { data: leagueData } = await supabase.from('leagues').select('*').eq('sport', sport).order('created_at', { ascending: false })
+    const { data: leagueData } = await supabase.from('leagues').select('*').eq('sport', 'padel').order('created_at', { ascending: false })
     const leagueList: LeagueRow[] = leagueData || []
     setLeagues(leagueList)
     const active = leagueList.find(l => l.status === 'active') || leagueList[0] || null
     setActiveLeague(active)
     if (active) await loadLeagueData(active.id, ratingsData || [])
     setLoading(false)
-  }, [router, sport])
+  }, [router])
 
   async function loadLeagueData(leagueId: string, ratingsData: Rating[]) {
     const { data: boxData } = await supabase.from('league_boxes').select('*').eq('league_id', leagueId).order('box_number')
@@ -422,16 +422,7 @@ export default function LeaguePage() {
       <div style={{ maxWidth: 480, margin: '0 auto', paddingBottom: 80 }}>
 
         {/* Sport switcher */}
-        <div style={{ display:'flex', gap:6, marginBottom:16, marginTop:12 }}>
-          {(['padel', 'tennis'] as const).map(sp => (
-            <button key={sp} onClick={() => setSport(sp)} style={{
-              background: sp === sport ? '#014a09' : 'rgba(1,74,9,0.07)',
-              color: sp === sport ? '#ffcc66' : 'rgba(1,74,9,0.5)',
-              fontSize:10, fontWeight: sp === sport ? 700 : 600,
-              padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit',
-            }}>{sp.charAt(0).toUpperCase() + sp.slice(1)}</button>
-          ))}
-        </div>
+
 
         {/* Tonight banner */}
         {todayFixtures.length > 0 && (
