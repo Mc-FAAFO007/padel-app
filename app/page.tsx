@@ -594,7 +594,7 @@ export default function HomePage() {
 
         {/* Nav */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr', background:'#014a09', borderRadius:14, padding:4, marginBottom:22, gap:2 }}>
-          {([['home','🏠','Home'],['board','📋','Board'],['arena','⚔️','Arena'],['matches','📅','Schedule']] as const).map(([v,icon,label]) => (
+          {([['home','🏠','Home'],['board','📋','Board'],['arena','⚔️','Arena'],['matches','📅','Schedule'],['league','🏆','League']] as const).map(([v,icon,label]) => (
             <button key={v} onClick={() => v === 'league' ? router.push('/league') : setView(v as any)} style={{ ...navBtnStyle(view===v), position:'relative' }}>
               <span style={{ fontSize:14 }}>{icon}</span>
               <span>{label}</span>
