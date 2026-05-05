@@ -408,7 +408,7 @@ export default function LeaguePage() {
       )}
 
       {/* ── Header — matches main app style ── */}
-      <div style={{ padding: '22px 0 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: -0.5, color: C.dark }}>The League</div>
           <div style={{ fontSize: 12, color: C.dark, marginTop: 2 }}>Box league · {activeLeague?.name || 'No active league'}</div>
