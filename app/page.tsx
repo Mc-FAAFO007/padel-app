@@ -1472,7 +1472,7 @@ export default function HomePage() {
             { v:'board',   label:'Board',    path:null,      icon:'board' },
             { v:'league',  label:'League',   path:'/league', icon:'league' },
             { v:'arena',   label:'Arena',    path:'/ratings',icon:'arena' },
-            { v:'matches', label:'Schedule', path:null,      icon:'sched' },
+            { v:'matches', label:'Schedule', path:null, icon:'sched' },
           ] as const).map(({ v, label, path, icon }) => {
             const active = view === v
             return (
