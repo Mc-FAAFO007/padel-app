@@ -88,43 +88,42 @@ export default function AdminPage() {
       <div style={{ background: C.dark, padding:'16px 16px 12px' }}>
         <div style={{ maxWidth:900, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
-            <div style={{ color: C.gold, fontSize:18, fontWeight:600 }}>Admin Panel</div>
+            <div style={{ color:'#ffcc66', fontSize:18, fontWeight:800, letterSpacing:-0.3 }}>Admin Panel</div>
             <div style={{ color:'rgba(255,255,255,0.55)', fontSize:12, marginTop:2 }}>
-              {currentUser.name} · Admin
+              {currentUser.name}
             </div>
           </div>
           <div style={{ display:'flex', gap:8 }}>
             <button onClick={() => router.push('/')} style={{
-              background:'rgba(255,204,102,0.15)', border:'1px solid rgba(255,204,102,0.3)',
-              borderRadius:20, padding:'6px 14px', color: C.gold,
-              fontWeight:600, fontSize:12, cursor:'pointer', fontFamily:'inherit',
+              background:'rgba(255,204,102,0.12)', border:'none',
+              borderRadius:20, padding:'7px 16px', color:'#ffcc66',
+              fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit',
             }}>← Back to App</button>
             <button onClick={() => { supabase.auth.signOut(); router.push('/login') }} style={{
-              background:'rgba(153,0,51,0.3)', border:'1px solid rgba(153,0,51,0.5)',
-              borderRadius:20, padding:'6px 14px', color:'#ffaaaa',
-              fontWeight:600, fontSize:12, cursor:'pointer', fontFamily:'inherit',
+              background:'rgba(153,0,51,0.25)', border:'none',
+              borderRadius:20, padding:'7px 16px', color:'#ffaaaa',
+              fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit',
             }}>Sign Out</button>
           </div>
         </div>
       </div>
 
       {/* Tab nav */}
-      <div style={{ background:'#fff', borderBottom:`1px solid ${C.cardBorder}` }}>
+      <div style={{ background:'#f5f0e8', padding:'4px 0' }}>
         <div style={{ maxWidth:900, margin:'0 auto', display:'flex', overflowX:'auto' }}>
           {tabs.map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
-              padding:'12px 18px', fontWeight:600, fontSize:13,
-              color: tab===t ? C.dark : '#888', background:'none', border:'none',
-              borderBottom: `2px solid ${tab===t ? C.dark : 'transparent'}`,
-              cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap',
-              textTransform:'capitalize',
+              background: tab===t ? '#014a09' : 'rgba(1,74,9,0.07)', color: tab===t ? '#ffcc66' : 'rgba(1,74,9,0.5)',
+              fontSize:10, fontWeight: tab===t ? 700 : 600,
+              padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none',
+              fontFamily:'inherit', whiteSpace:'nowrap', textTransform:'capitalize',
             }}>{t}</button>
           ))}
         </div>
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth:900, margin:'0 auto', padding:'20px 16px 60px' }}>
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'20px 16px 60px', background:'#f5f0e8', minHeight:'100vh' }}>
 
         {/* Dashboard */}
         {tab==='dashboard' && (
@@ -137,7 +136,7 @@ export default function AdminPage() {
               { label:'Admins',          val:users.filter(u=>u.is_admin).length,     color: C.loss },
             ].map(({ label, val, color }) => (
               <div key={label} style={{
-                background:'#fff', border:`1px solid ${C.cardBorder}`,
+                background:'#fff', border:'1px solid rgba(1,74,9,0.06)',
                 borderRadius:12, padding:'16px 18px',
               }}>
                 <div style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:8 }}>{label}</div>
@@ -149,14 +148,14 @@ export default function AdminPage() {
 
         {/* Users */}
         {tab==='users' && (
-          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
-            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+          <div style={{ background:'#fff', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
               <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Users ({users.length})</div>
             </div>
             <div style={{ overflowX:'auto' }}>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                 <thead>
-                  <tr style={{ background:'rgba(1,74,9,0.04)' }}>
+                  <tr style={{ background:'rgba(1,74,9,0.03)' }}>
                     {['Name','Level','Admin','Joined','Actions'].map(h => (
                       <th key={h} style={{ padding:'10px 14px', fontWeight:700, color: C.dark, textAlign: h==='Actions'||h==='Admin' ? 'center' : 'left', fontSize:11, letterSpacing:'0.3px' }}>{h}</th>
                     ))}
@@ -194,14 +193,14 @@ export default function AdminPage() {
 
         {/* Posts */}
         {tab==='posts' && (
-          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
-            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+          <div style={{ background:'#fff', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
               <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Game Posts ({posts.length})</div>
             </div>
             <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
               {posts.map(p => (
                 <div key={p.id} style={{
-                  border:`1px solid ${C.cardBorder}`, borderRadius:10,
+                  border:'1px solid rgba(1,74,9,0.06)', borderRadius:10,
                   padding:'12px 14px', display:'flex', justifyContent:'space-between', alignItems:'center',
                 }}>
                   <div>
@@ -225,14 +224,14 @@ export default function AdminPage() {
 
         {/* Ratings */}
         {tab==='ratings' && (
-          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
-            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+          <div style={{ background:'#fff', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
               <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Ratings ({ratings.length})</div>
             </div>
             <div style={{ overflowX:'auto' }}>
               <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
                 <thead>
-                  <tr style={{ background:'rgba(1,74,9,0.04)' }}>
+                  <tr style={{ background:'rgba(1,74,9,0.03)' }}>
                     {['Player','Rating','Matches','Updated','Actions'].map(h => (
                       <th key={h} style={{ padding:'10px 14px', fontWeight:700, color: C.dark, textAlign: h==='Actions'||h==='Rating'||h==='Matches' ? 'center' : 'left', fontSize:11 }}>{h}</th>
                     ))}
@@ -264,7 +263,7 @@ export default function AdminPage() {
             {/* Edit Rating Modal */}
             {editingRating && (
               <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:9999 }}>
-                <div style={{ background: C.bg, borderRadius:16, padding:24, maxWidth:380, width:'90%', fontFamily:"'DM Sans',sans-serif" }}>
+                <div style={{ background:'#f5f0e8', borderRadius:20, padding:24, maxWidth:380, width:'90%', fontFamily:"'DM Sans',sans-serif" }}>
                   <div style={{ fontSize:16, fontWeight:700, color: C.dark, marginBottom:16 }}>Edit Rating — {editingRating.player_name}</div>
                   {[
                     { label:'Rating (1.0–7.0)', key:'rating', type:'number', step:'0.1', min:'1', max:'7' },
@@ -276,7 +275,7 @@ export default function AdminPage() {
                         {...rest}
                         value={(editingRating as any)[key] || 0}
                         onChange={e => setEditingRating({ ...editingRating, [key]: parseFloat(e.target.value) })}
-                        style={{ width:'100%', padding:'10px 12px', border:`1px solid ${C.cardBorder}`, borderRadius:8, fontFamily:'inherit', fontSize:15, fontWeight:700, color: C.dark, background:'#fff', outline:'none' }}
+                        style={{ width:'100%', padding:'10px 12px', border:'1px solid rgba(1,74,9,0.06)', borderRadius:8, fontFamily:'inherit', fontSize:15, fontWeight:700, color: C.dark, background:'#fff', outline:'none' }}
                       />
                     </div>
                   ))}
@@ -288,8 +287,8 @@ export default function AdminPage() {
                       setRatings(ratings.map(r => r.id===editingRating.id ? { ...r, ...editingRating } as Rating : r))
                       setEditingRating(null)
                       showNotif('Rating updated')
-                    }} style={{ flex:1, background: C.dark, border:'none', borderRadius:10, padding:'12px', color: C.gold, fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Save</button>
-                    <button onClick={() => setEditingRating(null)} style={{ flex:1, background:'rgba(1,74,9,0.08)', border:'none', borderRadius:10, padding:'12px', color: C.dark, fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Cancel</button>
+                    }} style={{ flex:1, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Save</button>
+                    <button onClick={() => setEditingRating(null)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, cursor:'pointer', fontFamily:'inherit', fontSize:14 }}>Cancel</button>
                   </div>
                 </div>
               </div>
@@ -299,13 +298,13 @@ export default function AdminPage() {
 
         {/* Matches */}
         {tab==='matches' && (
-          <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, overflow:'hidden' }}>
-            <div style={{ padding:'14px 18px', borderBottom:`1px solid ${C.cardBorder}` }}>
+          <div style={{ background:'#fff', borderRadius:16, overflow:'hidden' }}>
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
               <div style={{ fontSize:15, fontWeight:700, color: C.dark }}>Match History ({matches.length})</div>
             </div>
             <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:10 }}>
               {matches.slice(0,30).map(m => (
-                <div key={m.id} style={{ border:`1px solid ${C.cardBorder}`, borderRadius:10, padding:'12px 14px' }}>
+                <div key={m.id} style={{ border:'1px solid rgba(1,74,9,0.06)', borderRadius:10, padding:'12px 14px' }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
                     <div style={{ fontSize:13, fontWeight:700, color: C.dark, lineHeight:1.4 }}>
                       {m.team_a1_name} & {m.team_a2_name}<br />
@@ -335,10 +334,10 @@ export default function AdminPage() {
         {/* Analytics */}
         {tab==='analytics' && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:14 }}>
-            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+            <div style={{ background:'#fff', borderRadius:16, padding:'16px 18px' }}>
               <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Top Players by Rating</div>
               {ratings.slice(0,5).map((r,i) => (
-                <div key={r.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}` }}>
+                <div key={r.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
                   <div>
                     <div style={{ fontSize:13, fontWeight:600 }}>#{i+1} {r.player_name}</div>
                     <div style={{ fontSize:11, color:'#888' }}>{r.match_count} matches</div>
@@ -347,19 +346,19 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
-            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+            <div style={{ background:'#fff', borderRadius:16, padding:'16px 18px' }}>
               <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Level Distribution</div>
               {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#006633'],['4','Beginner','#990033']].map(([level,desc,color]) => {
                 const count = users.filter(u => u.level===level).length
                 return (
-                  <div key={level} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}` }}>
+                  <div key={level} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'8px 0', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
                     <div style={{ fontSize:13 }}>L{level} <span style={{ color:'#888' }}>{desc}</span></div>
                     <div style={{ fontSize:15, fontWeight:800, color }}>{count}</div>
                   </div>
                 )
               })}
             </div>
-            <div style={{ background:'#fff', border:`1px solid ${C.cardBorder}`, borderRadius:12, padding:'16px 18px' }}>
+            <div style={{ background:'#fff', borderRadius:16, padding:'16px 18px' }}>
               <div style={{ fontSize:13, fontWeight:700, color: C.dark, marginBottom:14 }}>Activity</div>
               {[
                 ['Avg Matches / Player', (ratings.reduce((s,r)=>s+r.match_count,0)/ratings.length||0).toFixed(1)],
@@ -367,7 +366,7 @@ export default function AdminPage() {
                 ['Active Game Posts',    posts.filter(p=>p.spots_needed>0).length],
                 ['Avg Rating',           (ratings.reduce((s,r)=>s+r.rating,0)/ratings.length||0).toFixed(1)],
               ].map(([label,val]) => (
-                <div key={label as string} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:`1px solid ${C.cardBorder}`, fontSize:13 }}>
+                <div key={label as string} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid rgba(1,74,9,0.06)', fontSize:13 }}>
                   <span style={{ color:'#555' }}>{label}</span>
                   <span style={{ fontWeight:700, color: C.dark }}>{val}</span>
                 </div>
