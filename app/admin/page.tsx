@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [leaguePointsAllSets, setLeaguePointsAllSets]         = useState(false)
   const [leaguePointsBagel, setLeaguePointsBagel]             = useState(true)
   const [leagueGeneratedGroups, setLeagueGeneratedGroups]     = useState<string[][]>([])
+  const [leagueDay, setLeagueDay]                 = useState('Tuesday')
   const [leagueCreating, setLeagueCreating]       = useState(false)
   const [leagueCreated, setLeagueCreated]         = useState(false)
 
@@ -72,6 +73,7 @@ export default function AdminPage() {
     try {
       const { data: league, error: leagueErr } = await supabase.from('leagues').insert({
         name: leagueName, sport: 'padel', status: 'active',
+        day_of_week: leagueDay,
         start_date: leagueStart || null, end_date: leagueEnd || null,
         frequency: leagueFreq, format: leagueFormat, total_rounds: 3,
         points_win: leaguePointsWin, points_sets_loss: leaguePointsSetsLoss,
@@ -451,6 +453,14 @@ export default function AdminPage() {
                           ))}
                         </div>
                       </div>
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:6 }}>Match Day</div>
+                        <div style={{ display:'flex', gap:6, flexWrap:'wrap' as const }}>
+                          {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].map(d => (
+                            <button key={d} onClick={() => setLeagueDay(d)} style={{ background: leagueDay===d ? '#014a09' : 'rgba(1,74,9,0.07)', color: leagueDay===d ? '#ffcc66' : 'rgba(1,74,9,0.5)', border:'none', borderRadius:10, padding:'6px 12px', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>{d.slice(0,3)}</button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                     <button onClick={() => leagueName ? setLeagueStep(2) : showNotif('Enter a season name')}
                       style={{ width:'100%', marginTop:20, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Select Players</button>
@@ -595,7 +605,8 @@ export default function AdminPage() {
                       {([
                         ['Season', leagueName],
                         ['Dates', leagueStart&&leagueEnd ? leagueStart+' – '+leagueEnd : 'No dates set'],
-                        ['Format', leagueFormat==='round_robin' ? 'Round Robin' : 'Groups + Knockout'],
+                        ['Match Day', leagueDay],
+        ['Format', leagueFormat==='round_robin' ? 'Round Robin' : 'Groups + Knockout'],
                         ['Players', leaguePlayers.length+' selected'],
                         ['Groups', leagueGroups+' groups of ~'+Math.ceil(leaguePlayers.length/leagueGroups)],
                         ['Points', 'Win: '+leaguePointsWin+'pts'+(leaguePointsSetsLoss?' · Sets in loss: +1':'')+(leaguePointsAllSets?' · All sets: +1':'')+(leaguePointsBagel?' · Bagel: +1':'')],
