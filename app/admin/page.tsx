@@ -45,6 +45,8 @@ export default function AdminPage() {
   const [leagueDay, setLeagueDay]                 = useState('Tuesday')
   const [leagueCreating, setLeagueCreating]       = useState(false)
   const [leagueCreated, setLeagueCreated]         = useState(false)
+  const [leagueError, setLeagueError]             = useState('')
+  const [leagueSearch, setLeagueSearch]           = useState('')
 
   const showNotif = (msg: string) => {
     setNotif(msg)
@@ -70,6 +72,7 @@ export default function AdminPage() {
   async function handleCreateLeague() {
     if (!leagueName || leaguePlayers.length < 4) { showNotif('Need a name and at least 4 players'); return }
     setLeagueCreating(true)
+    setLeagueError('')
     try {
       const { data: league, error: leagueErr } = await supabase.from('leagues').insert({
         name: leagueName, sport: 'padel', status: 'active',
@@ -79,7 +82,7 @@ export default function AdminPage() {
         points_win: leaguePointsWin, points_sets_loss: leaguePointsSetsLoss,
         points_all_sets: leaguePointsAllSets, points_bagel: leaguePointsBagel,
       }).select().single()
-      if (leagueErr || !league) { showNotif('Error: ' + leagueErr?.message); setLeagueCreating(false); return }
+      if (leagueErr || !league) { const msg = leagueErr?.message || 'Unknown error'; setLeagueError(msg); showNotif('Error: ' + msg); console.error('League insert error:', leagueErr); setLeagueCreating(false); return }
 
       for (let gi = 0; gi < leagueGeneratedGroups.length; gi++) {
         const group = leagueGeneratedGroups[gi]
@@ -473,9 +476,18 @@ export default function AdminPage() {
                       <div style={{ fontSize:16, fontWeight:800, color:'#014a09' }}>Select Players</div>
                       <div style={{ background:'#014a09', color:'#ffcc66', fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:12 }}>{leaguePlayers.length} selected</div>
                     </div>
-                    <div style={{ fontSize:12, color:'rgba(1,74,9,0.45)', marginBottom:10 }}>Tap to add or remove. Min 4 required.</div>
+                    <div style={{ position:'relative', marginBottom:10 }}>
+                      <input
+                        type="text"
+                        placeholder="Search players..."
+                        value={leagueSearch}
+                        onChange={e => setLeagueSearch(e.target.value)}
+                        style={{ width:'100%', boxSizing:'border-box' as const, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:10, padding:'9px 13px 9px 36px', color:'#014a09', fontSize:13, fontFamily:'inherit', outline:'none' }}
+                      />
+                      <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'rgba(1,74,9,0.3)', pointerEvents:'none' }}>🔍</span>
+                    </div>
                     <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:380, overflowY:'auto' }}>
-                      {[...users].sort((a,b) => (ratings.find(r=>r.player_id===b.id)?.rating||0) - (ratings.find(r=>r.player_id===a.id)?.rating||0)).map(u => {
+                      {[...users].filter(u => u.name.toLowerCase().includes(leagueSearch.toLowerCase())).sort((a,b) => (ratings.find(r=>r.player_id===b.id)?.rating||0) - (ratings.find(r=>r.player_id===a.id)?.rating||0)).map(u => {
                         const r = ratings.find(rt => rt.player_id === u.id)
                         const sel = leaguePlayers.includes(u.id)
                         return (
@@ -517,7 +529,7 @@ export default function AdminPage() {
                       <div>
                         <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:8, marginTop:6 }}>Number of Groups</div>
                         <div style={{ display:'flex', gap:6 }}>
-                          {[2,3,4].map(n => <button key={n} onClick={() => setLeagueGroups(n)} style={{ flex:1, background: leagueGroups===n ? '#014a09' : 'rgba(1,74,9,0.07)', color: leagueGroups===n ? '#ffcc66' : 'rgba(1,74,9,0.5)', border:'none', borderRadius:10, padding:'10px 0', fontSize:18, fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>)}
+                          {[1,2,3,4].map(n => <button key={n} onClick={() => setLeagueGroups(n)} style={{ flex:1, background: leagueGroups===n ? '#014a09' : 'rgba(1,74,9,0.07)', color: leagueGroups===n ? '#ffcc66' : 'rgba(1,74,9,0.5)', border:'none', borderRadius:10, padding:'10px 0', fontSize:18, fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>)}
                         </div>
                         <div style={{ fontSize:11, color:'rgba(1,74,9,0.4)', marginTop:6, textAlign:'center' as const }}>{leaguePlayers.length} players → {leagueGroups} groups of ~{Math.ceil(leaguePlayers.length/leagueGroups)}</div>
                       </div>
@@ -620,6 +632,11 @@ export default function AdminPage() {
                     <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:12, padding:'11px 14px', marginTop:12, fontSize:12, color:'rgba(1,74,9,0.55)', lineHeight:1.5 }}>
                       Fixtures will be auto-generated and visible to all players immediately.
                     </div>
+                    {leagueError && (
+                      <div style={{ background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:12, padding:'10px 14px', marginTop:8, fontSize:12, color:'#990033' }}>
+                        Error: {leagueError}
+                      </div>
+                    )}
                     <div style={{ display:'flex', gap:8, marginTop:16 }}>
                       <button onClick={() => setLeagueStep(5)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
                       <button onClick={handleCreateLeague} disabled={leagueCreating}
