@@ -86,26 +86,42 @@ export default function AdminPage() {
 
       for (let gi = 0; gi < leagueGeneratedGroups.length; gi++) {
         const group = leagueGeneratedGroups[gi]
-        const { data: box } = await supabase.from('league_boxes').insert({
+        const { data: box, error: boxErr } = await supabase.from('league_boxes').insert({
           league_id: league.id, box_number: gi + 1, name: 'Group ' + String.fromCharCode(65 + gi)
         }).select().single()
+        if (boxErr) { const m = 'Box insert: ' + boxErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
         if (!box) continue
-        await supabase.from('league_box_players').insert(
-          group.map((pid: string) => ({ league_id: league.id, box_id: box.id, player_id: pid }))
+
+        const { error: playersErr } = await supabase.from('league_box_players').insert(
+          group.map((pid: string) => ({ box_id: box.id, player_id: pid }))
         )
-        if (group.length === 4) {
-          const fixtures = [
-            { t1p1: group[0], t1p2: group[1], t2p1: group[2], t2p2: group[3], round: 1 },
-            { t1p1: group[0], t1p2: group[2], t2p1: group[1], t2p2: group[3], round: 2 },
-            { t1p1: group[0], t1p2: group[3], t2p1: group[1], t2p2: group[2], round: 3 },
-          ]
-          await supabase.from('league_fixtures').insert(fixtures.map(f => ({
+        if (playersErr) { const m = 'Players insert: ' + playersErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
+
+        if (group.length >= 2) {
+          const pairs: {t1p1:string,t1p2:string,t2p1:string,t2p2:string,round:number}[] = []
+          if (group.length === 4) {
+            pairs.push(
+              { t1p1:group[0], t1p2:group[1], t2p1:group[2], t2p2:group[3], round:1 },
+              { t1p1:group[0], t1p2:group[2], t2p1:group[1], t2p2:group[3], round:2 },
+              { t1p1:group[0], t1p2:group[3], t2p1:group[1], t2p2:group[2], round:3 },
+            )
+          } else if (group.length === 3) {
+            pairs.push(
+              { t1p1:group[0], t1p2:group[0], t2p1:group[1], t2p2:group[2], round:1 },
+              { t1p1:group[1], t1p2:group[1], t2p1:group[0], t2p2:group[2], round:2 },
+              { t1p1:group[2], t1p2:group[2], t2p1:group[0], t2p2:group[1], round:3 },
+            )
+          } else if (group.length === 2) {
+            pairs.push({ t1p1:group[0], t1p2:group[0], t2p1:group[1], t2p2:group[1], round:1 })
+          }
+          const { error: fixErr } = await supabase.from('league_fixtures').insert(pairs.map(f => ({
             league_id: league.id, box_id: box.id, round: f.round, court: gi + 1,
             status: 'upcoming', team_1_p1: f.t1p1, team_1_p2: f.t1p2,
             team_2_p1: f.t2p1, team_2_p2: f.t2p2,
             scheduled_date: leagueStart || new Date().toISOString().split('T')[0],
             scheduled_time: '19:00',
           })))
+          if (fixErr) { const m = 'Fixtures insert: ' + fixErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
         }
       }
       setLeagueCreated(true)
