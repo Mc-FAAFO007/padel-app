@@ -623,7 +623,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Analytics */
+        /{* Analytics */}
         {tab==='analytics' && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:14 }}>
             <div style={{ background:'#fff', borderRadius:16, padding:'16px 18px' }}>
