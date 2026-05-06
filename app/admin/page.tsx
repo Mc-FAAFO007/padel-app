@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Profile, Post, Rating, Match } from '@/lib/types'
 
-type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics'
+type AdminTab = 'dashboard' | 'users' | 'posts' | 'ratings' | 'matches' | 'analytics' | 'league'
 
 const C = {
   bg: '#f5f0e8', dark: '#014a09', mid: '#026b0d', gold: '#ffcc66',
@@ -29,10 +29,84 @@ export default function AdminPage() {
   const [ratings, setRatings] = useState<Rating[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [editingRating, setEditingRating] = useState<Partial<Rating> | null>(null)
+  const [leagueStep, setLeagueStep]               = useState(1)
+  const [leagueName, setLeagueName]               = useState('')
+  const [leagueStart, setLeagueStart]             = useState('')
+  const [leagueEnd, setLeagueEnd]                 = useState('')
+  const [leagueFreq, setLeagueFreq]               = useState<'weekly'|'fortnightly'|'monthly'>('weekly')
+  const [leaguePlayers, setLeaguePlayers]         = useState<string[]>([])
+  const [leagueGroups, setLeagueGroups]           = useState(2)
+  const [leagueFormat, setLeagueFormat]           = useState<'round_robin'|'groups_knockout'>('round_robin')
+  const [leaguePointsWin, setLeaguePointsWin]                 = useState(3)
+  const [leaguePointsSetsLoss, setLeaguePointsSetsLoss]       = useState(true)
+  const [leaguePointsAllSets, setLeaguePointsAllSets]         = useState(false)
+  const [leaguePointsBagel, setLeaguePointsBagel]             = useState(true)
+  const [leagueGeneratedGroups, setLeagueGeneratedGroups]     = useState<string[][]>([])
+  const [leagueCreating, setLeagueCreating]       = useState(false)
+  const [leagueCreated, setLeagueCreated]         = useState(false)
 
   const showNotif = (msg: string) => {
     setNotif(msg)
     setTimeout(() => setNotif(null), 3000)
+  }
+
+  function snakeSeed(playerIds: string[], numGroups: number): string[][] {
+    const sorted = [...playerIds].sort((a, b) => {
+      const rA = ratings.find(r => r.player_id === a)?.rating || 0
+      const rB = ratings.find(r => r.player_id === b)?.rating || 0
+      return rB - rA
+    })
+    const groups: string[][] = Array.from({ length: numGroups }, () => [])
+    sorted.forEach((pid, i) => {
+      const round = Math.floor(i / numGroups)
+      const pos   = i % numGroups
+      const idx   = round % 2 === 0 ? pos : numGroups - 1 - pos
+      groups[idx].push(pid)
+    })
+    return groups
+  }
+
+  async function handleCreateLeague() {
+    if (!leagueName || leaguePlayers.length < 4) { showNotif('Need a name and at least 4 players'); return }
+    setLeagueCreating(true)
+    try {
+      const { data: league, error: leagueErr } = await supabase.from('leagues').insert({
+        name: leagueName, sport: 'padel', status: 'active',
+        start_date: leagueStart || null, end_date: leagueEnd || null,
+        frequency: leagueFreq, format: leagueFormat, total_rounds: 3,
+        points_win: leaguePointsWin, points_sets_loss: leaguePointsSetsLoss,
+        points_all_sets: leaguePointsAllSets, points_bagel: leaguePointsBagel,
+      }).select().single()
+      if (leagueErr || !league) { showNotif('Error: ' + leagueErr?.message); setLeagueCreating(false); return }
+
+      for (let gi = 0; gi < leagueGeneratedGroups.length; gi++) {
+        const group = leagueGeneratedGroups[gi]
+        const { data: box } = await supabase.from('league_boxes').insert({
+          league_id: league.id, box_number: gi + 1, name: 'Group ' + String.fromCharCode(65 + gi)
+        }).select().single()
+        if (!box) continue
+        await supabase.from('league_box_players').insert(
+          group.map((pid: string) => ({ league_id: league.id, box_id: box.id, player_id: pid }))
+        )
+        if (group.length === 4) {
+          const fixtures = [
+            { t1p1: group[0], t1p2: group[1], t2p1: group[2], t2p2: group[3], round: 1 },
+            { t1p1: group[0], t1p2: group[2], t2p1: group[1], t2p2: group[3], round: 2 },
+            { t1p1: group[0], t1p2: group[3], t2p1: group[1], t2p2: group[2], round: 3 },
+          ]
+          await supabase.from('league_fixtures').insert(fixtures.map(f => ({
+            league_id: league.id, box_id: box.id, round: f.round, court: gi + 1,
+            status: 'upcoming', team_1_p1: f.t1p1, team_1_p2: f.t1p2,
+            team_2_p1: f.t2p1, team_2_p2: f.t2p2,
+            scheduled_date: leagueStart || new Date().toISOString().split('T')[0],
+            scheduled_time: '19:00',
+          })))
+        }
+      }
+      setLeagueCreated(true)
+      showNotif('League created!')
+    } catch(e: any) { showNotif('Error: ' + e.message) }
+    setLeagueCreating(false)
   }
 
   const loadData = useCallback(async () => {
@@ -68,7 +142,7 @@ export default function AdminPage() {
     </div>
   )
 
-  const tabs: AdminTab[] = ['dashboard','users','posts','ratings','matches','analytics']
+  const tabs: AdminTab[] = ['dashboard','users','posts','ratings','matches','analytics','league']
 
   return (
     <div style={{ minHeight:'100vh', background: C.bg, fontFamily:"'DM Sans',sans-serif", color: C.dark }}>
@@ -332,7 +406,224 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Analytics */}
+
+        {tab === 'league' && (
+          <div style={{ maxWidth:560 }}>
+            {leagueCreated ? (
+              <div style={{ background:'#fff', borderRadius:16, padding:'32px', textAlign:'center' as const }}>
+                <div style={{ fontSize:32, marginBottom:12 }}>🏆</div>
+                <div style={{ fontSize:18, fontWeight:800, color:'#014a09', marginBottom:8 }}>League Created!</div>
+                <div style={{ fontSize:13, color:'rgba(1,74,9,0.55)', marginBottom:20 }}>Groups and fixtures have been generated.</div>
+                <div style={{ display:'flex', gap:10, justifyContent:'center' }}>
+                  <button onClick={() => router.push('/league')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'11px 22px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>View League →</button>
+                  <button onClick={() => { setLeagueCreated(false); setLeagueStep(1); setLeagueName(''); setLeaguePlayers([]); setLeagueGeneratedGroups([]) }} style={{ background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'11px 22px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>New Season</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                <div style={{ display:'flex', gap:4 }}>
+                  {[1,2,3,4,5,6].map(n => <div key={n} style={{ height:5, flex:1, borderRadius:3, background: n <= leagueStep ? '#014a09' : 'rgba(1,74,9,0.12)' }} />)}
+                </div>
+
+                {leagueStep === 1 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#014a09', marginBottom:16 }}>Season Setup</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:6 }}>Season Name</div>
+                        <input value={leagueName} onChange={e => setLeagueName(e.target.value)} placeholder="e.g. Summer League 2026"
+                          style={{ width:'100%', boxSizing:'border-box' as const, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:10, padding:'10px 13px', color:'#014a09', fontSize:14, fontFamily:'inherit', outline:'none' }} />
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                        {[['Start Date', leagueStart, setLeagueStart], ['End Date', leagueEnd, setLeagueEnd]].map(([label, val, setter]: any) => (
+                          <div key={label}>
+                            <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:6 }}>{label}</div>
+                            <input type="date" value={val} onChange={e => setter(e.target.value)}
+                              style={{ width:'100%', boxSizing:'border-box' as const, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.12)', borderRadius:10, padding:'10px 13px', color:'#014a09', fontSize:13, fontFamily:'inherit', outline:'none' }} />
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:6 }}>Fixture Frequency</div>
+                        <div style={{ display:'flex', gap:6 }}>
+                          {(['weekly','fortnightly','monthly'] as const).map(f => (
+                            <button key={f} onClick={() => setLeagueFreq(f)} style={{ flex:1, background: leagueFreq===f ? '#014a09' : 'rgba(1,74,9,0.07)', color: leagueFreq===f ? '#ffcc66' : 'rgba(1,74,9,0.5)', border:'none', borderRadius:10, padding:'9px 0', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit', textTransform:'capitalize' as const }}>{f}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <button onClick={() => leagueName ? setLeagueStep(2) : showNotif('Enter a season name')}
+                      style={{ width:'100%', marginTop:20, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Select Players</button>
+                  </div>
+                )}
+
+                {leagueStep === 2 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+                      <div style={{ fontSize:16, fontWeight:800, color:'#014a09' }}>Select Players</div>
+                      <div style={{ background:'#014a09', color:'#ffcc66', fontSize:12, fontWeight:700, padding:'4px 12px', borderRadius:12 }}>{leaguePlayers.length} selected</div>
+                    </div>
+                    <div style={{ fontSize:12, color:'rgba(1,74,9,0.45)', marginBottom:10 }}>Tap to add or remove. Min 4 required.</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:380, overflowY:'auto' }}>
+                      {[...users].sort((a,b) => (ratings.find(r=>r.player_id===b.id)?.rating||0) - (ratings.find(r=>r.player_id===a.id)?.rating||0)).map(u => {
+                        const r = ratings.find(rt => rt.player_id === u.id)
+                        const sel = leaguePlayers.includes(u.id)
+                        return (
+                          <div key={u.id} onClick={() => setLeaguePlayers(prev => sel ? prev.filter(id=>id!==u.id) : [...prev,u.id])}
+                            style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:12, background: sel ? 'rgba(1,74,9,0.07)' : 'rgba(1,74,9,0.02)', cursor:'pointer', border: sel ? '1.5px solid rgba(1,74,9,0.2)' : '1.5px solid transparent' }}>
+                            <div style={{ width:36, height:36, borderRadius:'50%', background:'rgba(1,74,9,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#014a09', flexShrink:0 }}>{u.avatar}</div>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13, fontWeight: sel?700:500, color:'#014a09' }}>{u.name}</div>
+                              <div style={{ fontSize:11, color:'rgba(1,74,9,0.45)' }}>Rating {r ? r.rating.toFixed(1) : 'N/A'} · L{u.level}</div>
+                            </div>
+                            <div style={{ width:22, height:22, borderRadius:6, background: sel ? '#014a09' : 'rgba(1,74,9,0.08)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                              {sel && <span style={{ fontSize:12, color:'#ffcc66' }}>✓</span>}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:14 }}>
+                      <button onClick={() => setLeagueStep(1)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+                      <button onClick={() => leaguePlayers.length >= 4 ? setLeagueStep(3) : showNotif('Select at least 4 players')}
+                        style={{ flex:2, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Format</button>
+                    </div>
+                  </div>
+                )}
+
+                {leagueStep === 3 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#014a09', marginBottom:14 }}>League Format</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                      {([['round_robin','Round Robin','Everyone plays everyone. Best for up to 8 players.'],['groups_knockout','Groups + Knockout','Top players advance. Best for 8+ players.']] as const).map(([key,title,sub]) => (
+                        <div key={key} onClick={() => setLeagueFormat(key)}
+                          style={{ display:'flex', gap:12, padding:'14px', borderRadius:12, border: leagueFormat===key ? '2px solid #014a09' : '1px solid rgba(1,74,9,0.12)', background: leagueFormat===key ? 'rgba(1,74,9,0.04)' : 'transparent', cursor:'pointer' }}>
+                          <div style={{ width:18, height:18, borderRadius:'50%', border: `2px solid ${leagueFormat===key?'#014a09':'rgba(1,74,9,0.2)'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
+                            {leagueFormat===key && <div style={{ width:8, height:8, borderRadius:'50%', background:'#014a09' }} />}
+                          </div>
+                          <div><div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{title}</div><div style={{ fontSize:11, color:'rgba(1,74,9,0.5)', marginTop:3, lineHeight:1.4 }}>{sub}</div></div>
+                        </div>
+                      ))}
+                      <div>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:8, marginTop:6 }}>Number of Groups</div>
+                        <div style={{ display:'flex', gap:6 }}>
+                          {[2,3,4].map(n => <button key={n} onClick={() => setLeagueGroups(n)} style={{ flex:1, background: leagueGroups===n ? '#014a09' : 'rgba(1,74,9,0.07)', color: leagueGroups===n ? '#ffcc66' : 'rgba(1,74,9,0.5)', border:'none', borderRadius:10, padding:'10px 0', fontSize:18, fontWeight:800, cursor:'pointer', fontFamily:'inherit' }}>{n}</button>)}
+                        </div>
+                        <div style={{ fontSize:11, color:'rgba(1,74,9,0.4)', marginTop:6, textAlign:'center' as const }}>{leaguePlayers.length} players → {leagueGroups} groups of ~{Math.ceil(leaguePlayers.length/leagueGroups)}</div>
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:20 }}>
+                      <button onClick={() => setLeagueStep(2)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+                      <button onClick={() => { setLeagueGeneratedGroups(snakeSeed(leaguePlayers, leagueGroups)); setLeagueStep(4) }}
+                        style={{ flex:2, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Preview Groups</button>
+                    </div>
+                  </div>
+                )}
+
+                {leagueStep === 4 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+                      <div style={{ fontSize:16, fontWeight:800, color:'#014a09' }}>Groups Preview</div>
+                      <button onClick={() => setLeagueGeneratedGroups(snakeSeed(leaguePlayers, leagueGroups))}
+                        style={{ background:'rgba(1,74,9,0.07)', border:'none', borderRadius:10, padding:'6px 12px', color:'#014a09', fontWeight:700, fontSize:12, cursor:'pointer', fontFamily:'inherit' }}>Reshuffle ↺</button>
+                    </div>
+                    <div style={{ fontSize:11, color:'rgba(1,74,9,0.45)', marginBottom:14 }}>Snake-seeded by rating · balanced groups</div>
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                      {leagueGeneratedGroups.map((group, gi) => {
+                        const avg = group.reduce((s,pid) => s + (ratings.find(r=>r.player_id===pid)?.rating||0), 0) / (group.length||1)
+                        return (
+                          <div key={gi} style={{ background:'rgba(1,74,9,0.04)', borderRadius:12, padding:'12px' }}>
+                            <div style={{ fontSize:12, fontWeight:700, color:'#014a09', marginBottom:2 }}>Group {String.fromCharCode(65+gi)}</div>
+                            <div style={{ fontSize:10, color:'rgba(1,74,9,0.4)', marginBottom:10 }}>Avg {avg.toFixed(1)}</div>
+                            {group.map((pid:string) => {
+                              const u = users.find(u=>u.id===pid)
+                              const r = ratings.find(rt=>rt.player_id===pid)
+                              return u ? (
+                                <div key={pid} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:7 }}>
+                                  <div style={{ width:26, height:26, borderRadius:'50%', background:'rgba(1,74,9,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:'#014a09', flexShrink:0 }}>{u.avatar}</div>
+                                  <div><div style={{ fontSize:12, fontWeight:600, color:'#014a09' }}>{u.name.split(' ')[0]}</div><div style={{ fontSize:10, color:'rgba(1,74,9,0.45)', fontWeight:700 }}>{r?.rating.toFixed(1)||'N/A'}</div></div>
+                                </div>
+                              ) : null
+                            })}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:16 }}>
+                      <button onClick={() => setLeagueStep(3)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+                      <button onClick={() => setLeagueStep(5)} style={{ flex:2, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Points</button>
+                    </div>
+                  </div>
+                )}
+
+                {leagueStep === 5 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#014a09', marginBottom:16 }}>Points System</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                      <div style={{ paddingBottom:16 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:'rgba(1,74,9,0.45)', textTransform:'uppercase' as const, letterSpacing:'0.5px', marginBottom:8 }}>Points for winning</div>
+                        <div style={{ display:'flex', alignItems:'center', background:'rgba(1,74,9,0.07)', borderRadius:12, overflow:'hidden', width:120 }}>
+                          <button onClick={() => setLeaguePointsWin(Math.max(0,leaguePointsWin-1))} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', background:'transparent', border:'none', fontSize:18, fontWeight:700, color:'#014a09', cursor:'pointer', fontFamily:'inherit' }}>−</button>
+                          <div style={{ flex:1, textAlign:'center' as const, fontSize:18, fontWeight:800, color:'#014a09' }}>{leaguePointsWin}</div>
+                          <button onClick={() => setLeaguePointsWin(Math.min(9,leaguePointsWin+1))} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center', background:'transparent', border:'none', fontSize:18, fontWeight:700, color:'#014a09', cursor:'pointer', fontFamily:'inherit' }}>+</button>
+                        </div>
+                      </div>
+                      {([
+                        ['Sets won in a loss','+1 pt per set won when you lose',leaguePointsSetsLoss,(v:boolean)=>{setLeaguePointsSetsLoss(v);if(v)setLeaguePointsAllSets(false)}],
+                        ['Sets won by all players','+1 pt per set regardless of result',leaguePointsAllSets,(v:boolean)=>{setLeaguePointsAllSets(v);if(v)setLeaguePointsSetsLoss(false)}],
+                        ['Bagel bonus (6–0)','+1 pt per 6–0 set won',leaguePointsBagel,setLeaguePointsBagel],
+                      ] as [string,string,boolean,(v:boolean)=>void][]).map(([label,sub,val,setter]) => (
+                        <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 0', borderTop:'1px solid rgba(1,74,9,0.07)' }}>
+                          <div><div style={{ fontSize:13, fontWeight:600, color:'#014a09' }}>{label}</div><div style={{ fontSize:11, color:'rgba(1,74,9,0.45)', marginTop:2 }}>{sub}</div></div>
+                          <div onClick={() => setter(!val)} style={{ width:40, height:22, borderRadius:11, background: val ? '#014a09' : 'rgba(1,74,9,0.15)', position:'relative', cursor:'pointer', transition:'background 0.2s', flexShrink:0 }}>
+                            <div style={{ width:18, height:18, borderRadius:'50%', background:'#fff', position:'absolute', top:2, left: val ? 20 : 2, transition:'left 0.2s' }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:20 }}>
+                      <button onClick={() => setLeagueStep(4)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+                      <button onClick={() => setLeagueStep(6)} style={{ flex:2, background:'#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>Next → Review</button>
+                    </div>
+                  </div>
+                )}
+
+                {leagueStep === 6 && (
+                  <div style={{ background:'#fff', borderRadius:16, padding:'20px' }}>
+                    <div style={{ fontSize:16, fontWeight:800, color:'#014a09', marginBottom:16 }}>Review & Launch</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+                      {([
+                        ['Season', leagueName],
+                        ['Dates', leagueStart&&leagueEnd ? leagueStart+' – '+leagueEnd : 'No dates set'],
+                        ['Format', leagueFormat==='round_robin' ? 'Round Robin' : 'Groups + Knockout'],
+                        ['Players', leaguePlayers.length+' selected'],
+                        ['Groups', leagueGroups+' groups of ~'+Math.ceil(leaguePlayers.length/leagueGroups)],
+                        ['Points', 'Win: '+leaguePointsWin+'pts'+(leaguePointsSetsLoss?' · Sets in loss: +1':'')+(leaguePointsAllSets?' · All sets: +1':'')+(leaguePointsBagel?' · Bagel: +1':'')],
+                      ] as [string,string][]).map(([k,v],i) => (
+                        <div key={k} style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', padding:'11px 0', borderBottom: i<5 ? '1px solid rgba(1,74,9,0.06)' : 'none' }}>
+                          <span style={{ fontSize:12, color:'rgba(1,74,9,0.45)' }}>{k}</span>
+                          <span style={{ fontSize:12, fontWeight:700, color:'#014a09', textAlign:'right' as const, maxWidth:'60%' }}>{v}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:12, padding:'11px 14px', marginTop:12, fontSize:12, color:'rgba(1,74,9,0.55)', lineHeight:1.5 }}>
+                      Fixtures will be auto-generated and visible to all players immediately.
+                    </div>
+                    <div style={{ display:'flex', gap:8, marginTop:16 }}>
+                      <button onClick={() => setLeagueStep(5)} style={{ flex:1, background:'rgba(1,74,9,0.07)', border:'none', borderRadius:12, padding:'12px', color:'#014a09', fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+                      <button onClick={handleCreateLeague} disabled={leagueCreating}
+                        style={{ flex:2, background: leagueCreating ? 'rgba(1,74,9,0.4)' : '#014a09', border:'none', borderRadius:12, padding:'12px', color:'#ffcc66', fontWeight:800, fontSize:14, cursor: leagueCreating?'default':'pointer', fontFamily:'inherit' }}>
+                        {leagueCreating ? 'Creating…' : 'Launch Season 🚀'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Analytics */
         {tab==='analytics' && (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:14 }}>
             <div style={{ background:'#fff', borderRadius:16, padding:'16px 18px' }}>
