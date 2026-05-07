@@ -40,14 +40,15 @@ function calcNewRating(myR: number, teamAvg: number, oppAvg: number, won: boolea
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// RESTYLED: flat solid circle, white initials — clean & modern
 function Avatar({ initials, size = 40, rating }: { initials: string; size?: number; rating: number }) {
   const b = getBand(rating)
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%',
-      background: b.bg, border: `2px solid ${b.color}35`,
+      background: b.color,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: b.color, fontWeight: 800, fontSize: size * 0.32, flexShrink: 0,
+      color: '#fff', fontWeight: 800, fontSize: size * 0.32, flexShrink: 0,
     }}>
       {initials}
     </div>
@@ -78,8 +79,6 @@ function Notif({ msg }: { msg: string | null }) {
 }
 
 // ─── Score row component ──────────────────────────────────────────────────────
-// Renders one set row + optional tiebreak sub-row if either score is 7-6
-// aWinning/bWinning drive reactive colours — winner green, loser red, neutral when tied
 function SetRow({
   label,
   va, setVa, vb, setVb,
@@ -98,7 +97,6 @@ function SetRow({
   const showTb = (a === 7 && b === 6) || (a === 6 && b === 7)
   const hasVal = va !== '' || vb !== ''
 
-  // Per-row reactive colour: higher score in this set is green, lower is red
   const aRowWin = hasVal && a > b
   const bRowWin = hasVal && b > a
 
@@ -132,7 +130,6 @@ function SetRow({
 
   return (
     <div style={{ marginBottom: showTb ? 4 : 8 }}>
-      {/* Main set row */}
       <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, alignItems: 'center' }}>
         <div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>
           {label}
@@ -150,7 +147,6 @@ function SetRow({
         />
       </div>
 
-      {/* Tiebreak sub-row — slides in when 7-6 */}
       {showTb && (
         <div style={{
           display: 'grid',
@@ -190,13 +186,11 @@ export default function RatingsPage() {
   const [loading,     setLoading]     = useState(true)
   const [notif,       setNotif]       = useState<string | null>(null)
 
-  // Log match state
   const [selA1, setSelA1] = useState<Rating | null>(null)
   const [selA2, setSelA2] = useState<Rating | null>(null)
   const [selB1, setSelB1] = useState<Rating | null>(null)
   const [selB2, setSelB2] = useState<Rating | null>(null)
 
-  // Set scores: s1a = set1 team A, etc.
   const [s1a, setS1a] = useState('')
   const [s1b, setS1b] = useState('')
   const [s2a, setS2a] = useState('')
@@ -204,7 +198,6 @@ export default function RatingsPage() {
   const [s3a, setS3a] = useState('')
   const [s3b, setS3b] = useState('')
 
-  // Tiebreak scores: tb1a = set1 tiebreak team A, etc.
   const [tb1a, setTb1a] = useState('')
   const [tb1b, setTb1b] = useState('')
   const [tb2a, setTb2a] = useState('')
@@ -292,30 +285,24 @@ export default function RatingsPage() {
     } catch(e) { console.error('prefill parse error', e) }
   }, [ratings])
 
-  // ── Derived: set winners & whether Set 3 is needed ────────────────────────
-  // A set is "won by A" if A score > B score (and both entered)
   function setWinner(a: string, b: string): 'a' | 'b' | null {
     const av = parseInt(a), bv = parseInt(b)
     if (isNaN(av) || isNaN(bv) || (av === 0 && bv === 0)) return null
     if (av > bv) return 'a'
     if (bv > av) return 'b'
-    return null // draw / incomplete
+    return null
   }
 
   const set1Winner = setWinner(s1a, s1b)
   const set2Winner = setWinner(s2a, s2b)
-
-  // Show Set 3 only when sets are split (one each)
   const showSet3 = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
 
-  // Clear Set 3 scores when it becomes hidden
   useEffect(() => {
     if (!showSet3) {
       setS3a(''); setS3b(''); setTb3a(''); setTb3b('')
     }
   }, [showSet3])
 
-  // ── Rating preview calc ───────────────────────────────────────────────────
   function calcPreview() {
     if (!selA1 || !selA2 || !selB1 || !selB2) return null
     const s1av = parseInt(s1a) || 0, s1bv = parseInt(s1b) || 0
@@ -339,7 +326,6 @@ export default function RatingsPage() {
 
   const preview = calcPreview()
 
-  // ── Submit match ──────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (!selA1 || !selA2 || !selB1 || !selB2 || !preview) { showNotif('Select 4 players and enter scores'); return }
     if (!s1a || !s1b) { showNotif('Set 1 is required'); return }
@@ -347,9 +333,6 @@ export default function RatingsPage() {
 
     const sets_a = [parseInt(s1a)||0, parseInt(s2a)||0, parseInt(s3a)||0].filter((_,i) => i===0 || (s2a&&i===1) || (s3a&&i===2))
     const sets_b = [parseInt(s1b)||0, parseInt(s2b)||0, parseInt(s3b)||0].filter((_,i) => i===0 || (s2b&&i===1) || (s3b&&i===2))
-
-    // Store tiebreak scores alongside set scores (append to metadata if needed)
-    // For now they're captured in state; extend your DB schema to persist tb scores if desired
 
     const { error: matchError } = await supabase.from('matches').insert({
       team_a1_id: selA1.player_id, team_a1_name: selA1.player_name,
@@ -394,7 +377,6 @@ export default function RatingsPage() {
     setTimeout(() => loadData(), 2000)
   }
 
-  // ── Player picker ─────────────────────────────────────────────────────────
   function assignPlayer(r: Rating) {
     if (!pickingFor) return
     const already = [selA1, selA2, selB1, selB2].find(p => p?.player_id === r.player_id)
@@ -410,15 +392,8 @@ export default function RatingsPage() {
   const s: Record<string, React.CSSProperties> = {
     page:  { minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#014a09', overflowX:'hidden' },
     inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 80px' },
-    lbl:   { fontSize:9, fontWeight:700, color:'rgba(1,74,9,0.35)', textTransform:'uppercase' as const, letterSpacing:'1px' as const, marginBottom:8 },
+    lbl:   { fontSize:9, fontWeight:700, color:'rgba(1,74,9,0.35)', textTransform:'uppercase' as const, letterSpacing:'1.2px' as const, marginBottom:8 },
   }
-
-  const navBtn = (active: boolean) => ({
-    flex:1, background: active ? '#026b0d' : 'transparent',
-    border:'none', borderRadius:9, padding:'9px 0',
-    fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
-    color: active ? '#ffcc66' : 'rgba(255,204,102,0.5)', transition:'all 0.15s',
-  } as React.CSSProperties)
 
   if (loading) return (
     <div style={{ ...s.page, display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -449,7 +424,6 @@ export default function RatingsPage() {
 
   return (
     <div style={s.page}>
-      {/* Fade-in keyframe for tiebreak row */}
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(-4px); }
@@ -460,16 +434,29 @@ export default function RatingsPage() {
       <Notif msg={notif} />
       <div style={s.inner}>
 
-        {/* Header */}
-        <div style={{ padding:'22px 0 8px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontSize:20, fontWeight:800, color:'#014a09', letterSpacing:-0.5 }}>The Arena</div>
+        {/* ── RESTYLED Header ── */}
+        <div style={{ padding:'22px 0 14px' }}>
+          <div style={{ fontSize:26, fontWeight:900, color:'#014a09', letterSpacing:-0.8, lineHeight:1 }}>The Arena</div>
+          <div style={{ fontSize:12, color:'rgba(1,74,9,0.4)', marginTop:5, fontWeight:500 }}>Track your progress and rankings</div>
         </div>
 
-        {/* Nav pills */}
-        <div style={{ display:'flex', gap:6, marginBottom:16 }}>
+        {/* ── RESTYLED Nav pills ── */}
+        <div style={{ display:'flex', gap:7, marginBottom:18 }}>
           {(['leaderboard','log','my'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
-              style={{ background: view===v ? '#014a09' : 'rgba(1,74,9,0.07)', color: view===v ? '#ffcc66' : 'rgba(1,74,9,0.5)', fontSize:10, fontWeight: view===v ? 700 : 600, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const }}>
+              style={{
+                background: view===v ? '#014a09' : 'transparent',
+                color: view===v ? '#ffcc66' : 'rgba(1,74,9,0.5)',
+                fontSize: 11,
+                fontWeight: view===v ? 700 : 500,
+                padding: '7px 16px',
+                borderRadius: 20,
+                cursor: 'pointer',
+                border: view===v ? 'none' : '1px solid rgba(1,74,9,0.15)',
+                fontFamily: 'inherit',
+                whiteSpace: 'nowrap' as const,
+                transition: 'all 0.15s',
+              }}>
               {v === 'leaderboard' ? 'Leaderboard' : v === 'log' ? 'Log Match' : 'My Results'}
             </button>
           ))}
@@ -478,25 +465,32 @@ export default function RatingsPage() {
         {/* ══ LEADERBOARD ══ */}
         {view === 'leaderboard' && (
           <div>
-            <div style={s.lbl}>Club rankings · {ratings.length} members</div>
+            {/* ── RESTYLED label ── */}
+            <div style={{ fontSize:10, fontWeight:700, color:'rgba(1,74,9,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:12 }}>
+              Club rankings · {ratings.length} members
+            </div>
             {ratings.map((r, i) => {
               const b = getBand(r.rating)
               const isMe = r.player_id === myId
+              // ── RESTYLED rank colour: gold / silver / bronze for top 3 ──
+              const rankColor = i === 0 ? '#cc9900' : i === 1 ? '#888' : i === 2 ? '#a05c2a' : 'rgba(1,74,9,0.22)'
               return (
                 <div key={r.id} onClick={() => !isMe && setViewingPlayer(r)}
                   style={{
-                  display:'flex', alignItems:'center', gap:12,
-                  padding:'11px 14px', borderRadius:12, marginBottom:6,
-                  background: isMe ? 'rgba(1,74,9,0.06)' : '#fff',
-                  border: isMe ? '1px solid rgba(1,74,9,0.18)' : '1px solid rgba(1,74,9,0.06)',
-                  cursor: isMe ? 'default' : 'pointer',
-                }}>
-                  <div style={{ fontSize:13, fontWeight:900, color: i < 3 ? '#014a09' : '#aaa', width:20, textAlign:'center', flexShrink:0, background: i < 3 ? 'rgba(1,74,9,0.1)' : 'transparent', borderRadius:'50%', height:20, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                    display:'flex', alignItems:'center', gap:12,
+                    padding:'12px 14px', borderRadius:14, marginBottom:7,
+                    background: isMe ? 'rgba(1,74,9,0.07)' : 'rgba(255,255,255,0.75)',
+                    border: isMe ? '1.5px solid rgba(1,74,9,0.2)' : '1px solid rgba(1,74,9,0.08)',
+                    cursor: isMe ? 'default' : 'pointer',
+                  }}>
+                  {/* ── RESTYLED rank number ── */}
+                  <div style={{ fontSize:12, fontWeight:800, color: rankColor, width:20, textAlign:'center', flexShrink:0 }}>
                     {i + 1}
                   </div>
                   <Avatar initials={r.avatar} size={38} rating={r.rating} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color: isMe ? '#026b0d' : '#014a09' }}>
+                    {/* ── RESTYLED name size ── */}
+                    <div style={{ fontSize:14, fontWeight:700, color: isMe ? '#026b0d' : '#014a09' }}>
                       {r.player_name}{isMe ? ' (you)' : ''}
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
@@ -506,9 +500,11 @@ export default function RatingsPage() {
                     </div>
                   </div>
                   <div style={{ textAlign:'right' }}>
-                    <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{r.rating.toFixed(1)}</div>
-                    <div style={{ height:4, width:60, background:'rgba(1,74,9,0.1)', borderRadius:4, overflow:'hidden', marginTop:4 }}>
-                      <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4 }} />
+                    {/* ── RESTYLED rating number ── */}
+                    <div style={{ fontSize:24, fontWeight:900, color:'#014a09', letterSpacing:-0.5 }}>{r.rating.toFixed(1)}</div>
+                    {/* ── RESTYLED bar: thinner, smoother ── */}
+                    <div style={{ height:3, width:56, background:'rgba(1,74,9,0.08)', borderRadius:4, overflow:'hidden', marginTop:5 }}>
+                      <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4, transition:'width 0.3s' }} />
                     </div>
                   </div>
                 </div>
@@ -572,14 +568,12 @@ export default function RatingsPage() {
 
           const allFourSelected = !!(selA1 && selA2 && selB1 && selB2)
 
-          // Derive who's leading based on total games won across all sets
           const aTotal = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
           const bTotal = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
           const aLeading = aTotal > bTotal
           const bLeading = bTotal > aTotal
           const hasScores = aTotal > 0 || bTotal > 0
 
-          // Determine team colors based on scores
           const getTeamAStyle = () => {
             if (!hasScores) return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
             if (aLeading) return { border: 'rgba(0,102,51,0.4)', bg: 'rgba(0,102,51,0.07)', text: '#006633' }
@@ -600,13 +594,12 @@ export default function RatingsPage() {
           return (
             <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
 
-              {/* Player pool — schedule flow only */}
               {isFromSchedule && pool.length > 0 && (
                 <div>
                   <div style={{ ...s.lbl, marginBottom:8 }}>Drag players to assign teams</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {pool.map(r => (
-                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'#fff', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1 }}>
+                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'rgba(255,255,255,0.75)', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1, border:'1px solid rgba(1,74,9,0.08)' }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
                           <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
@@ -674,11 +667,11 @@ export default function RatingsPage() {
 
               {/* Player picker — manual entry only */}
               {!isFromSchedule && pickingFor && (
-                <div style={{ background:'#fff', borderRadius:16, padding:'10px 12px' }}>
+                <div style={{ background:'rgba(255,255,255,0.8)', borderRadius:16, padding:'10px 12px', border:'1px solid rgba(1,74,9,0.08)' }}>
                   <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                     {ratings.filter(r => ![selA1,selA2,selB1,selB2].find(p=>p?.player_id===r.player_id)).map(r => (
-                      <button key={r.id} onClick={() => assignPlayer(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'#fff', border:'1px solid #e0d8cc', borderRadius:10, cursor:'pointer', fontFamily:'inherit' }}>
+                      <button key={r.id} onClick={() => assignPlayer(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'transparent', border:'1px solid rgba(1,74,9,0.1)', borderRadius:10, cursor:'pointer', fontFamily:'inherit' }}>
                         <Avatar initials={r.avatar} size={30} rating={r.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
                           <div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
@@ -693,7 +686,6 @@ export default function RatingsPage() {
 
               {/* ── Scores ── */}
               {allFourSelected && (() => {
-                // Reactive colours for each team column
                 const aCol = !hasScores ? '#888' : aLeading ? '#006633' : bLeading ? '#990033' : '#888'
                 const bCol = !hasScores ? '#888' : bLeading ? '#006633' : aLeading ? '#990033' : '#888'
 
@@ -701,7 +693,6 @@ export default function RatingsPage() {
                   <div>
                     <div style={s.lbl}>Scores</div>
 
-                    {/* Team name headers above score columns */}
                     <div style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, marginBottom:6 }}>
                       <div />
                       <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: aCol, transition:'color 0.2s' }}>Team A</div>
@@ -709,7 +700,6 @@ export default function RatingsPage() {
                       <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: bCol, transition:'color 0.2s' }}>Team B</div>
                     </div>
 
-                    {/* Set 1 — always shown */}
                     <SetRow
                       label="Set 1"
                       va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b}
@@ -717,7 +707,6 @@ export default function RatingsPage() {
                       aWinning={aLeading} bWinning={bLeading}
                     />
 
-                    {/* Set 2 — always shown */}
                     <SetRow
                       label="Set 2"
                       va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b}
@@ -725,7 +714,6 @@ export default function RatingsPage() {
                       aWinning={aLeading} bWinning={bLeading}
                     />
 
-                    {/* Set 3 — appears only when sets are split */}
                     {showSet3 && (
                       <div style={{ animation:'fadeSlideIn 0.18s ease' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, marginTop:2 }}>
@@ -745,12 +733,16 @@ export default function RatingsPage() {
                 )
               })()}
 
-              {/* Submit */}
+              {/* ── RESTYLED Submit button ── */}
               {allFourSelected && (
                 <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
-                  width:'100%', background: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.08)' : '#014a09',
-                  border:'none', borderRadius:12, padding:'14px 0', color: (!s1a||!s1b||submitting) ? '#aaa' : '#ffcc66',
-                  fontWeight:800, fontSize:15, cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer', fontFamily:'inherit',
+                  width:'100%',
+                  background: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.06)' : '#014a09',
+                  border:'none', borderRadius:14, padding:'15px 0',
+                  color: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.3)' : '#ffcc66',
+                  fontWeight:800, fontSize:15,
+                  cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer',
+                  fontFamily:'inherit', letterSpacing:0.2, transition:'all 0.15s',
                 }}>
                   {submitting ? 'Logging…' : 'Confirm & Log Match →'}
                 </button>
@@ -759,10 +751,10 @@ export default function RatingsPage() {
           )
         })()}
 
-        {/* Rating preview */}
+        {/* ── RESTYLED Rating preview card ── */}
         {preview && (
-          <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.15)', borderRadius:12, padding:'12px 14px' }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.5, marginBottom:10 }}>
+          <div style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(1,74,9,0.1)', borderRadius:14, padding:'13px 15px', marginTop:16 }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>
               Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
             </div>
             {[
@@ -793,43 +785,40 @@ export default function RatingsPage() {
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {currentUser ? (
               <>
-                {/* My rating card */}
-                <div style={{ background:'#014a09', borderRadius:16, padding:'16px', display:'flex', alignItems:'center', gap:16 }}>
-                  <div style={{ fontSize:40, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>
+                {/* ── RESTYLED My rating card — gradient ── */}
+                <div style={{ background:'linear-gradient(135deg, #014a09 0%, #026b0d 100%)', borderRadius:18, padding:'18px', display:'flex', alignItems:'center', gap:16 }}>
+                  <div style={{ fontSize:44, fontWeight:900, color:'#ffcc66', lineHeight:1, letterSpacing:-1 }}>
                     {currentUser.rating.toFixed(1)}
                   </div>
                   <div>
-                    <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginBottom:3 }}>Your current rating</div>
-                    <div style={{ fontSize:16, fontWeight:800, color:'#fff' }}>{currentUser.player_name}</div>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:6 }}>
+                    <div style={{ fontSize:11, color:'rgba(255,204,102,0.55)', marginBottom:4 }}>Your current rating</div>
+                    <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>{currentUser.player_name}</div>
+                    <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:7 }}>
                       <ConfBadge n={myHistory.length} />
-                      <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{myHistory.length} matches · rank #{myRank}</span>
+                      <span style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{myHistory.length} matches · rank #{myRank}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Rating fluctuation graph */}
-                <div style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.12)', borderRadius:12, padding:'14px' }}>
+                <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(1,74,9,0.08)', borderRadius:14, padding:'14px' }}>
                   <div style={{ ...s.lbl, marginBottom:10 }}>Rating fluctuations</div>
                   {myRatingTimeline.length === 0 ? (
                     <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet — log a match to build your history.</div>
                   ) : (
                     <>
+                      {/* ── RESTYLED stat boxes ── */}
                       <div style={{ display:'flex', gap:10, marginBottom:16 }}>
-                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Matches</div>
-                          <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{myRatingTimeline.length}</div>
-                        </div>
-                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Currently</div>
-                          <div style={{ fontSize:22, fontWeight:900, color:'#014a09' }}>{myRatingTimeline[myRatingTimeline.length-1].rating.toFixed(1)}</div>
-                        </div>
-                        <div style={{ flex:1, background:'#f5f5f1', borderRadius:14, padding:'12px' }}>
-                          <div style={{ fontSize:10, color:'#888', textTransform:'uppercase', marginBottom:6 }}>Trend</div>
-                          <div style={{ fontSize:22, fontWeight:900, color: myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '#006633' : '#990033' }}>
-                            {myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '+' : ''}{(myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating).toFixed(1)}
+                        {[
+                          { label:'Matches', value: String(myRatingTimeline.length) },
+                          { label:'Currently', value: myRatingTimeline[myRatingTimeline.length-1].rating.toFixed(1) },
+                          { label:'Trend', value: (myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '+' : '') + (myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating).toFixed(1), color: myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '#006633' : '#990033' },
+                        ].map(stat => (
+                          <div key={stat.label} style={{ flex:1, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.07)', borderRadius:12, padding:'11px' }}>
+                            <div style={{ fontSize:9, color:'rgba(1,74,9,0.4)', textTransform:'uppercase' as const, letterSpacing:'0.8px', marginBottom:6 }}>{stat.label}</div>
+                            <div style={{ fontSize:22, fontWeight:900, color: stat.color || '#014a09' }}>{stat.value}</div>
                           </div>
-                        </div>
+                        ))}
                       </div>
 
                       <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:16, padding:'14px', overflowX:'auto' }}>
@@ -873,8 +862,9 @@ export default function RatingsPage() {
 
                   return (
                     <div key={m.id} style={{
-                      background:'#fff', borderLeft:`3px solid ${won?'#006633':'#990033'}`,
+                      background:'rgba(255,255,255,0.75)', borderLeft:`3px solid ${won?'#006633':'#990033'}`,
                       borderRadius:'0 14px 14px 0', padding:'12px 14px', paddingLeft:11, marginBottom:6,
+                      border:`1px solid rgba(1,74,9,0.07)`, borderLeftWidth:3, borderLeftColor: won?'#006633':'#990033',
                     }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                         <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
@@ -936,7 +926,7 @@ export default function RatingsPage() {
                 </div>
                 <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              <div style={{ background:'#014a09', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
+              <div style={{ background:'linear-gradient(135deg, #014a09 0%, #026b0d 100%)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
                 <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
                   <div style={{ fontSize:11, color:'rgba(255,204,102,0.7)', marginBottom:3 }}>Current rating</div>
@@ -963,7 +953,7 @@ export default function RatingsPage() {
                   const opp1 = onA?m.team_b1_name:m.team_a1_name
                   const opp2 = onA?m.team_b2_name:m.team_a2_name
                   return (
-                    <div key={m.id} style={{ background:'#fff', border:'1px solid rgba(1,74,9,0.1)', borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'11px 14px', marginBottom:7 }}>
+                    <div key={m.id} style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(1,74,9,0.08)', borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'11px 14px', marginBottom:7 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
                         <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
                         <div style={{ fontSize:12, fontWeight:700, color:won?'#006633':'#990033' }}>{won?'W':'L'} · {sets}</div>
