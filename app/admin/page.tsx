@@ -70,6 +70,8 @@ export default function AdminPage() {
   const [editBoxPlayers,         setEditBoxPlayers]         = useState<any[]>([])
   const [editAddSearch,          setEditAddSearch]          = useState('')
   const [editAddLevel,           setEditAddLevel]           = useState<string|null>(null)
+  const [editLeagueName,         setEditLeagueName]         = useState('')
+  const [deleteConfirmLeague,    setDeleteConfirmLeague]    = useState<string|null>(null)
 
   const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000) }
 
@@ -177,6 +179,7 @@ export default function AdminPage() {
 
   const loadLeagueForEdit = async (league: any) => {
     setEditingLeague(league)
+    setEditLeagueName(league.name)
     const { data: boxes } = await supabase.from('league_boxes').select('*').eq('league_id', league.id).order('box_number')
     setEditBoxes(boxes || [])
     const boxIds = (boxes || []).map((b: any) => b.id)
@@ -211,6 +214,24 @@ export default function AdminPage() {
     if (error) { showNotif('Error: ' + error.message); return }
     setEditBoxPlayers((prev: any[]) => [...prev.filter((p: any) => p.player_id !== playerId), { box_id: newBoxId, player_id: playerId, seed }])
     showNotif('Player moved')
+  }
+
+  const handleSaveLeague = async () => {
+    if (!editingLeague) return
+    const { error } = await supabase.from('leagues').update({ name: editLeagueName }).eq('id', editingLeague.id)
+    if (error) { showNotif('Error: ' + error.message); return }
+    setExistingLeagues((prev: any[]) => prev.map(l => l.id === editingLeague.id ? { ...l, name: editLeagueName } : l))
+    setEditingLeague((prev: any) => ({ ...prev, name: editLeagueName }))
+    showNotif('League saved!')
+  }
+
+  const handleDeleteLeague = async () => {
+    if (!editingLeague) return
+    const { error } = await supabase.from('leagues').delete().eq('id', editingLeague.id)
+    if (error) { showNotif('Error: ' + error.message); return }
+    setExistingLeagues((prev: any[]) => prev.filter(l => l.id !== editingLeague.id))
+    setEditingLeague(null); setDeleteConfirmLeague(null)
+    showNotif('League deleted')
   }
 
   if (loading) return (
@@ -570,6 +591,27 @@ export default function AdminPage() {
                                   </div>
                                 )
                               })}
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ borderTop:`1px solid ${C.cardBorder}`, paddingTop:12, marginTop:8, display:'flex', flexDirection:'column', gap:8 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.dark, marginBottom:6, letterSpacing:'0.04em' }}>LEAGUE NAME</div>
+                        <input value={editLeagueName} onChange={e => setEditLeagueName(e.target.value)}
+                          style={{ width:'100%', padding:'8px 12px', border:'1px solid rgba(26,58,42,0.15)', borderRadius:8, fontSize:13, fontFamily:'inherit', color:C.dark, background:'rgba(26,58,42,0.02)', outline:'none', boxSizing:'border-box' as const }} />
+                        <div style={{ display:'flex', gap:8, marginTop:4 }}>
+                          <button onClick={handleSaveLeague}
+                            style={{ flex:2, background:C.dark, border:'none', borderRadius:8, padding:'9px 0', color:C.gold, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em' }}>Save Changes</button>
+                          <button onClick={() => setDeleteConfirmLeague(deleteConfirmLeague === lg.id ? null : lg.id)}
+                            style={{ flex:1, background:'rgba(153,0,51,0.08)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:8, padding:'9px 0', color:'#990033', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Delete</button>
+                        </div>
+                        {deleteConfirmLeague === lg.id && (
+                          <div style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.2)', borderRadius:8, padding:'10px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
+                            <span style={{ fontSize:12, color:'#990033', fontWeight:500 }}>Delete league + all data?</span>
+                            <div style={{ display:'flex', gap:6 }}>
+                              <button onClick={() => setDeleteConfirmLeague(null)} style={{ background:'transparent', border:'1px solid rgba(26,58,42,0.2)', borderRadius:6, padding:'4px 10px', fontSize:11, cursor:'pointer', fontFamily:'inherit', color:C.dark }}>Cancel</button>
+                              <button onClick={handleDeleteLeague} style={{ background:'#990033', border:'none', borderRadius:6, padding:'4px 10px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', color:'#fff' }}>Yes, delete</button>
+                            </div>
                           </div>
                         )}
                       </div>
