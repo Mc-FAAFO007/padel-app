@@ -6,11 +6,12 @@ import { supabase } from '@/lib/supabase'
 import type { Rating, Match } from '@/lib/types'
 
 // ─── Rating Engine ────────────────────────────────────────────────────────────
+// UPDATED: band colours aligned with staff portal palette
 const BANDS = [
-  { label:'Beginner',        min:1.0, max:2.5, color:'#990033', bg:'rgba(153,0,51,0.10)'  },
-  { label:'Casual',          min:2.6, max:4.0, color:'#006633', bg:'rgba(0,102,51,0.10)'  },
-  { label:'Competitive',     min:4.1, max:5.5, color:'#000099', bg:'rgba(0,0,153,0.10)'   },
-  { label:'Elite',           min:5.6, max:7.0, color:'#cc9900', bg:'rgba(204,153,0,0.12)' },
+  { label:'Beginner',    min:1.0, max:2.5, color:'#8b2020', bg:'rgba(139,32,32,0.10)'  },
+  { label:'Casual',      min:2.6, max:4.0, color:'#1a5c35', bg:'rgba(26,92,53,0.10)'   },
+  { label:'Competitive', min:4.1, max:5.5, color:'#2d3a8a', bg:'rgba(45,58,138,0.10)'  },
+  { label:'Elite',       min:5.6, max:7.0, color:'#b8963e', bg:'rgba(184,150,62,0.12)' },
 ]
 
 function getBand(r: number) {
@@ -18,10 +19,10 @@ function getBand(r: number) {
 }
 
 function getConf(n: number): { label: string; color: string; bg: string } {
-  if (n < 5)  return { label:'NC', color:'#888',    bg:'rgba(136,136,136,0.12)' }
-  if (n < 10) return { label:'LC', color:'#014a09', bg:'rgba(1,74,9,0.10)'    }
-  if (n < 20) return { label:'MC', color:'#000099', bg:'rgba(0,0,153,0.10)'     }
-  return             { label:'HC', color:'#006633', bg:'rgba(0,102,51,0.10)'    }
+  if (n < 5)  return { label:'NC', color:'rgba(26,58,42,0.4)', bg:'rgba(26,58,42,0.08)'  }
+  if (n < 10) return { label:'LC', color:'#1a3a2a',            bg:'rgba(26,58,42,0.10)'  }
+  if (n < 20) return { label:'MC', color:'#2d3a8a',            bg:'rgba(45,58,138,0.10)' }
+  return             { label:'HC', color:'#1a5c35',            bg:'rgba(26,92,53,0.10)'  }
 }
 
 function getK(n: number) { return n < 5 ? 0.4 : n < 10 ? 0.3 : n < 20 ? 0.22 : 0.16 }
@@ -40,7 +41,7 @@ function calcNewRating(myR: number, teamAvg: number, oppAvg: number, won: boolea
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-// RESTYLED: flat solid circle, white initials — clean & modern
+// UPDATED: solid band-coloured circle, white initials
 function Avatar({ initials, size = 40, rating }: { initials: string; size?: number; rating: number }) {
   const b = getBand(rating)
   return (
@@ -48,7 +49,7 @@ function Avatar({ initials, size = 40, rating }: { initials: string; size?: numb
       width: size, height: size, borderRadius: '50%',
       background: b.color,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      color: '#fff', fontWeight: 800, fontSize: size * 0.32, flexShrink: 0,
+      color: '#fff', fontWeight: 500, fontSize: size * 0.32, flexShrink: 0,
     }}>
       {initials}
     </div>
@@ -59,8 +60,8 @@ function ConfBadge({ n }: { n: number }) {
   const c = getConf(n)
   return (
     <span style={{
-      fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 10,
-      background: c.bg, color: c.color,
+      fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 10,
+      background: c.bg, color: c.color, letterSpacing: '0.04em',
     }}>{c.label}</span>
   )
 }
@@ -70,10 +71,10 @@ function Notif({ msg }: { msg: string | null }) {
   return (
     <div style={{
       position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
-      background: 'rgba(1,74,9,0.12)', backdropFilter: 'blur(12px)',
-      border: '1px solid rgba(2,107,13,0.4)', borderRadius: 14,
-      padding: '11px 22px', zIndex: 9999, color: '#014a09',
-      fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap',
+      background: 'rgba(26,58,42,0.1)', backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(45,92,66,0.35)', borderRadius: 14,
+      padding: '11px 22px', zIndex: 9999, color: '#1a3a2a',
+      fontWeight: 500, fontSize: 14, whiteSpace: 'nowrap', letterSpacing: '0.02em',
     }}>{msg}</div>
   )
 }
@@ -101,28 +102,28 @@ function SetRow({
   const bRowWin = hasVal && b > a
 
   function inputStyle(side: 'a' | 'b', rowWin: boolean, rowLose: boolean): React.CSSProperties {
-    const win  = { bg: 'rgba(0,102,51,0.07)',  border: 'rgba(0,102,51,0.4)',  color: '#006633' }
-    const lose = { bg: 'rgba(153,0,51,0.07)',  border: 'rgba(153,0,51,0.4)', color: '#990033' }
-    const neu  = { bg: 'rgba(1,74,9,0.04)',    border: 'rgba(1,74,9,0.15)',  color: '#888'    }
+    const win  = { bg: 'rgba(26,92,53,0.07)',   border: 'rgba(26,92,53,0.4)',   color: '#1a5c35' }
+    const lose = { bg: 'rgba(139,32,32,0.07)',  border: 'rgba(139,32,32,0.4)', color: '#8b2020' }
+    const neu  = { bg: 'rgba(26,58,42,0.04)',   border: 'rgba(26,58,42,0.15)', color: 'rgba(26,58,42,0.4)' }
     const { bg, border, color } = rowWin ? win : rowLose ? lose : neu
     return {
       background: bg, border: `1px solid ${border}`,
       borderRadius: 9, padding: '9px 0',
-      color, fontSize: 20, fontWeight: 900, textAlign: 'center',
+      color, fontSize: 20, fontWeight: 500, textAlign: 'center',
       fontFamily: 'inherit', outline: 'none', width: '100%',
       transition: 'all 0.15s',
     }
   }
 
   function tbStyle(side: 'a' | 'b', rowWin: boolean, rowLose: boolean): React.CSSProperties {
-    const win  = { bg: 'rgba(0,102,51,0.05)',  border: 'rgba(0,102,51,0.35)',  color: '#006633' }
-    const lose = { bg: 'rgba(153,0,51,0.05)',  border: 'rgba(153,0,51,0.35)', color: '#990033' }
-    const neu  = { bg: 'rgba(1,74,9,0.02)',    border: 'rgba(1,74,9,0.2)',    color: '#aaa'    }
+    const win  = { bg: 'rgba(26,92,53,0.05)',   border: 'rgba(26,92,53,0.35)',   color: '#1a5c35' }
+    const lose = { bg: 'rgba(139,32,32,0.05)',  border: 'rgba(139,32,32,0.35)', color: '#8b2020' }
+    const neu  = { bg: 'rgba(26,58,42,0.02)',   border: 'rgba(26,58,42,0.2)',   color: 'rgba(26,58,42,0.35)' }
     const { bg, border, color } = rowWin ? win : rowLose ? lose : neu
     return {
       background: bg, border: `1px dashed ${border}`,
       borderRadius: 7, padding: '5px 0',
-      color, fontSize: 14, fontWeight: 800, textAlign: 'center',
+      color, fontSize: 14, fontWeight: 500, textAlign: 'center',
       fontFamily: 'inherit', outline: 'none', width: '100%',
       transition: 'all 0.15s',
     }
@@ -131,7 +132,7 @@ function SetRow({
   return (
     <div style={{ marginBottom: showTb ? 4 : 8 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, alignItems: 'center' }}>
-        <div style={{ fontSize: 11, color: '#888', fontWeight: 700 }}>
+        <div style={{ fontSize: 11, color: 'rgba(26,58,42,0.45)', fontWeight: 400, letterSpacing: '0.04em' }}>
           {label}
         </div>
         <input
@@ -139,7 +140,7 @@ function SetRow({
           value={va} onChange={e => setVa(e.target.value)}
           style={inputStyle('a', aRowWin, bRowWin)}
         />
-        <div style={{ textAlign: 'center', color: '#888', fontWeight: 700, fontSize: 13 }}>–</div>
+        <div style={{ textAlign: 'center', color: 'rgba(26,58,42,0.35)', fontWeight: 400, fontSize: 13 }}>–</div>
         <input
           type="number" min="0" max="7" placeholder="—"
           value={vb} onChange={e => setVb(e.target.value)}
@@ -155,7 +156,7 @@ function SetRow({
           marginTop: 4, marginBottom: 8,
           animation: 'fadeSlideIn 0.15s ease',
         }}>
-          <div style={{ fontSize: 9, color: '#aaa', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
+          <div style={{ fontSize: 9, color: 'rgba(26,58,42,0.35)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
             TB
           </div>
           <input
@@ -163,7 +164,7 @@ function SetRow({
             value={tba} onChange={e => setTba(e.target.value)}
             style={tbStyle('a', aRowWin, bRowWin)}
           />
-          <div style={{ textAlign: 'center', color: '#ccc', fontWeight: 700, fontSize: 11 }}>–</div>
+          <div style={{ textAlign: 'center', color: 'rgba(26,58,42,0.2)', fontWeight: 400, fontSize: 11 }}>–</div>
           <input
             type="number" min="0" max="20" placeholder="TB"
             value={tbb} onChange={e => setTbb(e.target.value)}
@@ -205,12 +206,12 @@ export default function RatingsPage() {
   const [tb3a, setTb3a] = useState('')
   const [tb3b, setTb3b] = useState('')
 
-  const [submitting, setSubmitting] = useState(false)
-  const [pickingFor, setPickingFor] = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
+  const [submitting,    setSubmitting]    = useState(false)
+  const [pickingFor,    setPickingFor]    = useState<'a1'|'a2'|'b1'|'b2'|null>(null)
   const [lockedPlayers, setLockedPlayers] = useState<string[]>([])
   const [viewingPlayer, setViewingPlayer] = useState<Rating|null>(null)
   const [prefillPostId, setPrefillPostId] = useState<number|null>(null)
-  const [pool, setPool] = useState<Rating[]>([])
+  const [pool,          setPool]          = useState<Rating[]>([])
   const [poolInitialized, setPoolInitialized] = useState(false)
   const [draggedPlayer, setDraggedPlayer] = useState<Rating | null>(null)
 
@@ -241,10 +242,7 @@ export default function RatingsPage() {
     setRatings(all)
     setHistory(matchesRes.data || [])
     const me = all.find(r => r.player_id === session.user.id)
-    if (me) {
-      setCurrentUser(me)
-      setSelA1(me)
-    }
+    if (me) { setCurrentUser(me); setSelA1(me) }
     setLoading(false)
   }, [router])
 
@@ -274,10 +272,8 @@ export default function RatingsPage() {
       if (!playerIds || playerIds.length < 4) return
       const ratingPlayers = playerIds.map((id: string) => ratings.find(r => r.player_id === id)).filter(Boolean)
       if (ratingPlayers.length >= 4) {
-        setSelA1(ratingPlayers[0])
-        setSelA2(ratingPlayers[1])
-        setSelB1(ratingPlayers[2])
-        setSelB2(ratingPlayers[3])
+        setSelA1(ratingPlayers[0]); setSelA2(ratingPlayers[1])
+        setSelB1(ratingPlayers[2]); setSelB2(ratingPlayers[3])
         setLockedPlayers(playerIds)
         if (postId) setPrefillPostId(postId)
         setPickingFor(null)
@@ -295,21 +291,18 @@ export default function RatingsPage() {
 
   const set1Winner = setWinner(s1a, s1b)
   const set2Winner = setWinner(s2a, s2b)
-  const showSet3 = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
+  const showSet3   = set1Winner !== null && set2Winner !== null && set1Winner !== set2Winner
 
   useEffect(() => {
-    if (!showSet3) {
-      setS3a(''); setS3b(''); setTb3a(''); setTb3b('')
-    }
+    if (!showSet3) { setS3a(''); setS3b(''); setTb3a(''); setTb3b('') }
   }, [showSet3])
 
   function calcPreview() {
     if (!selA1 || !selA2 || !selB1 || !selB2) return null
-    const s1av = parseInt(s1a) || 0, s1bv = parseInt(s1b) || 0
-    const s2av = parseInt(s2a) || 0, s2bv = parseInt(s2b) || 0
-    const s3av = parseInt(s3a) || 0, s3bv = parseInt(s3b) || 0
-    const aGames = s1av + s2av + s3av
-    const bGames = s1bv + s2bv + s3bv
+    const s1av = parseInt(s1a)||0, s1bv = parseInt(s1b)||0
+    const s2av = parseInt(s2a)||0, s2bv = parseInt(s2b)||0
+    const s3av = parseInt(s3a)||0, s3bv = parseInt(s3b)||0
+    const aGames = s1av + s2av + s3av, bGames = s1bv + s2bv + s3bv
     if (aGames === 0 && bGames === 0) return null
     const aWon = aGames > bGames
     const wG = Math.max(aGames, bGames), lG = Math.min(aGames, bGames)
@@ -355,11 +348,8 @@ export default function RatingsPage() {
       supabase.from('ratings').update({ rating: preview.b2.after, match_count: selB2.match_count + 1 }).eq('player_id', selB2.player_id).select(),
     ])
     const updateErrors = updates.filter((r: any) => r.error)
-    if (updateErrors.length > 0) {
-      showNotif('Match logged but ratings need RLS fix in Supabase')
-    } else {
-      showNotif('Match logged! Ratings updated')
-    }
+    if (updateErrors.length > 0) showNotif('Match logged but ratings need RLS fix in Supabase')
+    else showNotif('Match logged! Ratings updated')
 
     if (prefillPostId) {
       await supabase.from('post_interests').delete().eq('post_id', prefillPostId)
@@ -372,7 +362,7 @@ export default function RatingsPage() {
     setTb1a(''); setTb1b(''); setTb2a(''); setTb2b(''); setTb3a(''); setTb3b('')
     setPickingFor(null)
     setSubmitting(false)
-    setView('my')
+    setView('leaderboard')
     setTimeout(() => loadData(), 500)
     setTimeout(() => loadData(), 2000)
   }
@@ -389,15 +379,16 @@ export default function RatingsPage() {
     setPickingFor(next)
   }
 
+  // UPDATED design tokens
   const s: Record<string, React.CSSProperties> = {
-    page:  { minHeight:'100vh', background:'#f5f0e8', fontFamily:"'DM Sans',sans-serif", color:'#014a09', overflowX:'hidden' },
+    page:  { minHeight:'100vh', background:'#f9f6f0', fontFamily:"'Jost',sans-serif", color:'#1a3a2a', overflowX:'hidden' },
     inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 80px' },
-    lbl:   { fontSize:9, fontWeight:700, color:'rgba(1,74,9,0.35)', textTransform:'uppercase' as const, letterSpacing:'1.2px' as const, marginBottom:8 },
+    lbl:   { fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' as const, marginBottom:8 },
   }
 
   if (loading) return (
     <div style={{ ...s.page, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ color:'#026b0d', fontSize:14, fontWeight:700 }}>Loading ratings…</div>
+      <div style={{ color:'#2d5c42', fontSize:14, fontWeight:400, letterSpacing:'0.04em' }}>Loading ratings…</div>
     </div>
   )
 
@@ -415,28 +406,24 @@ export default function RatingsPage() {
       <Notif msg={notif} />
       <div style={s.inner}>
 
-        {/* ── RESTYLED Header ── */}
+        {/* ── UPDATED Header — Playfair Display ── */}
         <div style={{ padding:'22px 0 14px' }}>
-          <div style={{ fontSize:26, fontWeight:900, color:'#014a09', letterSpacing:-0.8, lineHeight:1 }}>The Arena</div>
-          <div style={{ fontSize:12, color:'rgba(1,74,9,0.4)', marginTop:5, fontWeight:500 }}>Track your progress and rankings</div>
+          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:400, color:'#1a3a2a', letterSpacing:-0.5, lineHeight:1 }}>The Arena</div>
+          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:5, fontWeight:300, letterSpacing:'0.02em' }}>Track your progress and rankings</div>
         </div>
 
-        {/* ── RESTYLED Nav pills ── */}
+        {/* ── UPDATED Nav pills ── */}
         <div style={{ display:'flex', gap:7, marginBottom:18 }}>
           {(['leaderboard','log','league'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               style={{
-                background: view===v ? '#014a09' : 'transparent',
-                color: view===v ? '#ffcc66' : 'rgba(1,74,9,0.5)',
-                fontSize: 11,
-                fontWeight: view===v ? 700 : 500,
-                padding: '7px 16px',
-                borderRadius: 20,
-                cursor: 'pointer',
-                border: view===v ? 'none' : '1px solid rgba(1,74,9,0.15)',
-                fontFamily: 'inherit',
-                whiteSpace: 'nowrap' as const,
-                transition: 'all 0.15s',
+                background: view===v ? '#1a3a2a' : 'transparent',
+                color: view===v ? '#b8963e' : 'rgba(26,58,42,0.45)',
+                fontSize: 11, fontWeight: view===v ? 500 : 400,
+                padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
+                border: view===v ? 'none' : '1px solid rgba(26,58,42,0.18)',
+                fontFamily: 'inherit', whiteSpace: 'nowrap' as const,
+                transition: 'all 0.15s', letterSpacing: '0.04em',
               }}>
               {v === 'leaderboard' ? 'Leaderboard' : v === 'log' ? 'Log Match' : 'League'}
             </button>
@@ -446,45 +433,42 @@ export default function RatingsPage() {
         {/* ══ LEADERBOARD ══ */}
         {view === 'leaderboard' && (
           <div>
-            {/* ── RESTYLED label ── */}
-            <div style={{ fontSize:10, fontWeight:700, color:'rgba(1,74,9,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px', marginBottom:12 }}>
-              Club rankings · {ratings.length} members
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+              <div style={{ width:14, height:1, background:'#b8963e' }} />
+              <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' }}>
+                Club rankings · {ratings.length} members
+              </div>
             </div>
             {ratings.map((r, i) => {
               const b = getBand(r.rating)
               const isMe = r.player_id === myId
-              // ── RESTYLED rank colour: gold / silver / bronze for top 3 ──
-              const rankColor = i === 0 ? '#cc9900' : i === 1 ? '#888' : i === 2 ? '#a05c2a' : 'rgba(1,74,9,0.22)'
+              const rankColor = i === 0 ? '#b8963e' : i === 1 ? '#888' : i === 2 ? '#a05c2a' : 'rgba(26,58,42,0.22)'
               return (
                 <div key={r.id} onClick={() => !isMe && setViewingPlayer(r)}
                   style={{
                     display:'flex', alignItems:'center', gap:12,
                     padding:'12px 14px', borderRadius:14, marginBottom:7,
-                    background: isMe ? 'rgba(1,74,9,0.07)' : 'rgba(255,255,255,0.75)',
-                    border: isMe ? '1.5px solid rgba(1,74,9,0.2)' : '1px solid rgba(1,74,9,0.08)',
+                    background: isMe ? 'rgba(26,58,42,0.07)' : 'rgba(255,255,255,0.75)',
+                    border: isMe ? '1.5px solid rgba(26,58,42,0.2)' : '1px solid rgba(26,58,42,0.08)',
                     cursor: isMe ? 'default' : 'pointer',
                   }}>
-                  {/* ── RESTYLED rank number ── */}
-                  <div style={{ fontSize:12, fontWeight:800, color: rankColor, width:20, textAlign:'center', flexShrink:0 }}>
+                  <div style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:400, color: rankColor, width:20, textAlign:'center', flexShrink:0 }}>
                     {i + 1}
                   </div>
                   <Avatar initials={r.avatar} size={38} rating={r.rating} />
                   <div style={{ flex:1 }}>
-                    {/* ── RESTYLED name size ── */}
-                    <div style={{ fontSize:14, fontWeight:700, color: isMe ? '#026b0d' : '#014a09' }}>
+                    <div style={{ fontSize:14, fontWeight:500, color: isMe ? '#2d5c42' : '#1a3a2a' }}>
                       {r.player_name}{isMe ? ' (you)' : ''}
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
                       <ConfBadge n={r.match_count} />
-                      <span style={{ fontSize:11, color:'#888' }}>{r.match_count} match{r.match_count !== 1 ? 'es' : ''}</span>
-                      <span style={{ fontSize:11, color: b.color, fontWeight:700 }}>{b.label}</span>
+                      <span style={{ fontSize:11, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{r.match_count} match{r.match_count !== 1 ? 'es' : ''}</span>
+                      <span style={{ fontSize:11, color: b.color, fontWeight:500 }}>{b.label}</span>
                     </div>
                   </div>
                   <div style={{ textAlign:'right' }}>
-                    {/* ── RESTYLED rating number ── */}
-                    <div style={{ fontSize:24, fontWeight:900, color:'#014a09', letterSpacing:-0.5 }}>{r.rating.toFixed(1)}</div>
-                    {/* ── RESTYLED bar: thinner, smoother ── */}
-                    <div style={{ height:3, width:56, background:'rgba(1,74,9,0.08)', borderRadius:4, overflow:'hidden', marginTop:5 }}>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:400, color:'#1a3a2a', letterSpacing:-0.5 }}>{r.rating.toFixed(1)}</div>
+                    <div style={{ height:2, width:50, background:'rgba(26,58,42,0.08)', borderRadius:4, overflow:'hidden', marginTop:5 }}>
                       <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4, transition:'width 0.3s' }} />
                     </div>
                   </div>
@@ -492,7 +476,7 @@ export default function RatingsPage() {
               )
             })}
             {ratings.length === 0 && (
-              <div style={{ textAlign:'center', padding:'40px 0', color:'#888' }}>No ratings yet — log a match to start!</div>
+              <div style={{ textAlign:'center', padding:'40px 0', color:'rgba(26,58,42,0.4)', fontWeight:300 }}>No ratings yet — log a match to start!</div>
             )}
           </div>
         )}
@@ -549,24 +533,24 @@ export default function RatingsPage() {
 
           const allFourSelected = !!(selA1 && selA2 && selB1 && selB2)
 
-          const aTotal = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
-          const bTotal = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
+          const aTotal   = (parseInt(s1a)||0) + (parseInt(s2a)||0) + (parseInt(s3a)||0)
+          const bTotal   = (parseInt(s1b)||0) + (parseInt(s2b)||0) + (parseInt(s3b)||0)
           const aLeading = aTotal > bTotal
           const bLeading = bTotal > aTotal
           const hasScores = aTotal > 0 || bTotal > 0
 
           const getTeamAStyle = () => {
-            if (!hasScores) return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
-            if (aLeading) return { border: 'rgba(0,102,51,0.4)', bg: 'rgba(0,102,51,0.07)', text: '#006633' }
-            if (bLeading) return { border: 'rgba(153,0,51,0.4)', bg: 'rgba(153,0,51,0.07)', text: '#990033' }
-            return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+            if (!hasScores) return { border: 'rgba(26,58,42,0.15)', bg: 'rgba(0,0,0,0.02)', text: 'rgba(26,58,42,0.45)' }
+            if (aLeading) return { border: 'rgba(26,92,53,0.4)',   bg: 'rgba(26,92,53,0.07)',  text: '#1a5c35' }
+            if (bLeading) return { border: 'rgba(139,32,32,0.4)',  bg: 'rgba(139,32,32,0.07)', text: '#8b2020' }
+            return { border: 'rgba(26,58,42,0.15)', bg: 'rgba(0,0,0,0.02)', text: 'rgba(26,58,42,0.45)' }
           }
 
           const getTeamBStyle = () => {
-            if (!hasScores) return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
-            if (bLeading) return { border: 'rgba(0,102,51,0.4)', bg: 'rgba(0,102,51,0.07)', text: '#006633' }
-            if (aLeading) return { border: 'rgba(153,0,51,0.4)', bg: 'rgba(153,0,51,0.07)', text: '#990033' }
-            return { border: 'rgba(1,74,9,0.15)', bg: 'rgba(0,0,0,0.02)', text: '#888' }
+            if (!hasScores) return { border: 'rgba(26,58,42,0.15)', bg: 'rgba(0,0,0,0.02)', text: 'rgba(26,58,42,0.45)' }
+            if (bLeading) return { border: 'rgba(26,92,53,0.4)',   bg: 'rgba(26,92,53,0.07)',  text: '#1a5c35' }
+            if (aLeading) return { border: 'rgba(139,32,32,0.4)',  bg: 'rgba(139,32,32,0.07)', text: '#8b2020' }
+            return { border: 'rgba(26,58,42,0.15)', bg: 'rgba(0,0,0,0.02)', text: 'rgba(26,58,42,0.45)' }
           }
 
           const teamAStyle = getTeamAStyle()
@@ -580,11 +564,12 @@ export default function RatingsPage() {
                   <div style={{ ...s.lbl, marginBottom:8 }}>Drag players to assign teams</div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                     {pool.map(r => (
-                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)} style={{ background:'rgba(255,255,255,0.75)', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1, border:'1px solid rgba(1,74,9,0.08)' }}>
+                      <div key={r.player_id} draggable onDragStart={(e) => handleDragStart(e, r)}
+                        style={{ background:'rgba(255,255,255,0.75)', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1, border:'1px solid rgba(26,58,42,0.08)' }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:12, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
-                          <div style={{ fontSize:10, color:'#888' }}>{r.rating.toFixed(1)}</div>
+                          <div style={{ fontSize:12, fontWeight:500, color:'#1a3a2a' }}>{r.player_name}</div>
+                          <div style={{ fontSize:10, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{r.rating.toFixed(1)}</div>
                         </div>
                       </div>
                     ))}
@@ -594,23 +579,23 @@ export default function RatingsPage() {
 
               {/* Team A */}
               <div>
-                <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team A</div>
+                <div style={{ ...s.lbl, marginBottom:8 }}>Team A</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['a1', selA1], ['a2', selA2]] as const).map(([slot, sel]) => (
-                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamAStyle.border:draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
-                      cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)}
+                      style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamAStyle.border:draggedPlayer?'rgba(26,92,53,0.4)':'rgba(26,58,42,0.15)'}`, background:sel?teamAStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s', cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:sel?teamAStyle.text:'#888', transition:'color 0.2s' }}>{sel.player_name}</div>
-                            <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
+                            <div style={{ fontSize:12, fontWeight:500, color:teamAStyle.text, transition:'color 0.2s' }}>{sel.player_name}</div>
+                            <div style={{ fontSize:10, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{sel.rating.toFixed(1)}</div>
                           </div>
-                          <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
+                          <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'rgba(26,58,42,0.35)', fontSize:14, cursor:'pointer' }}>✕</span>
                         </>
                       ) : (
-                        <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
+                        <div style={{ fontSize:12, color:'rgba(26,58,42,0.4)', fontWeight:400 }}>
                           {isFromSchedule ? 'Drag player here' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='a1'?'1':'2'}`)}
                         </div>
                       )}
@@ -621,23 +606,23 @@ export default function RatingsPage() {
 
               {/* Team B */}
               <div>
-                <div style={{ ...s.lbl, color:'#014a09', marginBottom:8 }}>Team B</div>
+                <div style={{ ...s.lbl, marginBottom:8 }}>Team B</div>
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7 }}>
                   {([['b1', selB1], ['b2', selB2]] as const).map(([slot, sel]) => (
-                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)} style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamBStyle.border:draggedPlayer ? 'rgba(0,102,51,0.4)' : 'rgba(1,74,9,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s',
-                      cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
+                    <div key={slot} onDragOver={handleDragOver} onDrop={(e) => handleDropOnSlot(e, slot)}
+                      style={{ padding:'10px 12px', borderRadius:11, border:`${sel ? '1px solid' : '2px dashed'} ${sel?teamBStyle.border:draggedPlayer?'rgba(26,92,53,0.4)':'rgba(26,58,42,0.15)'}`, background:sel?teamBStyle.bg:'rgba(0,0,0,0.02)', display:'flex', alignItems:'center', gap:8, minHeight:52, transition:'all 0.2s', cursor: !isFromSchedule && !sel ? 'pointer' : 'default' }}
                       onClick={() => !isFromSchedule && !sel && setPickingFor(slot)}>
                       {sel ? (
                         <>
                           <Avatar initials={sel.avatar} size={28} rating={sel.rating} />
                           <div style={{ flex:1 }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:sel?teamBStyle.text:'#888', transition:'color 0.2s' }}>{sel.player_name}</div>
-                            <div style={{ fontSize:10, color:'#888' }}>{sel.rating.toFixed(1)}</div>
+                            <div style={{ fontSize:12, fontWeight:500, color:teamBStyle.text, transition:'color 0.2s' }}>{sel.player_name}</div>
+                            <div style={{ fontSize:10, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{sel.rating.toFixed(1)}</div>
                           </div>
-                          <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'#888', fontSize:14, cursor:'pointer' }}>✕</span>
+                          <span onClick={e=>{e.stopPropagation();removeFromTeam(sel,slot)}} style={{ color:'rgba(26,58,42,0.35)', fontSize:14, cursor:'pointer' }}>✕</span>
                         </>
                       ) : (
-                        <div style={{ fontSize:12, color:'#888', fontWeight:700 }}>
+                        <div style={{ fontSize:12, color:'rgba(26,58,42,0.4)', fontWeight:400 }}>
                           {isFromSchedule ? 'Drag player here' : (pickingFor===slot ? 'Select player…' : `+ Player ${slot==='b1'?'1':'2'}`)}
                         </div>
                       )}
@@ -646,17 +631,18 @@ export default function RatingsPage() {
                 </div>
               </div>
 
-              {/* Player picker — manual entry only */}
+              {/* Player picker */}
               {!isFromSchedule && pickingFor && (
-                <div style={{ background:'rgba(255,255,255,0.8)', borderRadius:16, padding:'10px 12px', border:'1px solid rgba(1,74,9,0.08)' }}>
+                <div style={{ background:'rgba(255,255,255,0.8)', borderRadius:14, padding:'10px 12px', border:'1px solid rgba(26,58,42,0.08)' }}>
                   <div style={{ ...s.lbl, marginBottom:8 }}>Select player</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                     {ratings.filter(r => ![selA1,selA2,selB1,selB2].find(p=>p?.player_id===r.player_id)).map(r => (
-                      <button key={r.id} onClick={() => assignPlayer(r)} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'transparent', border:'1px solid rgba(1,74,9,0.1)', borderRadius:10, cursor:'pointer', fontFamily:'inherit' }}>
+                      <button key={r.id} onClick={() => assignPlayer(r)}
+                        style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'transparent', border:'1px solid rgba(26,58,42,0.1)', borderRadius:9, cursor:'pointer', fontFamily:'inherit' }}>
                         <Avatar initials={r.avatar} size={30} rating={r.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:13, fontWeight:700, color:'#014a09' }}>{r.player_name}</div>
-                          <div style={{ fontSize:11, color:'#888' }}>{getBand(r.rating).label} · {r.rating.toFixed(1)}</div>
+                          <div style={{ fontSize:13, fontWeight:500, color:'#1a3a2a' }}>{r.player_name}</div>
+                          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{getBand(r.rating).label} · {r.rating.toFixed(1)}</div>
                         </div>
                         <ConfBadge n={r.match_count} />
                       </button>
@@ -665,65 +651,47 @@ export default function RatingsPage() {
                 </div>
               )}
 
-              {/* ── Scores ── */}
+              {/* Scores */}
               {allFourSelected && (() => {
-                const aCol = !hasScores ? '#888' : aLeading ? '#006633' : bLeading ? '#990033' : '#888'
-                const bCol = !hasScores ? '#888' : bLeading ? '#006633' : aLeading ? '#990033' : '#888'
+                const aCol = !hasScores ? 'rgba(26,58,42,0.45)' : aLeading ? '#1a5c35' : bLeading ? '#8b2020' : 'rgba(26,58,42,0.45)'
+                const bCol = !hasScores ? 'rgba(26,58,42,0.45)' : bLeading ? '#1a5c35' : aLeading ? '#8b2020' : 'rgba(26,58,42,0.45)'
 
                 return (
                   <div>
                     <div style={s.lbl}>Scores</div>
-
                     <div style={{ display:'grid', gridTemplateColumns:'50px 1fr 20px 1fr', gap:6, marginBottom:6 }}>
                       <div />
-                      <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: aCol, transition:'color 0.2s' }}>Team A</div>
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:500, color: aCol, transition:'color 0.2s', letterSpacing:'0.04em' }}>Team A</div>
                       <div />
-                      <div style={{ textAlign:'center', fontSize:11, fontWeight:700, color: bCol, transition:'color 0.2s' }}>Team B</div>
+                      <div style={{ textAlign:'center', fontSize:11, fontWeight:500, color: bCol, transition:'color 0.2s', letterSpacing:'0.04em' }}>Team B</div>
                     </div>
 
-                    <SetRow
-                      label="Set 1"
-                      va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b}
-                      tba={tb1a} setTba={setTb1a} tbb={tb1b} setTbb={setTb1b}
-                      aWinning={aLeading} bWinning={bLeading}
-                    />
-
-                    <SetRow
-                      label="Set 2"
-                      va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b}
-                      tba={tb2a} setTba={setTb2a} tbb={tb2b} setTbb={setTb2b}
-                      aWinning={aLeading} bWinning={bLeading}
-                    />
+                    <SetRow label="Set 1" va={s1a} setVa={setS1a} vb={s1b} setVb={setS1b} tba={tb1a} setTba={setTb1a} tbb={tb1b} setTbb={setTb1b} aWinning={aLeading} bWinning={bLeading} />
+                    <SetRow label="Set 2" va={s2a} setVa={setS2a} vb={s2b} setVb={setS2b} tba={tb2a} setTba={setTb2a} tbb={tb2b} setTbb={setTb2b} aWinning={aLeading} bWinning={bLeading} />
 
                     {showSet3 && (
                       <div style={{ animation:'fadeSlideIn 0.18s ease' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, marginTop:2 }}>
-                          <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
-                          <span style={{ fontSize:9, fontWeight:700, color:'#aaa', textTransform:'uppercase', letterSpacing:0.6 }}>Deciding set</span>
-                          <div style={{ height:1, flex:1, background:'rgba(1,74,9,0.1)' }} />
+                          <div style={{ height:1, flex:1, background:'rgba(26,58,42,0.1)' }} />
+                          <span style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.35)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Deciding set</span>
+                          <div style={{ height:1, flex:1, background:'rgba(26,58,42,0.1)' }} />
                         </div>
-                        <SetRow
-                          label="Set 3"
-                          va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b}
-                          tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b}
-                          aWinning={aLeading} bWinning={bLeading}
-                        />
+                        <SetRow label="Set 3" va={s3a} setVa={setS3a} vb={s3b} setVb={setS3b} tba={tb3a} setTba={setTb3a} tbb={tb3b} setTbb={setTb3b} aWinning={aLeading} bWinning={bLeading} />
                       </div>
                     )}
                   </div>
                 )
               })()}
 
-              {/* ── RESTYLED Submit button ── */}
               {allFourSelected && (
                 <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
                   width:'100%',
-                  background: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.06)' : '#014a09',
-                  border:'none', borderRadius:14, padding:'15px 0',
-                  color: (!s1a||!s1b||submitting) ? 'rgba(1,74,9,0.3)' : '#ffcc66',
-                  fontWeight:800, fontSize:15,
+                  background: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.06)' : '#1a3a2a',
+                  border:'none', borderRadius:12, padding:'15px 0',
+                  color: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.3)' : '#b8963e',
+                  fontWeight:500, fontSize:15,
                   cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer',
-                  fontFamily:'inherit', letterSpacing:0.2, transition:'all 0.15s',
+                  fontFamily:'inherit', letterSpacing:'0.06em', transition:'all 0.15s',
                 }}>
                   {submitting ? 'Logging…' : 'Confirm & Log Match →'}
                 </button>
@@ -732,10 +700,10 @@ export default function RatingsPage() {
           )
         })()}
 
-        {/* ── RESTYLED Rating preview card ── */}
+        {/* Rating preview */}
         {preview && (
-          <div style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(1,74,9,0.1)', borderRadius:14, padding:'13px 15px', marginTop:16 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>
+          <div style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(26,58,42,0.1)', borderRadius:14, padding:'13px 15px', marginTop:16 }}>
+            <div style={{ fontSize:10, fontWeight:500, color:'#1a3a2a', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:10 }}>
               Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
             </div>
             {[
@@ -747,12 +715,12 @@ export default function RatingsPage() {
               if (!p) return null
               const delta = Math.round((r.after - r.before) * 10) / 10
               return (
-                <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(0,102,51,0.08)':'rgba(153,0,51,0.08)'}` }}>
+                <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(26,92,53,0.08)':'rgba(139,32,32,0.08)'}` }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                     <Avatar initials={p.avatar} size={24} rating={p.rating} />
-                    <span style={{ fontSize:12, fontWeight:600, color: won?'#014a09':'#660033' }}>{p.player_name}</span>
+                    <span style={{ fontSize:12, fontWeight:500, color: won?'#1a3a2a':'rgba(139,32,32,0.8)' }}>{p.player_name}</span>
                   </div>
-                  <span style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
+                  <span style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:400, color: won ? '#1a5c35' : '#8b2020' }}>
                     {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
                   </span>
                 </div>
@@ -764,10 +732,9 @@ export default function RatingsPage() {
         {/* ══ LEAGUE ══ */}
         {view === 'league' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(1,74,9,0.08)', borderRadius:14, padding:'24px 20px', textAlign:'center' }}>
-              <div style={{ fontSize:28, marginBottom:10 }}>🏆</div>
-              <div style={{ fontSize:15, fontWeight:800, color:'#014a09', marginBottom:6 }}>Leagues coming soon</div>
-              <div style={{ fontSize:13, color:'#888', lineHeight:1.5 }}>Create and join club leagues, track standings, and compete in organised seasons.</div>
+            <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(26,58,42,0.08)', borderLeft:`3px solid #b8963e`, borderRadius:'0 14px 14px 0', padding:'24px 20px', textAlign:'center' as const }}>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#1a3a2a', marginBottom:8 }}>Leagues coming soon</div>
+              <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', lineHeight:1.6, fontWeight:300 }}>Create and join club leagues, track standings, and compete in organised seasons.</div>
             </div>
           </div>
         )}
@@ -783,31 +750,34 @@ export default function RatingsPage() {
         )
         const vpRank = ratings.findIndex(r => r.player_id === vp.player_id) + 1
         return (
-          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
+          <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'flex-end', justifyContent:'center', zIndex:1000 }}
             onClick={() => setViewingPlayer(null)}>
-            <div onClick={e => e.stopPropagation()} style={{ background:'#f5f0e8', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
+            <div onClick={e => e.stopPropagation()} style={{ background:'#f9f6f0', borderRadius:'20px 20px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto', display:'flex', flexDirection:'column', gap:16 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
                   <div>
-                    <div style={{ fontSize:18, fontWeight:900, color:'#014a09' }}>{vp.player_name}</div>
-                    <div style={{ fontSize:12, color:'#888' }}>Rank #{vpRank} · {b.label}</div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#1a3a2a' }}>{vp.player_name}</div>
+                    <div style={{ fontSize:12, color:'rgba(26,58,42,0.45)', fontWeight:300 }}>Rank #{vpRank} · {b.label}</div>
                   </div>
                 </div>
-                <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'#888', fontSize:20, cursor:'pointer' }}>✕</button>
+                <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'rgba(26,58,42,0.35)', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              <div style={{ background:'linear-gradient(135deg, #014a09 0%, #026b0d 100%)', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16 }}>
-                <div style={{ fontSize:38, fontWeight:900, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
+              <div style={{ background:'#1a3a2a', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16, borderLeft:`3px solid #b8963e` }}>
+                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:38, fontWeight:400, color:'#b8963e', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
-                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.7)', marginBottom:3 }}>Current rating</div>
-                  <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{b.label}</div>
-                  <div style={{ fontSize:11, color:'rgba(255,204,102,0.6)', marginTop:3 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
+                  <div style={{ fontSize:10, color:'rgba(184,150,62,0.6)', marginBottom:3, letterSpacing:'0.08em', textTransform:'uppercase', fontWeight:300 }}>Current rating</div>
+                  <div style={{ fontSize:14, fontWeight:500, color:'#fff' }}>{b.label}</div>
+                  <div style={{ fontSize:11, color:'rgba(184,150,62,0.55)', marginTop:3, fontWeight:300 }}>{vp.match_count} match{vp.match_count!==1?'es':''} played</div>
                 </div>
               </div>
               <div>
-                <div style={{ fontSize:10, fontWeight:700, color:'#014a09', textTransform:'uppercase', letterSpacing:0.6, marginBottom:10 }}>Match history ({vpHistory.length})</div>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+                  <div style={{ width:12, height:1, background:'#b8963e' }} />
+                  <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase', letterSpacing:'1.2px' }}>Match history ({vpHistory.length})</div>
+                </div>
                 {vpHistory.length === 0 ? (
-                  <div style={{ textAlign:'center', padding:'20px 0', fontSize:13, color:'#888' }}>No matches logged yet</div>
+                  <div style={{ textAlign:'center', padding:'20px 0', fontSize:13, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>No matches logged yet</div>
                 ) : vpHistory.slice(0,10).map((m:any) => {
                   const onA = [m.team_a1_id, m.team_a2_id].includes(vp.player_id)
                   const won = onA
@@ -822,23 +792,26 @@ export default function RatingsPage() {
                   const partner = onA?(isA1?m.team_a2_name:m.team_a1_name):(m.team_b1_id===vp.player_id?m.team_b2_name:m.team_b1_name)
                   const opp1 = onA?m.team_b1_name:m.team_a1_name
                   const opp2 = onA?m.team_b2_name:m.team_a2_name
+                  const wc = won ? '#1a5c35' : '#8b2020'
+                  const wbg = won ? 'rgba(26,92,53,0.07)' : 'rgba(139,32,32,0.07)'
+                  const wborder = won ? 'rgba(26,92,53,0.2)' : 'rgba(139,32,32,0.22)'
                   return (
-                    <div key={m.id} style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(1,74,9,0.08)', borderLeft:`3px solid ${won?'#006633':'#990033'}`, borderRadius:12, padding:'11px 14px', marginBottom:7 }}>
+                    <div key={m.id} style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(26,58,42,0.08)', borderLeft:`3px solid ${wc}`, borderRadius:'0 12px 12px 0', padding:'11px 14px', marginBottom:7 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
-                        <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-                        <div style={{ fontSize:12, fontWeight:700, color:won?'#006633':'#990033' }}>{won?'W':'L'} · {sets}</div>
+                        <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                        <div style={{ fontSize:12, fontWeight:500, color:wc }}>{won?'W':'L'} · {sets}</div>
                       </div>
                       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7, marginBottom:7 }}>
-                        <div style={{ padding:'6px 8px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color:won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:won?'#006633':'#990033' }}>{vp.player_name}<br/>{partner}</div>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:wbg, border:`1px solid ${wborder}` }}>
+                          <div style={{ fontSize:9, fontWeight:500, color:wc, textTransform:'uppercase', marginBottom:2, letterSpacing:'0.06em' }}>{won?'Won':'Lost'}</div>
+                          <div style={{ fontSize:11, color:wc, fontWeight:400 }}>{vp.player_name}<br/>{partner}</div>
                         </div>
-                        <div style={{ padding:'6px 8px', borderRadius:8, background:!won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color:!won?'#006633':'#990033', textTransform:'uppercase', marginBottom:2 }}>{!won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color:!won?'#006633':'#990033' }}>{opp1}<br/>{opp2}</div>
+                        <div style={{ padding:'6px 8px', borderRadius:8, background:won?'rgba(139,32,32,0.07)':'rgba(26,92,53,0.07)', border:`1px solid ${won?'rgba(139,32,32,0.22)':'rgba(26,92,53,0.2)'}` }}>
+                          <div style={{ fontSize:9, fontWeight:500, color:won?'#8b2020':'#1a5c35', textTransform:'uppercase', marginBottom:2, letterSpacing:'0.06em' }}>{won?'Lost':'Won'}</div>
+                          <div style={{ fontSize:11, color:won?'#8b2020':'#1a5c35', fontWeight:400 }}>{opp1}<br/>{opp2}</div>
                         </div>
                       </div>
-                      <div style={{ fontSize:12, fontWeight:700, color:delta>=0?'#006633':'#990033' }}>{before.toFixed(1)} → {after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
+                      <div style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:400, color:delta>=0?'#1a5c35':'#8b2020' }}>{before.toFixed(1)} → {after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
                     </div>
                   )
                 })}
@@ -848,8 +821,8 @@ export default function RatingsPage() {
         )
       })()}
 
-      {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
+      {/* ── Bottom Nav — UPDATED colours ── */}
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', display:'flex', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
             { label:'Home',    active:false, action:() => router.push('/') },
@@ -864,10 +837,10 @@ export default function RatingsPage() {
               Profile: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></>,
             }
             return (
-              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color:active?'#ffcc66':'rgba(255,204,102,0.4)', fontWeight:active?700:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <svg width="18" height="18" fill="none" stroke={active?'#ffcc66':'rgba(255,204,102,0.4)'} strokeWidth="1.8" viewBox="0 0 24 24">{icons[label]}</svg>
+              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:9, color:active?'#b8963e':'rgba(184,150,62,0.35)', fontWeight:active?500:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                <svg width="18" height="18" fill="none" stroke={active?'#b8963e':'rgba(184,150,62,0.35)'} strokeWidth="1.6" viewBox="0 0 24 24">{icons[label]}</svg>
                 {label}
-                {active && <div style={{ width:4, height:4, borderRadius:'50%', background:'#ffcc66' }} />}
+                {active && <div style={{ width:3, height:3, borderRadius:'50%', background:'#b8963e', marginTop:1 }} />}
               </button>
             )
           })}
