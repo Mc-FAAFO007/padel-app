@@ -489,13 +489,24 @@ export default function HomePage() {
             <div style={{ padding:'26px 0 4px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
               <div>
                 <div style={{ fontSize:11, color:'rgba(26,58,42,0.45)', marginBottom:4, letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:300 }}>Welcome back,</div>
-                <div style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:400, color:C.dark, letterSpacing:-0.3, fontStyle:'italic' }}>{currentUser?.name}</div>
+                <div style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:400, color:C.dark, letterSpacing:-0.3, fontStyle:'italic' }}>{currentUser?.name?.split(' ')[0]}</div>
               </div>
-              {liveRating && (
-                <div style={{ background:C.dark, color:C.gold, fontSize:16, fontWeight:400, padding:'6px 14px', borderRadius:14, fontFamily:"'Playfair Display', serif", letterSpacing:0.5 }}>
-                  {liveRating.toFixed(1)}
-                </div>
-              )}
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                {liveRating && (()=>{
+                  const lvl = ratingToLevel(liveRating).level
+                  const lvlCol: Record<string,string> = {'1':'#cc9900','2':'#000099','3':'#0077aa','4':'#990033'}
+                  const col = lvlCol[String(lvl)] || C.dark
+                  return (
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:col, borderRadius:12, padding:'6px 14px', minWidth:54 }}>
+                      <div style={{ fontSize:15, fontWeight:800, color:'#fff', lineHeight:1.1 }}>{liveRating.toFixed(1)}</div>
+                      <div style={{ fontSize:9, fontWeight:600, color:'rgba(255,255,255,0.8)', letterSpacing:'0.04em', marginTop:1 }}>L{lvl}</div>
+                    </div>
+                  )
+                })()}
+                {currentUser?.is_admin && (
+                  <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.08)', border:'1px solid rgba(139,32,32,0.2)', borderRadius:10, padding:'6px 10px', color:'#8b2020', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>⚙️ Admin</button>
+                )}
+              </div>
             </div>
 
             {/* Intro card */}

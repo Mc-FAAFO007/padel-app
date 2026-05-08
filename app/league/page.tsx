@@ -414,7 +414,10 @@ export default function LeaguePage() {
 
       {/* ── Header — matches main app style ── */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, letterSpacing: -0.5 }}>The League</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
+          <button onClick={() => router.push('/ratings')} style={{ background:'none', border:'none', padding:0, color:'rgba(1,74,9,0.4)', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', textAlign:'left' as const }}>← The Arena</button>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, letterSpacing: -0.5 }}>The League</div>
+        </div>
         {activeLeague && (
           <div style={{ background: C.dark, borderRadius: 12, padding: '5px 12px', textAlign: 'center' as const }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>

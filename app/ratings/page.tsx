@@ -11,7 +11,7 @@ const BANDS = [
   { label:'Beginner',    min:1.0, max:2.5, color:'#8b2020', bg:'rgba(139,32,32,0.10)'  },
   { label:'Casual',      min:2.6, max:4.0, color:'#1a5c35', bg:'rgba(26,92,53,0.10)'   },
   { label:'Competitive', min:4.1, max:5.5, color:'#2d3a8a', bg:'rgba(45,58,138,0.10)'  },
-  { label:'Elite',       min:5.6, max:7.0, color:'#b8963e', bg:'rgba(184,150,62,0.12)' },
+  { label:'Elite',       min:5.6, max:7.0, color:'#ffcc66', bg:'rgba(184,150,62,0.12)' },
 ]
 
 function getBand(r: number) {
@@ -20,7 +20,7 @@ function getBand(r: number) {
 
 function getConf(n: number): { label: string; color: string; bg: string } {
   if (n < 5)  return { label:'NC', color:'rgba(26,58,42,0.4)', bg:'rgba(26,58,42,0.08)'  }
-  if (n < 10) return { label:'LC', color:'#1a3a2a',            bg:'rgba(26,58,42,0.10)'  }
+  if (n < 10) return { label:'LC', color:'#014a09',            bg:'rgba(26,58,42,0.10)'  }
   if (n < 20) return { label:'MC', color:'#2d3a8a',            bg:'rgba(45,58,138,0.10)' }
   return             { label:'HC', color:'#1a5c35',            bg:'rgba(26,92,53,0.10)'  }
 }
@@ -73,7 +73,7 @@ function Notif({ msg }: { msg: string | null }) {
       position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)',
       background: 'rgba(26,58,42,0.1)', backdropFilter: 'blur(12px)',
       border: '1px solid rgba(45,92,66,0.35)', borderRadius: 14,
-      padding: '11px 22px', zIndex: 9999, color: '#1a3a2a',
+      padding: '11px 22px', zIndex: 9999, color: '#014a09',
       fontWeight: 500, fontSize: 14, whiteSpace: 'nowrap', letterSpacing: '0.02em',
     }}>{msg}</div>
   )
@@ -381,7 +381,7 @@ export default function RatingsPage() {
 
   // UPDATED design tokens
   const s: Record<string, React.CSSProperties> = {
-    page:  { minHeight:'100vh', background:'#f9f6f0', fontFamily:"'Jost',sans-serif", color:'#1a3a2a', overflowX:'hidden' },
+    page:  { minHeight:'100vh', background:'#f9f6f0', fontFamily:"'Jost',sans-serif", color:'#014a09', overflowX:'hidden' },
     inner: { maxWidth:480, margin:'0 auto', padding:'0 16px 80px' },
     lbl:   { fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' as const, marginBottom:8 },
   }
@@ -408,7 +408,7 @@ export default function RatingsPage() {
 
         {/* ── UPDATED Header — Playfair Display ── */}
         <div style={{ padding:'22px 0 14px' }}>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:400, color:'#1a3a2a', letterSpacing:-0.5, lineHeight:1 }}>The Arena</div>
+          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:400, color:'#014a09', letterSpacing:-0.5, lineHeight:1 }}>The Arena</div>
           <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:5, fontWeight:300, letterSpacing:'0.02em' }}>Track your progress and rankings</div>
         </div>
 
@@ -417,8 +417,8 @@ export default function RatingsPage() {
           {(['leaderboard','log','league'] as const).map(v => (
             <button key={v} onClick={() => v === 'league' ? router.push('/league') : setView(v)}
               style={{
-                background: view===v ? '#1a3a2a' : 'transparent',
-                color: view===v ? '#b8963e' : 'rgba(26,58,42,0.45)',
+                background: view===v ? '#014a09' : 'transparent',
+                color: view===v ? '#ffcc66' : 'rgba(26,58,42,0.45)',
                 fontSize: 11, fontWeight: view===v ? 500 : 400,
                 padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
                 border: view===v ? 'none' : '1px solid rgba(26,58,42,0.18)',
@@ -434,7 +434,7 @@ export default function RatingsPage() {
         {view === 'leaderboard' && (
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-              <div style={{ width:14, height:1, background:'#b8963e' }} />
+              <div style={{ width:14, height:1, background:'#ffcc66' }} />
               <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' }}>
                 Club rankings · {ratings.length} members
               </div>
@@ -442,7 +442,7 @@ export default function RatingsPage() {
             {ratings.map((r, i) => {
               const b = getBand(r.rating)
               const isMe = r.player_id === myId
-              const rankColor = i === 0 ? '#b8963e' : i === 1 ? '#888' : i === 2 ? '#a05c2a' : 'rgba(26,58,42,0.22)'
+              const rankColor = i === 0 ? '#ffcc66' : i === 1 ? '#888' : i === 2 ? '#a05c2a' : 'rgba(26,58,42,0.22)'
               return (
                 <div key={r.id} onClick={() => !isMe && setViewingPlayer(r)}
                   style={{
@@ -457,7 +457,7 @@ export default function RatingsPage() {
                   </div>
                   <Avatar initials={r.avatar} size={38} rating={r.rating} />
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:14, fontWeight:500, color: isMe ? '#2d5c42' : '#1a3a2a' }}>
+                    <div style={{ fontSize:14, fontWeight:500, color: isMe ? '#2d5c42' : '#014a09' }}>
                       {r.player_name}{isMe ? ' (you)' : ''}
                     </div>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:3 }}>
@@ -467,7 +467,7 @@ export default function RatingsPage() {
                     </div>
                   </div>
                   <div style={{ textAlign:'right' }}>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:400, color:'#1a3a2a', letterSpacing:-0.5 }}>{r.rating.toFixed(1)}</div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:24, fontWeight:400, color:'#014a09', letterSpacing:-0.5 }}>{r.rating.toFixed(1)}</div>
                     <div style={{ height:2, width:50, background:'rgba(26,58,42,0.08)', borderRadius:4, overflow:'hidden', marginTop:5 }}>
                       <div style={{ width:`${((r.rating-1)/6)*100}%`, height:'100%', background: b.color, borderRadius:4, transition:'width 0.3s' }} />
                     </div>
@@ -568,7 +568,7 @@ export default function RatingsPage() {
                         style={{ background:'rgba(255,255,255,0.75)', borderRadius:12, padding:'10px 12px', display:'flex', alignItems:'center', gap:8, cursor:'grab', transition:'opacity 0.2s', opacity: draggedPlayer?.player_id === r.player_id ? 0.5 : 1, border:'1px solid rgba(26,58,42,0.08)' }}>
                         <Avatar initials={r.avatar} size={28} rating={r.rating} />
                         <div style={{ flex:1 }}>
-                          <div style={{ fontSize:12, fontWeight:500, color:'#1a3a2a' }}>{r.player_name}</div>
+                          <div style={{ fontSize:12, fontWeight:500, color:'#014a09' }}>{r.player_name}</div>
                           <div style={{ fontSize:10, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{r.rating.toFixed(1)}</div>
                         </div>
                       </div>
@@ -641,7 +641,7 @@ export default function RatingsPage() {
                         style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 10px', background:'transparent', border:'1px solid rgba(26,58,42,0.1)', borderRadius:9, cursor:'pointer', fontFamily:'inherit' }}>
                         <Avatar initials={r.avatar} size={30} rating={r.rating} />
                         <div style={{ flex:1, textAlign:'left' }}>
-                          <div style={{ fontSize:13, fontWeight:500, color:'#1a3a2a' }}>{r.player_name}</div>
+                          <div style={{ fontSize:13, fontWeight:500, color:'#014a09' }}>{r.player_name}</div>
                           <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{getBand(r.rating).label} · {r.rating.toFixed(1)}</div>
                         </div>
                         <ConfBadge n={r.match_count} />
@@ -686,9 +686,9 @@ export default function RatingsPage() {
               {allFourSelected && (
                 <button onClick={handleSubmit} disabled={submitting || !s1a || !s1b} style={{
                   width:'100%',
-                  background: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.06)' : '#1a3a2a',
+                  background: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.06)' : '#014a09',
                   border:'none', borderRadius:12, padding:'15px 0',
-                  color: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.3)' : '#b8963e',
+                  color: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.3)' : '#ffcc66',
                   fontWeight:500, fontSize:15,
                   cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer',
                   fontFamily:'inherit', letterSpacing:'0.06em', transition:'all 0.15s',
@@ -703,7 +703,7 @@ export default function RatingsPage() {
         {/* Rating preview */}
         {preview && (
           <div style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(26,58,42,0.1)', borderRadius:14, padding:'13px 15px', marginTop:16 }}>
-            <div style={{ fontSize:10, fontWeight:500, color:'#1a3a2a', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:10 }}>
+            <div style={{ fontSize:10, fontWeight:500, color:'#014a09', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:10 }}>
               Rating preview · {preview.aWon ? 'Team A wins' : 'Team B wins'}
             </div>
             {[
@@ -718,7 +718,7 @@ export default function RatingsPage() {
                 <div key={p.player_id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${won?'rgba(26,92,53,0.08)':'rgba(139,32,32,0.08)'}` }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                     <Avatar initials={p.avatar} size={24} rating={p.rating} />
-                    <span style={{ fontSize:12, fontWeight:500, color: won?'#1a3a2a':'rgba(139,32,32,0.8)' }}>{p.player_name}</span>
+                    <span style={{ fontSize:12, fontWeight:500, color: won?'#014a09':'rgba(139,32,32,0.8)' }}>{p.player_name}</span>
                   </div>
                   <span style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:400, color: won ? '#1a5c35' : '#8b2020' }}>
                     {r.before.toFixed(1)} → {r.after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)})
@@ -733,7 +733,7 @@ export default function RatingsPage() {
         {view === 'league' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(26,58,42,0.08)', borderLeft:`3px solid #b8963e`, borderRadius:'0 14px 14px 0', padding:'24px 20px', textAlign:'center' as const }}>
-              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#1a3a2a', marginBottom:8 }}>Leagues coming soon</div>
+              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#014a09', marginBottom:8 }}>Leagues coming soon</div>
               <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', lineHeight:1.6, fontWeight:300 }}>Create and join club leagues, track standings, and compete in organised seasons.</div>
             </div>
           </div>
@@ -757,14 +757,14 @@ export default function RatingsPage() {
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <Avatar initials={vp.avatar} size={48} rating={vp.rating} />
                   <div>
-                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#1a3a2a' }}>{vp.player_name}</div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, fontWeight:400, color:'#014a09' }}>{vp.player_name}</div>
                     <div style={{ fontSize:12, color:'rgba(26,58,42,0.45)', fontWeight:300 }}>Rank #{vpRank} · {b.label}</div>
                   </div>
                 </div>
                 <button onClick={() => setViewingPlayer(null)} style={{ background:'none', border:'none', color:'rgba(26,58,42,0.35)', fontSize:20, cursor:'pointer' }}>✕</button>
               </div>
-              <div style={{ background:'#1a3a2a', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16, borderLeft:`3px solid #b8963e` }}>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:38, fontWeight:400, color:'#b8963e', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
+              <div style={{ background:'#014a09', borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16, borderLeft:`3px solid #b8963e` }}>
+                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:38, fontWeight:400, color:'#ffcc66', lineHeight:1 }}>{vp.rating.toFixed(1)}</div>
                 <div>
                   <div style={{ fontSize:10, color:'rgba(184,150,62,0.6)', marginBottom:3, letterSpacing:'0.08em', textTransform:'uppercase', fontWeight:300 }}>Current rating</div>
                   <div style={{ fontSize:14, fontWeight:500, color:'#fff' }}>{b.label}</div>
@@ -773,7 +773,7 @@ export default function RatingsPage() {
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                  <div style={{ width:12, height:1, background:'#b8963e' }} />
+                  <div style={{ width:12, height:1, background:'#ffcc66' }} />
                   <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase', letterSpacing:'1.2px' }}>Match history ({vpHistory.length})</div>
                 </div>
                 {vpHistory.length === 0 ? (
@@ -822,7 +822,7 @@ export default function RatingsPage() {
       })()}
 
       {/* ── Bottom Nav — UPDATED colours ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', display:'flex', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
             { label:'Home',    active:false, action:() => router.push('/') },
@@ -837,10 +837,10 @@ export default function RatingsPage() {
               Profile: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></>,
             }
             return (
-              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:9, color:active?'#b8963e':'rgba(184,150,62,0.35)', fontWeight:active?500:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <svg width="18" height="18" fill="none" stroke={active?'#b8963e':'rgba(184,150,62,0.35)'} strokeWidth="1.6" viewBox="0 0 24 24">{icons[label]}</svg>
+              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:9, color:active?'#ffcc66':'rgba(184,150,62,0.35)', fontWeight:active?500:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                <svg width="18" height="18" fill="none" stroke={active?'#ffcc66':'rgba(184,150,62,0.35)'} strokeWidth="1.6" viewBox="0 0 24 24">{icons[label]}</svg>
                 {label}
-                {active && <div style={{ width:3, height:3, borderRadius:'50%', background:'#b8963e', marginTop:1 }} />}
+                {active && <div style={{ width:3, height:3, borderRadius:'50%', background:'#ffcc66', marginTop:1 }} />}
               </button>
             )
           })}
