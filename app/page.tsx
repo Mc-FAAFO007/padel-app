@@ -78,10 +78,11 @@ const card: React.CSSProperties  = { background:'#fff', borderRadius:16, padding
 const card2: React.CSSProperties = { background:'rgba(1,74,9,0.05)', borderRadius:16, padding:'12px 14px' }
 const sec: React.CSSProperties   = { fontSize:9, fontWeight:700, letterSpacing:'1px', textTransform:'uppercase' as const, color:'rgba(1,74,9,0.35)' }
 
+// ── STANDARDISED pill — matches Arena style across all pages ──
 function pill(active: boolean): React.CSSProperties {
   return active
-    ? { background:'#014a09', color:'#ffcc66', fontSize:10, fontWeight:700, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0 }
-    : { background:'rgba(1,74,9,0.07)', color:'rgba(1,74,9,0.5)', fontSize:10, fontWeight:600, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0 }
+    ? { background:'#014a09', color:'#ffcc66', fontSize:11, fontWeight:700, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s' }
+    : { background:'transparent', color:'rgba(1,74,9,0.5)', fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(1,74,9,0.15)', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s' }
 }
 
 // ─── Atoms ───────────────────────────────────────────────────────────────────
@@ -128,7 +129,7 @@ function PageHeader({ title, rating, right }: { title: string; rating?: number|n
   )
 }
 
-// ─── Schedule Card (shared between board + profile) ───────────────────────────
+// ─── Schedule Card ────────────────────────────────────────────────────────────
 function ScheduleCard({
   p, isOwner, players, currentUser, liveRating,
   onEdit, onDelete, onCancelSpot, onLogScore, router,
@@ -224,7 +225,6 @@ export default function HomePage() {
   const [buddyFilterLevel, setBuddyFilterLevel] = useState<string>('')
   const [buddyFilterAvailability, setBuddyFilterAvailability] = useState<string>('')
 
-  // Post form state
   const [fDay,          setFDay]          = useState('')
   const [fTime,         setFTime]         = useState('')
   const [fDuration,     setFDuration]     = useState('')
@@ -239,7 +239,6 @@ export default function HomePage() {
 
   function showNotif(msg: string) { setNotif(msg); setTimeout(() => setNotif(null), 2800) }
 
-  // ── Load data ─────────────────────────────────────────────────────────────
   const loadData = useCallback(async (userId: string) => {
     try {
       const profileRes = await supabase.from('profiles').select('*, is_admin').eq('id', userId).single()
@@ -279,10 +278,12 @@ export default function HomePage() {
     } catch (err) { console.error('loadData error:', err); setLoading(false) }
   }, [router])
 
+  // ── FIX 1: handle 'profile' in mainView sessionStorage ──
   useEffect(() => {
     const mainView = sessionStorage.getItem('mainView')
     if (mainView === 'board') { setView('board'); sessionStorage.removeItem('mainView') }
     else if (mainView === 'matches') { setView('profile'); setProfileTab('schedule'); sessionStorage.removeItem('mainView') }
+    else if (mainView === 'profile') { setView('profile'); sessionStorage.removeItem('mainView') }
   }, [])
 
   useEffect(() => {
@@ -342,7 +343,6 @@ export default function HomePage() {
     return () => { channel.unsubscribe() }
   }, [refreshSpecificData])
 
-  // ── Buddy functions ───────────────────────────────────────────────────────
   const addBuddy = async (buddyId: string) => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) { showNotif('Not logged in'); return }
@@ -363,7 +363,6 @@ export default function HomePage() {
   const getFilteredBuddies = () => buddies.filter(b => (!buddyFilterLevel || b.level === buddyFilterLevel) && (!buddyFilterAvailability || b.availability.includes(buddyFilterAvailability)))
   const getAvailableToAdd  = () => { const ids = new Set(buddies.map(b => b.id)); return allProfiles.filter(p => p.id !== currentUser?.id && !ids.has(p.id)) }
 
-  // ── Actions ───────────────────────────────────────────────────────────────
   async function handlePostSubmit() {
     if (!currentUser || !fDay || !fTime || !fDuration) { showNotif('Pick a day, time and duration'); return }
     if (fLevels.length === 0) { showNotif('Select at least one level'); return }
@@ -443,7 +442,6 @@ export default function HomePage() {
     router.push('/ratings')
   }
 
-  // ── Derived data ──────────────────────────────────────────────────────────
   const boardPosts = boardLevel === 'All' ? posts : posts.filter(p => (p.allowed_levels||[p.level]).includes(boardLevel))
   const openPosts  = posts.filter(p => p.interested_ids.length < p.spots_needed)
   const openByLevel = Object.fromEntries(levels.map(l => [l, posts.filter(p => (p.allowed_levels||[p.level]).includes(l) && p.interested_ids.length < p.spots_needed).length]))
@@ -477,8 +475,6 @@ export default function HomePage() {
         {/* ══ HOME ══ */}
         {view === 'home' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-
-            {/* Greeting header */}
             <div style={{ padding:'26px 0 4px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
               <div>
                 <div style={{ fontSize:12, color:'rgba(1,74,9,0.45)', marginBottom:3 }}>Welcome back,</div>
@@ -491,7 +487,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Intro card */}
             <div style={{ background:C.dark, borderRadius:16, padding:'14px 16px' }}>
               <div style={{ fontSize:13, fontWeight:700, color:C.gold, marginBottom:5 }}>Court Connections</div>
               <div style={{ fontSize:10, color:'rgba(255,255,255,0.6)', lineHeight:1.65 }}>
@@ -499,7 +494,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Feature grid */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {[
                 { icon:'⊞', title:'Game Board',   sub:'Post & join open games',          action: () => setView('board') },
@@ -515,7 +509,6 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Open games */}
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div style={sec}>Open Games</div>
               <button onClick={() => setView('board')} style={{ background:'none', border:'none', color:C.mid, fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>See all →</button>
@@ -557,7 +550,6 @@ export default function HomePage() {
               ) : undefined
             } />
 
-            {/* Post form */}
             {showForm && currentUser && (
               <div style={{ ...card, display:'flex', flexDirection:'column', gap:14 }}>
                 <div style={{ fontWeight:800, fontSize:14, color:C.dark }}>{editingPost ? 'Edit Game' : 'Post a Game Request'}</div>
@@ -660,7 +652,6 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* Posts */}
             {boardPosts.length === 0 ? (
               <div style={{ textAlign:'center' as const, padding:'40px 0' }}>
                 <div style={{ fontSize:30 }}>📋</div>
@@ -668,11 +659,16 @@ export default function HomePage() {
                 <div style={{ fontSize:12, color:'#888', marginTop:5 }}>Be the first to post a game!</div>
               </div>
             ) : boardPosts.map(post => {
-              const isOwner  = currentUser?.id === post.player_id
-              const alreadyIn = currentUser && post.interested_ids.includes(currentUser.id)
+              const isOwner   = currentUser?.id === post.player_id
+              const alreadyIn = !!(currentUser && post.interested_ids.includes(currentUser.id))
               const spotsLeft = Math.max(0, post.spots_needed - post.interested_ids.length)
               const full      = spotsLeft <= 0
-              const c         = levelColor[post.level]
+              // ── FIX 3: lift join logic to outer scope so Join button can use it ──
+              const allowedLevels = post.allowed_levels || [post.level]
+              const myLevel       = liveRating ? ratingToLevel(liveRating).level : currentUser?.level
+              const levelAllowed  = !!(currentUser && allowedLevels.includes(myLevel!))
+              const canJoin       = !!(currentUser && !isOwner && !alreadyIn && !full)
+              const c             = levelColor[post.level]
               return (
                 <div key={post.id} style={{ ...card, borderLeft:`3px solid ${c}`, borderRadius:'0 16px 16px 0', paddingLeft:11, display:'flex', flexDirection:'column', gap:10 }}>
                   <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
@@ -708,10 +704,6 @@ export default function HomePage() {
                     const organiser = players.find(p => p.id === post.player_id)
                     const filledSlots = [organiser, ...interestedPlayers].filter(Boolean)
                     const emptySlots = Math.max(0, totalSlots - filledSlots.length)
-                    const canJoin = !isOwner && currentUser && !alreadyIn && !full
-                    const allowedLevels = post.allowed_levels || [post.level]
-                    const myLevel = liveRating ? ratingToLevel(liveRating).level : currentUser?.level
-                    const levelAllowed = currentUser && allowedLevels.includes(myLevel!)
                     return (
                       <div>
                         <div style={{ ...sec, marginBottom:7 }}>Players ({filledSlots.length}/{totalSlots})</div>
@@ -726,17 +718,25 @@ export default function HomePage() {
                             </div>
                           ))}
                           {Array.from({length:emptySlots}).map((_,i)=>(
-                            <button key={`empty-${i}`} disabled={!canJoin}
-                              onClick={()=>{ if(!currentUser){showNotif('Please sign in');return} if(!levelAllowed){showNotif(`This game is for ${allowedLevels.map((l:string)=>`L${l}`).join(', ')} only`);return} handleInterest(post.id) }}
-                              style={{ background:canJoin&&levelAllowed?'#fff':'rgba(0,0,0,0.02)', border:`1px solid ${canJoin&&levelAllowed?'rgba(2,107,13,0.3)':'#ddd'}`, borderRadius:10, padding:'8px 10px', cursor:canJoin&&levelAllowed?'pointer':'not-allowed', display:'flex', alignItems:'center', justifyContent:'center', gap:6, minHeight:44, opacity:canJoin&&levelAllowed?1:0.6 }}>
-                              <span style={{ fontSize:14, color:canJoin&&levelAllowed?C.mid:'#bbb' }}>{canJoin&&levelAllowed?'+':'○'}</span>
-                              <span style={{ fontSize:11, fontWeight:700, color:canJoin&&levelAllowed?C.mid:'#aaa' }}>{canJoin&&levelAllowed?'Join':'Open'}</span>
-                            </button>
+                            <div key={`empty-${i}`} style={{ background:'rgba(0,0,0,0.02)', border:'1px dashed rgba(1,74,9,0.15)', borderRadius:10, padding:'8px 10px', display:'flex', alignItems:'center', justifyContent:'center', minHeight:44 }}>
+                              <span style={{ fontSize:11, color:'rgba(1,74,9,0.3)' }}>○ Open</span>
+                            </div>
                           ))}
                         </div>
                       </div>
                     )
                   })()}
+                  {/* ── FIX 3: standalone Join button ── */}
+                  {canJoin && levelAllowed && (
+                    <button onClick={()=>handleInterest(post.id)} style={{ background:C.dark, border:'none', borderRadius:10, padding:'11px 0', cursor:'pointer', color:C.gold, fontWeight:800, fontSize:13, fontFamily:'inherit', width:'100%' }}>
+                      Join →
+                    </button>
+                  )}
+                  {canJoin && !levelAllowed && (
+                    <div style={{ background:'rgba(153,0,51,0.05)', border:'1px solid rgba(153,0,51,0.15)', borderRadius:10, padding:'10px', textAlign:'center' as const, fontSize:12, color:'#990033', fontWeight:600 }}>
+                      This game is for {allowedLevels.map((l:string)=>`L${l}`).join(', ')} only
+                    </div>
+                  )}
                   {alreadyIn && !isOwner && (
                     <button onClick={()=>handleInterest(post.id)} style={{ background:'rgba(153,0,51,0.06)', border:'1px solid rgba(153,0,51,0.25)', borderRadius:10, padding:'8px 0', cursor:'pointer', color:'#990033', fontWeight:700, fontSize:13, fontFamily:'inherit', width:'100%' }}>
                       Cancel my spot
@@ -753,14 +753,12 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <PageHeader title="The Arena" />
 
-            {/* Pills */}
             <div style={{ display:'flex', gap:6 }}>
               <button style={pill(true)}>Leaderboard</button>
               <button onClick={()=>{sessionStorage.setItem('arenaTab','log');router.push('/ratings')}} style={pill(false)}>Log Match</button>
               <button onClick={()=>router.push('/league')} style={pill(false)}>League</button>
             </div>
 
-            {/* Intro */}
             <div style={{ ...card, padding:'16px' }}>
               <div style={{ fontSize:13, color:'rgba(1,74,9,0.7)', lineHeight:1.75 }}>
                 Every match counts — <span style={{ fontWeight:700, color:C.dark }}>yes, even that one you'd rather forget.</span>{' '}
@@ -774,7 +772,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Rating guide accordion */}
             <div style={{ ...card, padding:0, overflow:'hidden' }}>
               <button onClick={()=>setShowLevelGuide(v=>!v)} style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 16px', background:'transparent', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
                 <span style={{ fontSize:13, fontWeight:700, color:C.dark }}>Understanding Your Rating</span>
@@ -806,10 +803,13 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Quick entry tiles */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
-              {([['🏆','Leaderboard','See club rankings','leaderboard'],['🎾','Log Match','Record results','log'],['📈','My Results','Track your rating','my']] as const).map(([icon,title,desc,tab])=>(
-                <button key={title} onClick={()=>{sessionStorage.setItem('arenaTab',tab);router.push('/ratings')}} style={{ ...card, textAlign:'center' as const, border:'none', cursor:'pointer', fontFamily:'inherit', padding:'12px 8px' }}>
+              {([
+                ['🏆','Leaderboard','See club rankings',  () => { sessionStorage.setItem('arenaTab','leaderboard'); router.push('/ratings') }],
+                ['🎾','Log Match',  'Record results',      () => { sessionStorage.setItem('arenaTab','log'); router.push('/ratings') }],
+                ['📈','My Results', 'Track your rating',  () => { sessionStorage.setItem('mainView','profile'); setView('profile'); setProfileTab('results') }],
+              ] as const).map(([icon,title,desc,action])=>(
+                <button key={title} onClick={action} style={{ ...card, textAlign:'center' as const, border:'none', cursor:'pointer', fontFamily:'inherit', padding:'12px 8px' }}>
                   <div style={{ fontSize:20, marginBottom:5 }}>{icon}</div>
                   <div style={{ fontSize:10, fontWeight:700, color:C.dark, marginBottom:2 }}>{title}</div>
                   <div style={{ fontSize:9, color:'rgba(1,74,9,0.45)', lineHeight:1.4 }}>{desc}</div>
@@ -826,8 +826,6 @@ export default function HomePage() {
         {/* ══ PROFILE ══ */}
         {view === 'profile' && currentUser && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-
-            {/* Profile header */}
             <div style={{ padding:'22px 0 4px' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
                 <Avatar initials={currentUser.avatar} size={48} level={currentUser.level} />
@@ -841,7 +839,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Pill tabs */}
               <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
                 {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
                   <button key={key} onClick={()=>setProfileTab(key as any)} style={pill(profileTab===key)}>{label}</button>
@@ -852,7 +849,6 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* ─ Edit Profile ─ */}
             {profileTab === 'edit' && (
               <div style={card}>
                 <div style={{ ...sec, marginBottom:16 }}>Edit Profile</div>
@@ -898,7 +894,6 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* ─ My Schedule ─ */}
             {profileTab === 'schedule' && (()=>{
               const myPosts = posts.filter(p => p.player_id === currentUser.id)
               const joinedPosts = posts.filter(p => p.player_id !== currentUser.id && p.interested_ids.some((id:string)=>id===currentUser.id))
@@ -925,7 +920,6 @@ export default function HomePage() {
               )
             })()}
 
-            {/* ─ My Results ─ */}
             {profileTab === 'results' && (
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 {ratingTimeline.length === 0 ? (
@@ -939,7 +933,7 @@ export default function HomePage() {
                   <>
                     <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
                       {[['Matches',ratingTimeline.length],['Current',ratingTimeline[ratingTimeline.length-1].rating.toFixed(1)],['Trend',(ratingTrend>=0?'+':'')+ratingTrend.toFixed(1)]].map(([l,v],i)=>(
-                        <div key={l} style={{ ...card, textAlign:'center' as const }}>
+                        <div key={String(l)} style={{ ...card, textAlign:'center' as const }}>
                           <div style={{ fontSize:10, color:'rgba(1,74,9,0.4)', textTransform:'uppercase' as const, marginBottom:5 }}>{l}</div>
                           <div style={{ fontSize:20, fontWeight:800, color:i===2?(ratingTrend>=0?C.win:C.loss):C.dark }}>{v}</div>
                         </div>
@@ -974,13 +968,11 @@ export default function HomePage() {
                 )}
               </div>
             )}
-
           </div>
         )}
 
       </div>
 
-      {/* Delete confirmation modal */}
       {deleteConfirm && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
           <div style={{ background:C.bg, borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:16 }}>
@@ -994,7 +986,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Add member modal */}
       {addingMember && currentUser && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:'0 24px' }}>
           <div style={{ background:C.bg, borderRadius:18, padding:'24px 20px', width:'100%', maxWidth:340, display:'flex', flexDirection:'column', gap:14 }}>
@@ -1049,3 +1040,4 @@ export default function HomePage() {
     </div>
   )
 }
+
