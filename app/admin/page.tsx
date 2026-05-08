@@ -62,6 +62,7 @@ export default function AdminPage() {
   const [leagueCreated,          setLeagueCreated]          = useState(false)
   const [leagueError,            setLeagueError]            = useState('')
   const [leagueSearch,           setLeagueSearch]           = useState('')
+  const [leagueLevelFilter,      setLeagueLevelFilter]      = useState<string|null>(null)
 
   const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000) }
 
@@ -499,8 +500,16 @@ export default function AdminPage() {
                         style={{ ...fieldStyle, paddingLeft:36 }} />
                       <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'rgba(26,58,42,0.3)', pointerEvents:'none' }}>🔍</span>
                     </div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:380, overflowY:'auto' }}>
-                      {[...users].filter(u => u.name.toLowerCase().includes(leagueSearch.toLowerCase()))
+                    <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap' as const }}>
+                      {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#0077aa'],['4','Beginner','#990033']].map(([lvl,label,col]) => (
+                        <button key={lvl} onClick={() => setLeagueLevelFilter(f => f === lvl ? null : lvl)}
+                          style={{ padding:'4px 11px', borderRadius:20, border:`1.5px solid ${leagueLevelFilter===lvl ? col : 'rgba(26,58,42,0.12)'}`, background: leagueLevelFilter===lvl ? col : 'transparent', color: leagueLevelFilter===lvl ? '#fff' : 'rgba(26,58,42,0.5)', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s', letterSpacing:'0.03em' }}>
+                          L{lvl} {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:340, overflowY:'auto' }}>
+                      {[...users].filter(u => u.name.toLowerCase().includes(leagueSearch.toLowerCase()) && (!leagueLevelFilter || String(u.level) === leagueLevelFilter))
                         .sort((a,b) => (ratings.find(r=>r.player_id===b.id)?.rating||0) - (ratings.find(r=>r.player_id===a.id)?.rating||0))
                         .map(u => {
                           const r = ratings.find(rt => rt.player_id === u.id)
