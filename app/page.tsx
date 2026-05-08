@@ -50,10 +50,11 @@ const levelBg:    Record<string,string> = { '1':'rgba(184,150,62,0.12)','2':'rgb
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Competitive','3':'Casual','4':'Beginner' }
 
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
-  if (rating >= 5.6) return { level:'1', color:'#b8963e', bg:'rgba(184,150,62,0.12)', desc:'Elite' }
-  if (rating >= 4.1) return { level:'2', color:'#2d3a8a', bg:'rgba(45,58,138,0.10)', desc:'Competitive' }
-  if (rating >= 2.6) return { level:'3', color:'#1a5c35', bg:'rgba(26,92,53,0.10)', desc:'Casual' }
-  return              { level:'4', color:'#8b2020', bg:'rgba(139,32,32,0.12)', desc:'Beginner' }
+  if (rating >= 6.0) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)',  desc:'Elite' }
+  if (rating >= 4.5) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)',    desc:'Premier' }
+  if (rating >= 3.0) return { level:'3', color:'#0077aa', bg:'rgba(0,119,170,0.10)',  desc:'Club' }
+  if (rating >= 2.0) return { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)',   desc:'Social' }
+  return                     { level:'5', color:'#555555', bg:'rgba(85,85,85,0.10)',   desc:'Starter' }
 }
 
 function timeAgo(iso: string) {

@@ -18,10 +18,11 @@ const C = {
 }
 
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
-  if (rating >= 5.6) return { level:'1', color:'#b8963e', bg:'rgba(184,150,62,0.12)', desc:'Elite' }
-  if (rating >= 4.1) return { level:'2', color:'#2d3a8a', bg:'rgba(45,58,138,0.10)', desc:'Competitive' }
-  if (rating >= 2.6) return { level:'3', color:'#1a5c35', bg:'rgba(26,92,53,0.10)',  desc:'Casual' }
-  return                     { level:'4', color:'#8b2020', bg:'rgba(139,32,32,0.12)', desc:'Beginner' }
+  if (rating >= 6.0) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)',  desc:'Elite' }
+  if (rating >= 4.5) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)',    desc:'Premier' }
+  if (rating >= 3.0) return { level:'3', color:'#0077aa', bg:'rgba(0,119,170,0.10)',  desc:'Club' }
+  if (rating >= 2.0) return { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)',   desc:'Social' }
+  return                     { level:'5', color:'#555555', bg:'rgba(85,85,85,0.10)',   desc:'Starter' }
 }
 
 // Shared pill helper — consistent with rest of app
@@ -537,7 +538,7 @@ export default function AdminPage() {
                       <div style={{ borderTop:`1px solid ${C.cardBorder}`, paddingTop:12, marginTop:4 }}>
                         <div style={{ fontSize:11, fontWeight:700, color:C.dark, marginBottom:8, letterSpacing:'0.04em' }}>ADD PLAYER</div>
                         <div style={{ display:'flex', gap:5, marginBottom:8, flexWrap:'wrap' as const }}>
-                          {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#0077aa'],['4','Beginner','#990033']].map(([lvl,label,col]) => (
+                          {[['1','Elite','#cc9900'],['2','Premier','#000099'],['3','Club','#0077aa'],['4','Social','#990033'],['5','Starter','#555555']].map(([lvl,label,col]) => (
                             <button key={lvl} onClick={() => setEditAddLevel(editAddLevel === lvl ? null : lvl)}
                               style={{ padding:'3px 10px', borderRadius:20, border:`1.5px solid ${editAddLevel===lvl?col:'rgba(26,58,42,0.12)'}`, background:editAddLevel===lvl?col:'transparent', color:editAddLevel===lvl?'#fff':'rgba(26,58,42,0.5)', fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s' }}>
                               L{lvl} {label}
@@ -654,7 +655,7 @@ export default function AdminPage() {
                       <span style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', fontSize:14, color:'rgba(26,58,42,0.3)', pointerEvents:'none' }}>🔍</span>
                     </div>
                     <div style={{ display:'flex', gap:6, marginBottom:10, flexWrap:'wrap' as const }}>
-                      {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#0077aa'],['4','Beginner','#990033']].map(([lvl,label,col]) => (
+                      {[['1','Elite','#cc9900'],['2','Premier','#000099'],['3','Club','#0077aa'],['4','Social','#990033'],['5','Starter','#555555']].map(([lvl,label,col]) => (
                         <button key={lvl} onClick={() => setLeagueLevelFilter(f => f === lvl ? null : lvl)}
                           style={{ padding:'4px 11px', borderRadius:20, border:`1.5px solid ${leagueLevelFilter===lvl ? col : 'rgba(26,58,42,0.12)'}`, background: leagueLevelFilter===lvl ? col : 'transparent', color: leagueLevelFilter===lvl ? '#fff' : 'rgba(26,58,42,0.5)', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s', letterSpacing:'0.03em' }}>
                           L{lvl} {label}

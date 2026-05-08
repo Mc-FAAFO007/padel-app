@@ -218,9 +218,10 @@ export default function ProfilePage() {
             >
               <option value="">All Levels</option>
               <option value="1">L1 · Elite</option>
-              <option value="2">L2 · Competitive</option>
-              <option value="3">L3 · Casual</option>
-              <option value="4">L4 · Beginner</option>
+              <option value="2">L2 · Premier</option>
+              <option value="3">L3 · Club</option>
+              <option value="4">L4 · Social</option>
+              <option value="5">L5 · Starter</option>
             </select>
             <select
               value={filterAvailability}

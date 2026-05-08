@@ -20,12 +20,16 @@ function getBand(r: number) {
 
 function getConf(n: number): { label: string; color: string; bg: string } {
   if (n < 5)  return { label:'NC', color:'rgba(26,58,42,0.4)', bg:'rgba(26,58,42,0.08)'  }
-  if (n < 10) return { label:'LC', color:'#014a09',            bg:'rgba(26,58,42,0.10)'  }
-  if (n < 20) return { label:'MC', color:'#2d3a8a',            bg:'rgba(45,58,138,0.10)' }
-  return             { label:'HC', color:'#1a5c35',            bg:'rgba(26,92,53,0.10)'  }
+  if (n < 10) return { label:'Calibrating', color:'#888',  bg:'rgba(85,85,85,0.10)' }
+  const pct = Math.min((n - 10) * 10, 100)
+  return { label:`${pct}% confident`, color:'#014a09', bg:'rgba(26,58,42,0.10)' }
 }
 
-function getK(n: number) { return n < 5 ? 0.4 : n < 10 ? 0.3 : n < 20 ? 0.22 : 0.16 }
+function getK(n: number) {
+  if (n < 10) return 0.48
+  const conf = Math.min((n - 10) * 10, 100)
+  return Math.round((0.48 - 0.36 * conf / 100) * 1000) / 1000
+}
 
 function marginMult(wG: number, lG: number) {
   const d = wG - lG
