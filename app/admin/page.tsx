@@ -56,6 +56,7 @@ export default function AdminPage() {
   const [leaguePointsAllSets,    setLeaguePointsAllSets]    = useState(false)
   const [leaguePointsBagel,      setLeaguePointsBagel]      = useState(true)
   const [leagueGeneratedGroups,  setLeagueGeneratedGroups]  = useState<string[][]>([])
+  const [leagueSeedMap,          setLeagueSeedMap]          = useState<Record<string,number>>({})
   const [leagueDay,              setLeagueDay]              = useState('Tuesday')
   const [leagueCreating,         setLeagueCreating]         = useState(false)
   const [leagueCreated,          setLeagueCreated]          = useState(false)
@@ -64,12 +65,16 @@ export default function AdminPage() {
 
   const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000) }
 
-  function snakeSeed(playerIds: string[], numGroups: number): string[][] {
+  function snakeSeed(playerIds: string[], numGroups: number): { groups: string[][], seedMap: Record<string, number> } {
     const sorted = [...playerIds].sort((a, b) => {
       const rA = ratings.find(r => r.player_id === a)?.rating || 0
       const rB = ratings.find(r => r.player_id === b)?.rating || 0
       return rB - rA
     })
+    // seed = overall rank by rating (1 = best) — stays within group size after modulo
+    const seedMap: Record<string, number> = {}
+    sorted.forEach((pid, i) => { seedMap[pid] = (i % 4) + 1 })
+
     const groups: string[][] = Array.from({ length: numGroups }, () => [])
     sorted.forEach((pid, i) => {
       const round = Math.floor(i / numGroups)
@@ -77,7 +82,7 @@ export default function AdminPage() {
       const idx   = round % 2 === 0 ? pos : numGroups - 1 - pos
       groups[idx].push(pid)
     })
-    return groups
+    return { groups, seedMap }
   }
 
   async function handleCreateLeague() {
@@ -102,7 +107,7 @@ export default function AdminPage() {
         if (!box) continue
 
         const { error: playersErr } = await supabase.from('league_box_players').insert(
-          group.map((pid: string, idx: number) => ({ box_id: box.id, player_id: pid, seed: idx + 1 }))
+          group.map((pid: string, idx: number) => ({ box_id: box.id, player_id: pid, seed: leagueSeedMap[pid] ?? (idx + 1) }))
         )
         if (playersErr) { const m = 'Players insert: ' + playersErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
 
@@ -552,7 +557,7 @@ export default function AdminPage() {
                     </div>
                     <div style={{ display:'flex', gap:8, marginTop:20 }}>
                       <button onClick={() => setLeagueStep(2)} style={{ flex:1, background:'rgba(26,58,42,0.07)', border:'none', borderRadius:10, padding:'12px', color: C.dark, fontWeight:400, fontSize:13, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
-                      <button onClick={() => { setLeagueGeneratedGroups(snakeSeed(leaguePlayers, leagueGroups)); setLeagueStep(4) }}
+                      <button onClick={() => { const r = snakeSeed(leaguePlayers, leagueGroups); setLeagueGeneratedGroups(r.groups); setLeagueSeedMap(r.seedMap); setLeagueStep(4) }}
                         style={{ flex:2, background: C.dark, border:'none', borderRadius:10, padding:'12px', color: C.gold, fontWeight:500, fontSize:13, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em' }}>Next → Preview Groups</button>
                     </div>
                   </div>
@@ -563,7 +568,7 @@ export default function AdminPage() {
                   <div style={{ background:'#fff', borderRadius:14, padding:'20px', border:`1px solid ${C.cardBorder}` }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
                       <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:400, color: C.dark }}>Groups Preview</div>
-                      <button onClick={() => setLeagueGeneratedGroups(snakeSeed(leaguePlayers, leagueGroups))}
+                      <button onClick={() => { const r = snakeSeed(leaguePlayers, leagueGroups); setLeagueGeneratedGroups(r.groups); setLeagueSeedMap(r.seedMap) }}
                         style={{ background:'rgba(26,58,42,0.07)', border:'none', borderRadius:9, padding:'6px 12px', color: C.dark, fontWeight:500, fontSize:11, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em' }}>Reshuffle ↺</button>
                     </div>
                     <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginBottom:14, fontWeight:300 }}>Snake-seeded by rating · balanced groups</div>
