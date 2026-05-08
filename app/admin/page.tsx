@@ -102,7 +102,7 @@ export default function AdminPage() {
         if (!box) continue
 
         const { error: playersErr } = await supabase.from('league_box_players').insert(
-          group.map((pid: string) => ({ box_id: box.id, player_id: pid }))
+          group.map((pid: string, idx: number) => ({ box_id: box.id, player_id: pid, seed: idx + 1 }))
         )
         if (playersErr) { const m = 'Players insert: ' + playersErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
 
