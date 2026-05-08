@@ -377,6 +377,7 @@ export default function HomePage() {
     if (editingPost) {
       const { error } = await supabase.from('posts').update({ level:fLevels[0], allowed_levels:fLevels, slot:fSlot, spots_needed:fSpots, note:fNote.trim() }).eq('id', editingPost)
       if (error) { showNotif('Error updating: ' + error.message); return }
+      setPosts(prev => prev.map(p => p.id === editingPost ? { ...p, level:fLevels[0], allowed_levels:fLevels, slot:fSlot, spots_needed:fSpots, note:fNote.trim() } : p))
       showNotif('Game updated!'); setEditingPost(null)
     } else {
       const { error } = await supabase.from('posts').insert({ player_id:currentUser.id, player_name:currentUser.name, player_avatar:currentUser.avatar, level:fLevels[0], allowed_levels:fLevels, slot:fSlot, spots_needed:fSpots, note:fNote.trim() })

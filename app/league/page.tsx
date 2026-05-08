@@ -379,7 +379,12 @@ export default function LeaguePage() {
     setFixtures(fixturesWithNames)
   }
 
-  useEffect(() => { loadData() }, [loadData])
+  useEffect(() => {
+    loadData()
+    const onVisible = () => { if (!document.hidden) loadData() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [loadData])
 
   const todayFixtures = fixtures.filter(f => isToday(f.scheduled_date))
   const slot1 = todayFixtures.filter(f => f.scheduled_time === activeLeague?.match_time_slot_1)
@@ -559,7 +564,7 @@ export default function LeaguePage() {
 
       {/* Log Result Modal */}
       {logFixture && userId && (
-        <LogResultModal fixture={logFixture} ratings={ratings} userId={userId} onClose={() => setLogFixture(null)} onSaved={() => activeLeague && loadLeagueData(activeLeague.id, ratings)} showNotif={showNotif} />
+        <LogResultModal fixture={logFixture} ratings={ratings} userId={userId} onClose={() => setLogFixture(null)} onSaved={() => loadData()} showNotif={showNotif} />
       )}
 
       {/* ── Bottom Nav ── */}
