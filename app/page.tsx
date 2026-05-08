@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import AvailabilityPicker from '@/components/AvailabilityPicker'
@@ -286,7 +286,7 @@ export default function HomePage() {
     } catch (err) { console.error('loadData error:', err); setLoading(false) }
   }, [router])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const mainView = sessionStorage.getItem('mainView')
     if (mainView === 'board') { setView('board'); sessionStorage.removeItem('mainView') }
     else if (mainView === 'matches') { setView('profile'); setProfileTab('schedule'); sessionStorage.removeItem('mainView') }
