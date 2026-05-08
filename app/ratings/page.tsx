@@ -182,7 +182,7 @@ export default function RatingsPage() {
   const [history,     setHistory]     = useState<Match[]>([])
   const [currentUser, setCurrentUser] = useState<Rating | null>(null)
   const [userId,      setUserId]      = useState<string | null>(null)
-  const [view,        setView]        = useState<'leaderboard' | 'log' | 'my'>('leaderboard')
+  const [view,        setView]        = useState<'leaderboard' | 'log' | 'league'>('leaderboard')
   const [loading,     setLoading]     = useState(true)
   const [notif,       setNotif]       = useState<string | null>(null)
 
@@ -251,8 +251,8 @@ export default function RatingsPage() {
   useEffect(() => {
     loadData()
     const tab = sessionStorage.getItem('arenaTab')
-    if (tab === 'log' || tab === 'my' || tab === 'leaderboard') {
-      setView(tab as 'leaderboard'|'log'|'my')
+    if (tab === 'log' || tab === 'league' || tab === 'leaderboard') {
+      setView(tab as 'leaderboard'|'log'|'league')
       sessionStorage.removeItem('arenaTab')
     }
   }, [loadData])
@@ -402,25 +402,6 @@ export default function RatingsPage() {
   )
 
   const myId = currentUser?.player_id || userId
-  const myHistory = history.filter(m =>
-    myId && [m.team_a1_id, m.team_a2_id, m.team_b1_id, m.team_b2_id].includes(myId)
-  )
-  const myRank = currentUser ? ratings.findIndex(r => r.player_id === myId) + 1 : 0
-
-  const myRatingTimeline = myHistory.slice().reverse().map(m => {
-    const isA1 = m.team_a1_id === myId
-    const isA2 = m.team_a2_id === myId
-    const isB1 = m.team_b1_id === myId
-    const isB2 = m.team_b2_id === myId
-    const before = isA1 ? m.rating_a1_before : isA2 ? m.rating_a2_before : isB1 ? m.rating_b1_before : m.rating_b2_before
-    const after = isA1 ? m.rating_a1_after : isA2 ? m.rating_a2_after : isB1 ? m.rating_b1_after : m.rating_b2_after
-    const aSum = m.sets_a.reduce((a:number,b:number)=>a+b,0)
-    const bSum = m.sets_b.reduce((a:number,b:number)=>a+b,0)
-    const won = [m.team_a1_id, m.team_a2_id].includes(myId!) ? aSum > bSum : bSum > aSum
-    return { id:m.id, date:m.created_at, rating: after, before, won }
-  })
-  const myRatingMin = myRatingTimeline.length ? Math.min(...myRatingTimeline.map(p=>p.rating), 1) : 1
-  const myRatingMax = myRatingTimeline.length ? Math.max(...myRatingTimeline.map(p=>p.rating), 7) : 7
 
   return (
     <div style={s.page}>
@@ -442,7 +423,7 @@ export default function RatingsPage() {
 
         {/* ── RESTYLED Nav pills ── */}
         <div style={{ display:'flex', gap:7, marginBottom:18 }}>
-          {(['leaderboard','log','my'] as const).map(v => (
+          {(['leaderboard','log','league'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               style={{
                 background: view===v ? '#014a09' : 'transparent',
@@ -457,7 +438,7 @@ export default function RatingsPage() {
                 whiteSpace: 'nowrap' as const,
                 transition: 'all 0.15s',
               }}>
-              {v === 'leaderboard' ? 'Leaderboard' : v === 'log' ? 'Log Match' : 'My Results'}
+              {v === 'leaderboard' ? 'Leaderboard' : v === 'log' ? 'Log Match' : 'League'}
             </button>
           ))}
         </div>
@@ -780,125 +761,14 @@ export default function RatingsPage() {
           </div>
         )}
 
-        {/* ══ MY RESULTS ══ */}
-        {view === 'my' && (
+        {/* ══ LEAGUE ══ */}
+        {view === 'league' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            {currentUser ? (
-              <>
-                {/* ── RESTYLED My rating card — gradient ── */}
-                <div style={{ background:'linear-gradient(135deg, #014a09 0%, #026b0d 100%)', borderRadius:18, padding:'18px', display:'flex', alignItems:'center', gap:16 }}>
-                  <div style={{ fontSize:44, fontWeight:900, color:'#ffcc66', lineHeight:1, letterSpacing:-1 }}>
-                    {currentUser.rating.toFixed(1)}
-                  </div>
-                  <div>
-                    <div style={{ fontSize:11, color:'rgba(255,204,102,0.55)', marginBottom:4 }}>Your current rating</div>
-                    <div style={{ fontSize:17, fontWeight:800, color:'#fff' }}>{currentUser.player_name}</div>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, marginTop:7 }}>
-                      <ConfBadge n={myHistory.length} />
-                      <span style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{myHistory.length} matches · rank #{myRank}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rating fluctuation graph */}
-                <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(1,74,9,0.08)', borderRadius:14, padding:'14px' }}>
-                  <div style={{ ...s.lbl, marginBottom:10 }}>Rating fluctuations</div>
-                  {myRatingTimeline.length === 0 ? (
-                    <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet — log a match to build your history.</div>
-                  ) : (
-                    <>
-                      {/* ── RESTYLED stat boxes ── */}
-                      <div style={{ display:'flex', gap:10, marginBottom:16 }}>
-                        {[
-                          { label:'Matches', value: String(myRatingTimeline.length) },
-                          { label:'Currently', value: myRatingTimeline[myRatingTimeline.length-1].rating.toFixed(1) },
-                          { label:'Trend', value: (myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '+' : '') + (myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating).toFixed(1), color: myRatingTimeline[myRatingTimeline.length-1].rating - myRatingTimeline[0].rating >= 0 ? '#006633' : '#990033' },
-                        ].map(stat => (
-                          <div key={stat.label} style={{ flex:1, background:'rgba(1,74,9,0.04)', border:'1px solid rgba(1,74,9,0.07)', borderRadius:12, padding:'11px' }}>
-                            <div style={{ fontSize:9, color:'rgba(1,74,9,0.4)', textTransform:'uppercase' as const, letterSpacing:'0.8px', marginBottom:6 }}>{stat.label}</div>
-                            <div style={{ fontSize:22, fontWeight:900, color: stat.color || '#014a09' }}>{stat.value}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div style={{ background:'rgba(1,74,9,0.04)', borderRadius:16, padding:'14px', overflowX:'auto' }}>
-                        <div style={{ display:'flex', alignItems:'flex-end', gap:9, minWidth: Math.max(280, myRatingTimeline.length * 56) }}>
-                          {myRatingTimeline.map(point => {
-                            const height = Math.max(20, ((point.rating - myRatingMin) / Math.max(myRatingMax - myRatingMin, 1)) * 104)
-                            return (
-                              <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, minWidth:44 }}>
-                                <div style={{ width:12, height, borderRadius:999, background: point.won ? '#006633' : '#990033' }} />
-                                <div style={{ fontSize:10, color:'#555' }}>{point.rating.toFixed(1)}</div>
-                                <div style={{ fontSize:9, color:'#888', textAlign:'center' }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Match history */}
-                <div style={s.lbl}>All matches ({myHistory.length})</div>
-                {myHistory.length === 0 ? (
-                  <div style={{ textAlign:'center', padding:'30px 0', color:'#888', fontSize:13 }}>No matches logged yet</div>
-                ) : myHistory.map(m => {
-                  const onA = [m.team_a1_id, m.team_a2_id].includes(myId!)
-                  const won = onA
-                    ? (m.sets_a.reduce((a:number,b:number)=>a+b,0) > m.sets_b.reduce((a:number,b:number)=>a+b,0))
-                    : (m.sets_b.reduce((a:number,b:number)=>a+b,0) > m.sets_a.reduce((a:number,b:number)=>a+b,0))
-                  const isA1 = m.team_a1_id === myId
-                  const isA2 = m.team_a2_id === myId
-                  const before = isA1 ? m.rating_a1_before : isA2 ? m.rating_a2_before : m.team_b1_id === myId ? m.rating_b1_before : m.rating_b2_before
-                  const after  = isA1 ? m.rating_a1_after  : isA2 ? m.rating_a2_after  : m.team_b1_id === myId ? m.rating_b1_after  : m.rating_b2_after
-                  const delta  = Math.round((after - before) * 10) / 10
-                  const sets = m.sets_a.map((a:number,i:number) => `${a}-${m.sets_b[i]}`).join(', ')
-                  const partner = onA
-                    ? (isA1 ? m.team_a2_name : m.team_a1_name)
-                    : (m.team_b1_id === myId ? m.team_b2_name : m.team_b1_name)
-                  const opp1 = onA ? m.team_b1_name : m.team_a1_name
-                  const opp2 = onA ? m.team_b2_name : m.team_a2_name
-
-                  return (
-                    <div key={m.id} style={{
-                      background:'rgba(255,255,255,0.75)', borderLeft:`3px solid ${won?'#006633':'#990033'}`,
-                      borderRadius:'0 14px 14px 0', padding:'12px 14px', paddingLeft:11, marginBottom:6,
-                      border:`1px solid rgba(1,74,9,0.07)`, borderLeftWidth:3, borderLeftColor: won?'#006633':'#990033',
-                    }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                        <div style={{ fontSize:11, color:'#888' }}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-                        <div style={{ fontSize:13, fontWeight:700, color: won ? '#006633' : '#990033' }}>
-                          {won ? 'W' : 'L'} · {sets}
-                        </div>
-                      </div>
-                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color: won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color: won?'#006633':'#990033', lineHeight:1.5 }}>You<br/>{partner}</div>
-                        </div>
-                        <div style={{ padding:'7px 9px', borderRadius:8, background: !won?'rgba(0,102,51,0.07)':'rgba(153,0,51,0.07)', border:`1px solid ${!won?'rgba(0,102,51,0.2)':'rgba(153,0,51,0.25)'}` }}>
-                          <div style={{ fontSize:9, fontWeight:700, color: !won?'#006633':'#990033', textTransform:'uppercase', marginBottom:3 }}>{!won?'Won':'Lost'}</div>
-                          <div style={{ fontSize:11, color: !won?'#006633':'#990033', lineHeight:1.5 }}>{opp1}<br/>{opp2}</div>
-                        </div>
-                      </div>
-                      <div style={{ fontSize:12, fontWeight:700, color: delta >= 0 ? '#006633' : '#990033' }}>
-                        {before.toFixed(1)} → {after.toFixed(1)} ({delta >= 0 ? '+' : ''}{delta.toFixed(1)} rating)
-                      </div>
-                    </div>
-                  )
-                })}
-              </>
-            ) : (
-              <div style={{ textAlign:'center', padding:'40px 20px' }}>
-                <div style={{ fontSize:32, marginBottom:12 }}>🎾</div>
-                <div style={{ fontSize:15, fontWeight:700, color:'#014a09', marginBottom:8 }}>You're not in the ratings yet</div>
-                <div style={{ fontSize:13, color:'#888', marginBottom:20 }}>Log a match to get your first rating</div>
-                <button onClick={() => setView('log')} style={{ background:'#014a09', border:'none', borderRadius:12, padding:'12px 28px', color:'#ffcc66', fontWeight:800, fontSize:14, cursor:'pointer', fontFamily:'inherit' }}>
-                  Log a match →
-                </button>
-              </div>
-            )}
+            <div style={{ background:'rgba(255,255,255,0.75)', border:'1px solid rgba(1,74,9,0.08)', borderRadius:14, padding:'24px 20px', textAlign:'center' }}>
+              <div style={{ fontSize:28, marginBottom:10 }}>🏆</div>
+              <div style={{ fontSize:15, fontWeight:800, color:'#014a09', marginBottom:6 }}>Leagues coming soon</div>
+              <div style={{ fontSize:13, color:'#888', lineHeight:1.5 }}>Create and join club leagues, track standings, and compete in organised seasons.</div>
+            </div>
           </div>
         )}
 
@@ -985,7 +855,7 @@ export default function RatingsPage() {
             { label:'Home',    active:false, action:() => router.push('/') },
             { label:'Board',   active:false, action:() => { sessionStorage.setItem('mainView','board'); router.push('/') } },
             { label:'Arena',   active:true,  action:() => {} },
-            { label:'Profile', active:false, action:() => router.push('/') },
+            { label:'Profile', active:false, action:() => { sessionStorage.setItem('mainView','profile'); router.push('/') } },
           ] as const).map(({ label, active, action }) => {
             const icons: Record<string, React.ReactNode> = {
               Home:    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>,
@@ -1006,3 +876,4 @@ export default function RatingsPage() {
     </div>
   )
 }
+
