@@ -63,6 +63,12 @@ export default function AdminPage() {
   const [leagueError,            setLeagueError]            = useState('')
   const [leagueSearch,           setLeagueSearch]           = useState('')
   const [leagueLevelFilter,      setLeagueLevelFilter]      = useState<string|null>(null)
+  const [existingLeagues,        setExistingLeagues]        = useState<any[]>([])
+  const [editingLeague,          setEditingLeague]          = useState<any|null>(null)
+  const [editBoxes,              setEditBoxes]              = useState<any[]>([])
+  const [editBoxPlayers,         setEditBoxPlayers]         = useState<any[]>([])
+  const [editAddSearch,          setEditAddSearch]          = useState('')
+  const [editAddLevel,           setEditAddLevel]           = useState<string|null>(null)
 
   const showNotif = (msg: string) => { setNotif(msg); setTimeout(() => setNotif(null), 3000) }
 
@@ -162,6 +168,49 @@ export default function AdminPage() {
   }, [router])
 
   useEffect(() => { loadData() }, [loadData])
+
+  const loadExistingLeagues = async () => {
+    const { data } = await supabase.from('leagues').select('*').order('created_at', { ascending: false })
+    setExistingLeagues(data || [])
+  }
+
+  const loadLeagueForEdit = async (league: any) => {
+    setEditingLeague(league)
+    const { data: boxes } = await supabase.from('league_boxes').select('*').eq('league_id', league.id).order('box_number')
+    setEditBoxes(boxes || [])
+    const boxIds = (boxes || []).map((b: any) => b.id)
+    if (boxIds.length > 0) {
+      const { data: players } = await supabase.from('league_box_players').select('*').in('box_id', boxIds)
+      setEditBoxPlayers(players || [])
+    } else { setEditBoxPlayers([]) }
+  }
+
+  const handleRemoveFromLeague = async (playerId: string) => {
+    const boxIds = editBoxes.map((b: any) => b.id)
+    await supabase.from('league_box_players').delete().eq('player_id', playerId).in('box_id', boxIds)
+    setEditBoxPlayers(prev => prev.filter((p: any) => p.player_id !== playerId))
+    showNotif('Player removed')
+  }
+
+  const handleAddToLeague = async (playerId: string, boxId: string) => {
+    const existingInBox = editBoxPlayers.filter((p: any) => p.box_id === boxId)
+    const seed = existingInBox.length + 1
+    const { error } = await supabase.from('league_box_players').insert({ box_id: boxId, player_id: playerId, seed })
+    if (error) { showNotif('Error: ' + error.message); return }
+    setEditBoxPlayers((prev: any[]) => [...prev, { box_id: boxId, player_id: playerId, seed }])
+    showNotif('Player added')
+  }
+
+  const handleMovePlayer = async (playerId: string, newBoxId: string) => {
+    const boxIds = editBoxes.map((b: any) => b.id)
+    await supabase.from('league_box_players').delete().eq('player_id', playerId).in('box_id', boxIds)
+    const existingInBox = editBoxPlayers.filter((p: any) => p.box_id === newBoxId && p.player_id !== playerId)
+    const seed = existingInBox.length + 1
+    const { error } = await supabase.from('league_box_players').insert({ box_id: newBoxId, player_id: playerId, seed })
+    if (error) { showNotif('Error: ' + error.message); return }
+    setEditBoxPlayers((prev: any[]) => [...prev.filter((p: any) => p.player_id !== playerId), { box_id: newBoxId, player_id: playerId, seed }])
+    showNotif('Player moved')
+  }
 
   if (loading) return (
     <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'100vh', background: C.bg, fontFamily:"'Jost',sans-serif" }}>
@@ -429,6 +478,110 @@ export default function AdminPage() {
         {/* ── LEAGUE WIZARD ── */}
         {tab === 'league' && (
           <div style={{ maxWidth:560 }}>
+
+            {/* ── Existing Leagues ── */}
+            <div style={{ marginBottom:20 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:C.dark, letterSpacing:'0.05em' }}>EXISTING LEAGUES</div>
+                <button onClick={loadExistingLeagues} style={{ fontSize:11, color:C.mid, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>↻ Load</button>
+              </div>
+              {existingLeagues.length === 0 ? (
+                <div style={{ fontSize:12, color:'rgba(26,58,42,0.35)', padding:'8px 0' }}>No leagues loaded — click ↻ Load</div>
+              ) : existingLeagues.map((lg: any) => (
+                <div key={lg.id} style={{ background:'#fff', borderRadius:12, padding:'14px 16px', marginBottom:8, border:`1px solid ${C.cardBorder}` }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:600, color:C.dark }}>{lg.name}</div>
+                      <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:2 }}>{lg.status} · {(lg.format||'').replace('_',' ')}</div>
+                    </div>
+                    <button onClick={() => editingLeague?.id === lg.id ? setEditingLeague(null) : loadLeagueForEdit(lg)}
+                      style={{ background: editingLeague?.id===lg.id ? 'rgba(26,58,42,0.08)' : C.dark, color: editingLeague?.id===lg.id ? C.dark : C.gold, border:'none', borderRadius:8, padding:'5px 14px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                      {editingLeague?.id === lg.id ? 'Close' : 'Edit'}
+                    </button>
+                  </div>
+
+                  {editingLeague?.id === lg.id && (
+                    <div style={{ marginTop:14, borderTop:`1px solid ${C.cardBorder}`, paddingTop:14 }}>
+
+                      {editBoxes.map((box: any) => {
+                        const boxPs = editBoxPlayers.filter((p: any) => p.box_id === box.id)
+                        return (
+                          <div key={box.id} style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:11, fontWeight:700, color:C.dark, marginBottom:6, letterSpacing:'0.05em' }}>{box.name} — {boxPs.length} players</div>
+                            {boxPs.length === 0 && <div style={{ fontSize:11, color:'rgba(26,58,42,0.35)', paddingLeft:4, marginBottom:4 }}>Empty</div>}
+                            {boxPs.map((bp: any) => {
+                              const u = users.find((u: any) => u.id === bp.player_id)
+                              const r = ratings.find((r: any) => r.player_id === bp.player_id)
+                              return u ? (
+                                <div key={bp.player_id} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,58,42,0.03)', borderRadius:8, marginBottom:4, border:'1px solid rgba(26,58,42,0.06)' }}>
+                                  <div style={{ flex:1 }}>
+                                    <span style={{ fontSize:12, fontWeight:500, color:C.dark }}>{u.name}</span>
+                                    <span style={{ fontSize:10, color:'rgba(26,58,42,0.4)', marginLeft:8 }}>L{u.level} · {r?.rating?.toFixed(1)||'N/A'}</span>
+                                  </div>
+                                  {editBoxes.length > 1 && (
+                                    <select onChange={e => e.target.value && handleMovePlayer(bp.player_id, e.target.value)} defaultValue=""
+                                      style={{ fontSize:10, border:'1px solid rgba(26,58,42,0.15)', borderRadius:6, padding:'2px 6px', background:'transparent', color:C.dark, cursor:'pointer', fontFamily:'inherit' }}>
+                                      <option value="">Move →</option>
+                                      {editBoxes.filter((b: any) => b.id !== box.id).map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    </select>
+                                  )}
+                                  <button onClick={() => handleRemoveFromLeague(bp.player_id)}
+                                    style={{ background:'rgba(153,0,51,0.08)', border:'none', borderRadius:6, padding:'3px 9px', fontSize:10, color:'#990033', cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>✕</button>
+                                </div>
+                              ) : null
+                            })}
+                          </div>
+                        )
+                      })}
+
+                      <div style={{ borderTop:`1px solid ${C.cardBorder}`, paddingTop:12, marginTop:4 }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:C.dark, marginBottom:8, letterSpacing:'0.04em' }}>ADD PLAYER</div>
+                        <div style={{ display:'flex', gap:5, marginBottom:8, flexWrap:'wrap' as const }}>
+                          {[['1','Elite','#cc9900'],['2','Competitive','#000099'],['3','Casual','#0077aa'],['4','Beginner','#990033']].map(([lvl,label,col]) => (
+                            <button key={lvl} onClick={() => setEditAddLevel(editAddLevel === lvl ? null : lvl)}
+                              style={{ padding:'3px 10px', borderRadius:20, border:`1.5px solid ${editAddLevel===lvl?col:'rgba(26,58,42,0.12)'}`, background:editAddLevel===lvl?col:'transparent', color:editAddLevel===lvl?'#fff':'rgba(26,58,42,0.5)', fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s' }}>
+                              L{lvl} {label}
+                            </button>
+                          ))}
+                        </div>
+                        <input placeholder="Search player to add…" value={editAddSearch} onChange={e => setEditAddSearch(e.target.value)}
+                          style={{ width:'100%', padding:'8px 12px', border:'1px solid rgba(26,58,42,0.15)', borderRadius:8, fontSize:12, fontFamily:'inherit', background:'rgba(26,58,42,0.02)', color:C.dark, outline:'none', boxSizing:'border-box' as const, marginBottom:6 }} />
+                        {editAddSearch.length > 0 && (
+                          <div style={{ maxHeight:160, overflowY:'auto', display:'flex', flexDirection:'column', gap:4 }}>
+                            {users
+                              .filter((u: any) => !editBoxPlayers.find((p: any) => p.player_id === u.id))
+                              .filter((u: any) => u.name.toLowerCase().includes(editAddSearch.toLowerCase()))
+                              .filter((u: any) => !editAddLevel || String(u.level) === editAddLevel)
+                              .slice(0, 8)
+                              .map((u: any) => {
+                                const r = ratings.find((rt: any) => rt.player_id === u.id)
+                                return (
+                                  <div key={u.id} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,58,42,0.03)', borderRadius:8, border:'1px solid rgba(26,58,42,0.06)' }}>
+                                    <div style={{ flex:1 }}>
+                                      <div style={{ fontSize:12, fontWeight:500, color:C.dark }}>{u.name}</div>
+                                      <div style={{ fontSize:10, color:'rgba(26,58,42,0.4)' }}>L{u.level} · {r?.rating?.toFixed(1)||'N/A'}</div>
+                                    </div>
+                                    <select onChange={e => { if(e.target.value){ handleAddToLeague(u.id,e.target.value); setEditAddSearch('') } }} defaultValue=""
+                                      style={{ fontSize:11, border:'1px solid rgba(26,58,42,0.2)', borderRadius:8, padding:'4px 8px', background:C.dark, color:C.gold, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>
+                                      <option value="">Add to…</option>
+                                      {editBoxes.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    </select>
+                                  </div>
+                                )
+                              })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ borderTop:`1px solid ${C.cardBorder}`, paddingTop:16, marginBottom:4 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:C.dark, letterSpacing:'0.05em', marginBottom:12 }}>CREATE NEW LEAGUE</div>
+            </div>
+
             {leagueCreated ? (
               <div style={{ background:'#fff', borderRadius:14, padding:'32px', textAlign:'center' as const, border:`1px solid ${C.cardBorder}` }}>
                 <div style={{ fontSize:28, marginBottom:12, opacity:0.7 }}>🏆</div>
