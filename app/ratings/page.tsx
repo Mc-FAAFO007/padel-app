@@ -415,7 +415,7 @@ export default function RatingsPage() {
         {/* ── UPDATED Nav pills ── */}
         <div style={{ display:'flex', gap:7, marginBottom:18 }}>
           {(['leaderboard','log','league'] as const).map(v => (
-            <button key={v} onClick={() => setView(v)}
+            <button key={v} onClick={() => v === 'league' ? router.push('/league') : setView(v)}
               style={{
                 background: view===v ? '#1a3a2a' : 'transparent',
                 color: view===v ? '#b8963e' : 'rgba(26,58,42,0.45)',
