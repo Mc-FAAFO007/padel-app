@@ -137,6 +137,22 @@ export default function AdminPage() {
             )
           } else if (group.length === 2) {
             pairs.push({ t1p1:group[0], t1p2:group[0], t2p1:group[1], t2p2:group[1], round:1 })
+          } else if (group.length === 5) {
+            // 5 players: rotating pairs, each player sits out once
+            pairs.push(
+              { t1p1:group[0], t1p2:group[1], t2p1:group[2], t2p2:group[3], round:1 }, // 4 sits out
+              { t1p1:group[0], t1p2:group[2], t2p1:group[3], t2p2:group[4], round:2 }, // 1 sits out
+              { t1p1:group[0], t1p2:group[3], t2p1:group[1], t2p2:group[4], round:3 }, // 2 sits out
+              { t1p1:group[0], t1p2:group[4], t2p1:group[1], t2p2:group[2], round:4 }, // 3 sits out
+              { t1p1:group[1], t1p2:group[3], t2p1:group[2], t2p2:group[4], round:5 }, // 0 sits out
+            )
+          } else if (group.length === 6) {
+            // 6 players: 3 fixed pairs play round-robin (3 matches)
+            pairs.push(
+              { t1p1:group[0], t1p2:group[1], t2p1:group[2], t2p2:group[3], round:1 },
+              { t1p1:group[0], t1p2:group[1], t2p1:group[4], t2p2:group[5], round:2 },
+              { t1p1:group[2], t1p2:group[3], t2p1:group[4], t2p2:group[5], round:3 },
+            )
           }
           const { error: fixErr } = await supabase.from('league_fixtures').insert(pairs.map(f => ({
             league_id: league.id, box_id: box.id, round: f.round, court: gi + 1,
