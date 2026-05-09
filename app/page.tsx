@@ -491,26 +491,28 @@ export default function HomePage() {
         {view === 'home' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-            {/* UPDATED greeting — Playfair italic for name, muted gold rating badge */}
-            <div style={{ padding:'26px 0 4px', display:'flex', alignItems:'flex-start', justifyContent:'space-between' }}>
-              <div>
-                <div style={{ fontSize:11, color:'rgba(26,58,42,0.45)', marginBottom:4, letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:300 }}>Welcome back,</div>
-                <div style={{ fontFamily:"'Playfair Display', serif", fontSize:24, fontWeight:400, color:C.dark, letterSpacing:-0.3, fontStyle:'italic' }}>{currentUser?.name?.split(' ')[0]}</div>
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                {currentUser?.is_admin && (
-                  <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.08)', border:'1px solid rgba(139,32,32,0.2)', borderRadius:10, padding:'6px 10px', color:'#8b2020', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>⚙️ Admin</button>
-                )}
-                {liveRating && (()=>{
-                  const lvl = ratingToLevel(liveRating).level
-                  const lblMap: Record<string,string> = {'1':'Elite','2':'Competitive','3':'Casual','4':'Beginner'}
-                  return (
-                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:C.dark, borderRadius:12, padding:'6px 14px', minWidth:62 }}>
-                      <div style={{ fontSize:15, fontWeight:800, color:C.gold, lineHeight:1.1 }}>{liveRating.toFixed(1)}</div>
-                      <div style={{ fontSize:9, fontWeight:600, color:'rgba(255,204,102,0.7)', letterSpacing:'0.03em', marginTop:1, whiteSpace:'nowrap' as const }}>L{lvl} · {lblMap[String(lvl)]}</div>
-                    </div>
-                  )
-                })()}
+            {/* Dark banner header — matches all other views */}
+            <div style={{ margin:'0 -16px', background:C.dark, padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ fontFamily:"'Playfair Display',serif", color:C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>Court Connections</div>
+                  <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Welcome back, {currentUser?.name?.split(' ')[0]}</div>
+                </div>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  {currentUser?.is_admin && (
+                    <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em' }}>⚙️ Admin</button>
+                  )}
+                  {liveRating && (()=>{
+                    const lvl = ratingToLevel(liveRating).level
+                    const lblMap: Record<string,string> = {'1':'Elite','2':'Competitive','3':'Casual','4':'Beginner'}
+                    return (
+                      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 14px', minWidth:62, border:'1px solid rgba(184,150,62,0.25)' }}>
+                        <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>{liveRating.toFixed(1)}</div>
+                        <div style={{ fontSize:9, fontWeight:500, color:'rgba(184,150,62,0.65)', letterSpacing:'0.03em', marginTop:1, whiteSpace:'nowrap' as const }}>L{lvl} · {lblMap[String(lvl)]}</div>
+                      </div>
+                    )
+                  })()}
+                </div>
               </div>
             </div>
 
@@ -858,25 +860,30 @@ export default function HomePage() {
         {/* ══ PROFILE ══ */}
         {view === 'profile' && currentUser && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div style={{ padding:'22px 0 4px' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-                <Avatar initials={currentUser.avatar} size={48} level={currentUser.level} />
-                <div style={{ flex:1 }}>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:18, fontWeight:400, color:C.dark, letterSpacing:-0.3 }}>{currentUser.name}</div>
-                  <div style={{ fontSize:11, color:'rgba(26,58,42,0.45)', marginTop:3, fontWeight:300 }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+            <div style={{ margin:'0 -16px', background:C.dark, padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <Avatar initials={currentUser.avatar} size={38} level={currentUser.level} />
+                  <div>
+                    <div style={{ fontFamily:"'Playfair Display',serif", color:C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>{currentUser.name}</div>
+                    <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
+                  </div>
                 </div>
-                <div style={{ background:C.dark, color:C.gold, fontSize:12, fontWeight:400, padding:'6px 13px', borderRadius:12, textAlign:'center' as const }}>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, lineHeight:1.1 }}>{liveRating?.toFixed(1) || '--'}</div>
+                <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 13px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
+                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, lineHeight:1.1, color:C.gold }}>{liveRating?.toFixed(1) || '--'}</div>
                   {liveRating && <div style={{ fontSize:9, color:'rgba(184,150,62,0.65)', marginTop:2, letterSpacing:'0.06em' }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
                 </div>
               </div>
-
-              <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
+              <div style={{ display:'flex', gap:6, overflowX:'auto' }}>
                 {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
-                  <button key={key} onClick={()=>setProfileTab(key as any)} style={pill(profileTab===key)}>{label}</button>
+                  <button key={key} onClick={()=>setProfileTab(key as any)} style={
+                    profileTab===key
+                      ? { background:'rgba(184,150,62,0.2)', color:C.gold, fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(184,150,62,0.35)', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s', letterSpacing:'0.04em' }
+                      : { background:'transparent', color:'rgba(255,255,255,0.45)', fontSize:11, fontWeight:400, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(255,255,255,0.15)', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s', letterSpacing:'0.04em' }
+                  }>{label}</button>
                 ))}
                 {currentUser.is_admin && (
-                  <button onClick={()=>router.push('/admin')} style={{ ...pill(false), background:'rgba(139,32,32,0.1)', color:'#8b2020' }}>⚙️ Admin</button>
+                  <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const, flexShrink:0 }}>⚙️ Admin</button>
                 )}
               </div>
             </div>
