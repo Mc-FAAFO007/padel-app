@@ -411,7 +411,7 @@ export default function RatingsPage() {
       <div style={s.inner}>
 
         {/* ── UPDATED Header — Playfair Display ── */}
-        <div style={{ margin:'0 -16px', background:'#1a3a2a', padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+        <div style={{ margin:'0 -16px', background:'#1a3a2a', padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:10 }}>
           <div style={{ fontFamily:"'Playfair Display',serif", color:'#b8963e', fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The Arena</div>
           <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Live ratings · match history</div>
         </div>
@@ -421,8 +421,8 @@ export default function RatingsPage() {
           {(['leaderboard','log','league'] as const).map(v => (
             <button key={v} onClick={() => v === 'league' ? router.push('/league') : setView(v)}
               style={{
-                background: view===v ? '#014a09' : 'transparent',
-                color: view===v ? '#ffcc66' : 'rgba(26,58,42,0.45)',
+                background: view===v ? '#1a3a2a' : 'transparent',
+                color: view===v ? '#b8963e' : 'rgba(26,58,42,0.45)',
                 fontSize: 11, fontWeight: view===v ? 500 : 400,
                 padding: '7px 16px', borderRadius: 20, cursor: 'pointer',
                 border: view===v ? 'none' : '1px solid rgba(26,58,42,0.18)',
@@ -438,7 +438,7 @@ export default function RatingsPage() {
         {view === 'leaderboard' && (
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-              <div style={{ width:14, height:1, background:'#ffcc66' }} />
+              <div style={{ width:14, height:1, background:'#b8963e' }} />
               <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' }}>
                 Club rankings · {ratings.length} members
               </div>
@@ -692,7 +692,7 @@ export default function RatingsPage() {
                   width:'100%',
                   background: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.06)' : '#014a09',
                   border:'none', borderRadius:12, padding:'15px 0',
-                  color: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.3)' : '#ffcc66',
+                  color: (!s1a||!s1b||submitting) ? 'rgba(26,58,42,0.3)' : '#b8963e',
                   fontWeight:500, fontSize:15,
                   cursor: (!s1a||!s1b||submitting) ? 'default' : 'pointer',
                   fontFamily:'inherit', letterSpacing:'0.06em', transition:'all 0.15s',
@@ -777,7 +777,7 @@ export default function RatingsPage() {
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                  <div style={{ width:12, height:1, background:'#ffcc66' }} />
+                  <div style={{ width:12, height:1, background:'#b8963e' }} />
                   <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase', letterSpacing:'1.2px' }}>Match history ({vpHistory.length})</div>
                 </div>
                 {vpHistory.length === 0 ? (
@@ -841,10 +841,10 @@ export default function RatingsPage() {
               Profile: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></>,
             }
             return (
-              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:9, color:active?'#ffcc66':'rgba(184,150,62,0.35)', fontWeight:active?500:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'0.06em' }}>
-                <svg width="18" height="18" fill="none" stroke={active?'#ffcc66':'rgba(184,150,62,0.35)'} strokeWidth="1.6" viewBox="0 0 24 24">{icons[label]}</svg>
+              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:9, color:active?'#b8963e':'rgba(184,150,62,0.35)', fontWeight:active?500:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                <svg width="18" height="18" fill="none" stroke={active?'#b8963e':'rgba(184,150,62,0.35)'} strokeWidth="1.6" viewBox="0 0 24 24">{icons[label]}</svg>
                 {label}
-                {active && <div style={{ width:3, height:3, borderRadius:'50%', background:'#ffcc66', marginTop:1 }} />}
+                {active && <div style={{ width:3, height:3, borderRadius:'50%', background:'#b8963e', marginTop:1 }} />}
               </button>
             )
           })}
