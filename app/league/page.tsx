@@ -415,15 +415,17 @@ export default function LeaguePage() {
       {/* ── Header — matches main app style ── */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-          <button onClick={() => router.push('/ratings')} style={{ background:'none', border:'none', padding:0, color:'rgba(1,74,9,0.4)', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', textAlign:'left' as const }}>← The Arena</button>
           <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, letterSpacing: -0.5 }}>The League</div>
         </div>
-        {activeLeague && (
-          <div style={{ background: C.dark, borderRadius: 12, padding: '5px 12px', textAlign: 'center' as const }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
-            <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.7)', marginTop: 1 }}>of {activeLeague.total_rounds}</div>
-          </div>
-        )}
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {activeLeague && (
+            <div style={{ background: C.dark, borderRadius: 12, padding: '5px 12px', textAlign: 'center' as const }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.7)', marginTop: 1 }}>of {activeLeague.total_rounds}</div>
+            </div>
+          )}
+          <button onClick={() => router.push('/ratings')} style={{ background:'transparent', border:'1px solid rgba(1,74,9,0.18)', borderRadius:20, padding:'6px 12px', color:'rgba(1,74,9,0.5)', fontSize:11, fontWeight:400, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const }}>← Arena</button>
+        </div>
       </div>
 
       {/* ── All content centred at 480px ── */}
@@ -463,12 +465,11 @@ export default function LeaguePage() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap:6, margin: '8px 16px 0' }}>
           {(['boxes', 'schedule'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              background: tab === t ? '#014a09' : 'rgba(1,74,9,0.07)',
-              color: tab === t ? '#ffcc66' : 'rgba(1,74,9,0.5)',
-              fontSize:10, fontWeight: tab === t ? 700 : 600,
-              padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit',
-            }}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+            <button key={t} onClick={() => setTab(t)} style={
+              tab === t
+                ? { background: C.dark, color: C.gold, fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', transition:'all 0.15s', letterSpacing:'0.04em' }
+                : { background: 'transparent', color: 'rgba(1,74,9,0.45)', fontSize:11, fontWeight:400, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(1,74,9,0.18)', fontFamily:'inherit', whiteSpace:'nowrap', transition:'all 0.15s', letterSpacing:'0.04em' }
+            }>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
           ))}
         </div>
 
