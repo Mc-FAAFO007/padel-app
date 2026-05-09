@@ -861,7 +861,7 @@ export default function HomePage() {
         {view === 'profile' && currentUser && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:10 }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <Avatar initials={currentUser.avatar} size={38} level={currentUser.level} />
                   <div>
@@ -874,18 +874,15 @@ export default function HomePage() {
                   {liveRating && <div style={{ fontSize:9, color:'rgba(184,150,62,0.65)', marginTop:2, letterSpacing:'0.06em' }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
                 </div>
               </div>
-              <div style={{ display:'flex', gap:6, overflowX:'auto' }}>
-                {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
-                  <button key={key} onClick={()=>setProfileTab(key as any)} style={
-                    profileTab===key
-                      ? { background:'rgba(184,150,62,0.2)', color:C.gold, fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(184,150,62,0.35)', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s', letterSpacing:'0.04em' }
-                      : { background:'transparent', color:'rgba(255,255,255,0.45)', fontSize:11, fontWeight:400, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(255,255,255,0.15)', fontFamily:'inherit', whiteSpace:'nowrap' as const, flexShrink:0, transition:'all 0.15s', letterSpacing:'0.04em' }
-                  }>{label}</button>
-                ))}
-                {currentUser.is_admin && (
-                  <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const, flexShrink:0 }}>⚙️ Admin</button>
-                )}
-              </div>
+            </div>
+
+            <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:2 }}>
+              {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
+                <button key={key} onClick={()=>setProfileTab(key as any)} style={pill(profileTab===key)}>{label}</button>
+              ))}
+              {currentUser.is_admin && (
+                <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const, flexShrink:0 }}>Admin</button>
+              )}
             </div>
 
             {/* ─ Edit Profile ─ */}

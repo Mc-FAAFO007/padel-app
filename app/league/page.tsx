@@ -23,7 +23,7 @@ const C = {
   bg:        '#f5f0e8',
   dark:      '#1a3a2a',
   mid:       '#026b0d',
-  gold:      '#ffcc66',
+  gold:      '#b8963e',
   win:       '#006633',
   loss:      '#990033',
   cardBorder:'rgba(1,74,9,0.12)',
@@ -413,7 +413,7 @@ export default function LeaguePage() {
       )}
 
       {/* ── Header — matches main app style ── */}
-      <div style={{ background: C.dark, padding:'max(env(safe-area-inset-top), 16px) 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:8 }}>
+      <div style={{ background: C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:6 }}>
         <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The League</div>
@@ -590,8 +590,8 @@ export default function LeaguePage() {
               Profile: <><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"></path></>,
             }
             return (
-              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color:'rgba(255,204,102,0.4)', fontWeight:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                <svg width="18" height="18" fill="none" stroke='rgba(255,204,102,0.4)' strokeWidth="1.8" viewBox="0 0 24 24">{icons[label]}</svg>
+              <button key={label} onClick={action} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, fontSize:10, color:'rgba(184,150,62,0.35)', fontWeight:400, background:'none', border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                <svg width="18" height="18" fill="none" stroke='rgba(184,150,62,0.35)' strokeWidth="1.8" viewBox="0 0 24 24">{icons[label]}</svg>
                 {label}
               </button>
             )
