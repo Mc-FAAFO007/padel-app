@@ -572,7 +572,7 @@ export default function LeaguePage() {
       )}
 
       {/* ── Bottom Nav ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', display:'flex', padding:'6px 0 10px', zIndex:100 }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
             { label:'Home',    action:() => router.push('/') },
