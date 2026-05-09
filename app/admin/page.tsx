@@ -282,7 +282,7 @@ export default function AdminPage() {
       )}
 
       {/* Header */}
-      <div style={{ background: C.dark, padding:'16px 16px 12px', borderBottom:`1px solid rgba(184,150,62,0.2)` }}>
+      <div style={{ background: C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:`1px solid rgba(184,150,62,0.2)` }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>Admin Panel</div>
@@ -296,7 +296,7 @@ export default function AdminPage() {
       </div>
 
       {/* Tab nav */}
-      <div style={{ background: C.bg, padding:'8px 0', borderBottom:`1px solid rgba(26,58,42,0.08)` }}>
+      <div style={{ background: C.bg, padding:'5px 0', borderBottom:`1px solid rgba(26,58,42,0.08)` }}>
         <div style={{ maxWidth:480, margin:'0 auto', padding:'0 16px', display:'flex', gap:6, overflowX:'auto' }}>
           {tabs.map(t => (
             <button key={t} onClick={() => setTab(t)} style={tabPill(tab===t)}>{t}</button>
@@ -494,10 +494,28 @@ export default function AdminPage() {
                       {m.team_b1_name} & {m.team_b2_name}
                     </div>
                     <button onClick={async () => {
-                      if (confirm('Delete this match?')) {
+                      if (confirm('Delete this match? Ratings will be reverted to their pre-match values.')) {
+                        const affected = [
+                          { id: m.team_a1_id, before: m.rating_a1_before },
+                          { id: m.team_a2_id, before: m.rating_a2_before },
+                          { id: m.team_b1_id, before: m.rating_b1_before },
+                          { id: m.team_b2_id, before: m.rating_b2_before },
+                        ]
+                        await Promise.all(affected.map(p => {
+                          const cur = ratings.find(r => r.player_id === p.id)
+                          return supabase.from('ratings').update({
+                            rating: p.before,
+                            match_count: Math.max(0, (cur?.match_count || 1) - 1),
+                          }).eq('player_id', p.id)
+                        }))
                         await supabase.from('matches').delete().eq('id', m.id)
-                        setMatches(matches.filter(x => x.id!==m.id))
-                        showNotif('Match deleted')
+                        setMatches(matches.filter(x => x.id !== m.id))
+                        setRatings(prev => prev.map(r => {
+                          const p = affected.find(a => a.id === r.player_id)
+                          if (!p) return r
+                          return { ...r, rating: p.before, match_count: Math.max(0, r.match_count - 1) }
+                        }))
+                        showNotif('Match deleted · ratings reverted')
                       }
                     }} style={{ background:'rgba(139,32,32,0.1)', border:'1px solid rgba(139,32,32,0.25)', borderRadius:6, padding:'5px 10px', color: C.loss, fontWeight:500, cursor:'pointer', fontFamily:'inherit', fontSize:11, flexShrink:0, marginLeft:8 }}>Delete</button>
                   </div>

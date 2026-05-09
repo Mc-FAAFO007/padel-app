@@ -124,7 +124,7 @@ function Notif({ msg }: { msg: string|null }) {
 // UPDATED: Playfair Display serif for the page title
 function PageHeader({ title, sub, rating, right }: { title: string; sub?: string; rating?: number|null; right?: React.ReactNode }) {
   return (
-    <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 16px) 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+    <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:10 }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
         <div>
           <div style={{ fontFamily:"'Playfair Display',serif", color:C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>{title}</div>
@@ -492,7 +492,7 @@ export default function HomePage() {
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
             {/* Dark banner header — matches all other views */}
-            <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 16px) 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+            <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div>
                   <div style={{ fontFamily:"'Playfair Display',serif", color:C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>Court Connections</div>
@@ -860,7 +860,7 @@ export default function HomePage() {
         {/* ══ PROFILE ══ */}
         {view === 'profile' && currentUser && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 16px) 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+            <div style={{ margin:'0 -16px', background:C.dark, padding:'max(env(safe-area-inset-top), 10px) 16px 8px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:10 }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <Avatar initials={currentUser.avatar} size={38} level={currentUser.level} />
