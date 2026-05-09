@@ -400,13 +400,13 @@ export default function LeaguePage() {
   const rounds = Array.from(new Set(fixtures.map(f => f.round))).sort((a, b) => a - b)
 
   if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: C.bg, fontFamily: "'Jost',sans-serif" }}>
       <div style={{ color: C.dark, fontSize: 14, fontWeight: 500 }}>Loading league...</div>
     </div>
   )
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: "'DM Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: C.bg, fontFamily: "'Jost',sans-serif" }}>
 
       {notif && (
         <div style={{ position: 'fixed', top: 18, left: '50%', transform: 'translateX(-50%)', background: 'rgba(1,74,9,0.12)', backdropFilter: 'blur(12px)', border: '1px solid rgba(2,107,13,0.4)', borderRadius: 14, padding: '11px 22px', zIndex: 9999, color: C.dark, fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap' }}>{notif}</div>
