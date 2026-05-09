@@ -413,7 +413,7 @@ export default function RatingsPage() {
         {/* ── UPDATED Header — Playfair Display ── */}
         <div style={{ padding:'22px 0 14px' }}>
           <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:400, color:'#014a09', letterSpacing:-0.5, lineHeight:1 }}>The Arena</div>
-          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:5, fontWeight:300, letterSpacing:'0.02em' }}>Track your progress and rankings</div>
+          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:5, fontWeight:300, letterSpacing:'0.02em' }}>Live ratings · match history</div>
         </div>
 
         {/* ── UPDATED Nav pills ── */}

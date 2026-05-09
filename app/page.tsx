@@ -122,10 +122,13 @@ function Notif({ msg }: { msg: string|null }) {
 }
 
 // UPDATED: Playfair Display serif for the page title
-function PageHeader({ title, rating, right }: { title: string; rating?: number|null; right?: React.ReactNode }) {
+function PageHeader({ title, sub, rating, right }: { title: string; sub?: string; rating?: number|null; right?: React.ReactNode }) {
   return (
     <div style={{ padding:'22px 0 8px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-      <div style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:400, color:C.dark, letterSpacing:-0.3 }}>{title}</div>
+      <div>
+        <div style={{ fontFamily:"'Playfair Display', serif", fontSize:22, fontWeight:400, color:C.dark, letterSpacing:-0.3 }}>{title}</div>
+        {sub && <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:4, fontWeight:300, letterSpacing:'0.02em' }}>{sub}</div>}
+      </div>
       <div style={{ display:'flex', alignItems:'center', gap:8 }}>
         {rating != null && (
           <div style={{ background:C.dark, color:C.gold, fontSize:13, fontWeight:500, padding:'5px 12px', borderRadius:14, fontFamily:"'Playfair Display', serif" }}>
@@ -568,7 +571,7 @@ export default function HomePage() {
         {/* ══ BOARD ══ */}
         {view === 'board' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <PageHeader title="Game Board" right={
+            <PageHeader title="Game Board" sub="Find a game · post a game" right={
               !showForm ? (
                 <button onClick={() => {
                   setFDay(''); setFTime(''); setFDuration(''); setFSpots(3); setFNote(''); setFInvited([]); setFPlayerSearch(''); setShowPlayerSearch(false); setEditingPost(null)
@@ -779,7 +782,7 @@ export default function HomePage() {
         {/* ══ ARENA ══ */}
         {view === 'arena' && (
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <PageHeader title="The Arena" />
+            <PageHeader title="The Arena" sub="Live ratings · match history" />
 
             <div style={{ display:'flex', gap:6 }}>
               <button style={pill(true)}>Leaderboard</button>
