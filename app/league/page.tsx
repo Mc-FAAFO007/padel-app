@@ -413,7 +413,7 @@ export default function LeaguePage() {
       )}
 
       {/* ── Header — matches main app style ── */}
-      <div style={{ background: C.dark, padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:8 }}>
+      <div style={{ background: C.dark, padding:'max(env(safe-area-inset-top), 16px) 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:8 }}>
         <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The League</div>
