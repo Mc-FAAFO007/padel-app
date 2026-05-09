@@ -826,7 +826,7 @@ export default function RatingsPage() {
       })()}
 
       {/* ── Bottom Nav — UPDATED colours ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#014a09', display:'flex', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
             { label:'Home',    active:false, action:() => router.push('/') },

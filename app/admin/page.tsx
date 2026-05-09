@@ -28,8 +28,8 @@ function ratingToLevel(rating: number): { level: string; color: string; bg: stri
 // Shared pill helper — consistent with rest of app
 function tabPill(active: boolean): React.CSSProperties {
   return active
-    ? { background:'#1a3a2a', color:'#b8963e', fontSize:10, fontWeight:500, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, letterSpacing:'0.06em', textTransform:'capitalize' as const, transition:'all 0.15s' }
-    : { background:'transparent', color:'rgba(26,58,42,0.45)', fontSize:10, fontWeight:400, padding:'6px 14px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(26,58,42,0.18)', fontFamily:'inherit', whiteSpace:'nowrap' as const, letterSpacing:'0.06em', textTransform:'capitalize' as const, transition:'all 0.15s' }
+    ? { background:'#1a3a2a', color:'#b8963e', fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap' as const, letterSpacing:'0.04em', transition:'all 0.15s' }
+    : { background:'transparent', color:'rgba(26,58,42,0.45)', fontSize:11, fontWeight:400, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(26,58,42,0.18)', fontFamily:'inherit', whiteSpace:'nowrap' as const, letterSpacing:'0.04em', transition:'all 0.15s' }
 }
 
 export default function AdminPage() {
@@ -283,7 +283,7 @@ export default function AdminPage() {
 
       {/* Header */}
       <div style={{ background: C.dark, padding:'16px 16px 12px', borderBottom:`1px solid rgba(184,150,62,0.2)` }}>
-        <div style={{ maxWidth:900, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <div style={{ maxWidth:480, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>Admin Panel</div>
             <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>{currentUser.name}</div>
@@ -297,7 +297,7 @@ export default function AdminPage() {
 
       {/* Tab nav */}
       <div style={{ background: C.bg, padding:'8px 0', borderBottom:`1px solid rgba(26,58,42,0.08)` }}>
-        <div style={{ maxWidth:900, margin:'0 auto', padding:'0 16px', display:'flex', gap:6, overflowX:'auto' }}>
+        <div style={{ maxWidth:480, margin:'0 auto', padding:'0 16px', display:'flex', gap:6, overflowX:'auto' }}>
           {tabs.map(t => (
             <button key={t} onClick={() => setTab(t)} style={tabPill(tab===t)}>{t}</button>
           ))}

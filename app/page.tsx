@@ -130,13 +130,14 @@ function PageHeader({ title, sub, rating, right }: { title: string; sub?: string
           <div style={{ fontFamily:"'Playfair Display',serif", color:C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>{title}</div>
           {sub && <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>{sub}</div>}
         </div>
-      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-        {rating != null && (
-          <div style={{ background:C.dark, color:C.gold, fontSize:13, fontWeight:500, padding:'5px 12px', borderRadius:14, fontFamily:"'Playfair Display', serif" }}>
-            {rating.toFixed(1)}
-          </div>
-        )}
-        {right}
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          {rating != null && (
+            <div style={{ background:'rgba(184,150,62,0.15)', color:C.gold, fontSize:13, fontWeight:500, padding:'5px 12px', borderRadius:14, fontFamily:"'Playfair Display', serif", border:'1px solid rgba(184,150,62,0.25)' }}>
+              {rating.toFixed(1)}
+            </div>
+          )}
+          {right}
+        </div>
       </div>
     </div>
   )
@@ -1046,7 +1047,7 @@ export default function HomePage() {
       )}
 
       {/* ── Bottom Nav — UPDATED colours ── */}
-      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', display:'flex', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
+      <nav style={{ position:'fixed', bottom:0, left:0, right:0, background:'#1a3a2a', padding:'6px 0 10px', zIndex:100, borderTop:'1px solid rgba(184,150,62,0.15)' }}>
         <div style={{ maxWidth:480, margin:'0 auto', display:'flex', width:'100%' }}>
           {([
             { v:'home',    label:'Home',    icon:<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/> },
