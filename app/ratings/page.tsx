@@ -411,9 +411,9 @@ export default function RatingsPage() {
       <div style={s.inner}>
 
         {/* ── UPDATED Header — Playfair Display ── */}
-        <div style={{ padding:'22px 0 14px' }}>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:26, fontWeight:400, color:'#014a09', letterSpacing:-0.5, lineHeight:1 }}>The Arena</div>
-          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:5, fontWeight:300, letterSpacing:'0.02em' }}>Live ratings · match history</div>
+        <div style={{ margin:'0 -16px', background:'#1a3a2a', padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:14 }}>
+          <div style={{ fontFamily:"'Playfair Display',serif", color:'#b8963e', fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The Arena</div>
+          <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Live ratings · match history</div>
         </div>
 
         {/* ── UPDATED Nav pills ── */}

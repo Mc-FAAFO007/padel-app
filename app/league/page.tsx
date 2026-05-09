@@ -413,19 +413,21 @@ export default function LeaguePage() {
       )}
 
       {/* ── Header — matches main app style ── */}
-      <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-          <div style={{ fontFamily:"'Playfair Display', serif", fontSize: 22, fontWeight: 400, color: C.dark, letterSpacing: -0.3 }}>The League</div>
-          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:4, fontWeight:300, letterSpacing:'0.02em' }}>Season standings · fixtures</div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          {activeLeague && (
-            <div style={{ background: C.dark, borderRadius: 12, padding: '5px 12px', textAlign: 'center' as const }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: C.gold, lineHeight: 1.1 }}>Wk {currentRound}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,204,102,0.7)', marginTop: 1 }}>of {activeLeague.total_rounds}</div>
-            </div>
-          )}
-          <button onClick={() => router.push('/ratings')} style={{ background:'transparent', border:'1px solid rgba(1,74,9,0.18)', borderRadius:20, padding:'6px 12px', color:'rgba(1,74,9,0.5)', fontSize:11, fontWeight:400, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const }}>← Arena</button>
+      <div style={{ background: C.dark, padding:'16px 16px 12px', borderBottom:'1px solid rgba(184,150,62,0.2)', marginBottom:8 }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The League</div>
+            <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Season standings · fixtures</div>
+          </div>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            {activeLeague && (
+              <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'5px 12px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
+                <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>Wk {currentRound}</div>
+                <div style={{ fontSize:9, fontWeight:500, color:'rgba(184,150,62,0.65)', marginTop:1 }}>of {activeLeague.total_rounds}</div>
+              </div>
+            )}
+            <button onClick={() => router.push('/ratings')} style={{ background:'rgba(184,150,62,0.12)', border:'1px solid rgba(184,150,62,0.2)', borderRadius:20, padding:'7px 14px', color:C.gold, fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.06em', whiteSpace:'nowrap' as const }}>← Arena</button>
+          </div>
         </div>
       </div>
 
