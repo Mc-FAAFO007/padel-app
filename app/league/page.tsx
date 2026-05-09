@@ -21,7 +21,7 @@ import type {
 
 const C = {
   bg:        '#f5f0e8',
-  dark:      '#014a09',
+  dark:      '#1a3a2a',
   mid:       '#026b0d',
   gold:      '#ffcc66',
   win:       '#006633',
@@ -415,8 +415,8 @@ export default function LeaguePage() {
       {/* ── Header — matches main app style ── */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '22px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display:'flex', flexDirection:'column', gap:2 }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: C.dark, letterSpacing: -0.5 }}>The League</div>
-          <div style={{ fontSize:11, color:'rgba(1,74,9,0.4)', marginTop:4, fontWeight:300, letterSpacing:'0.02em' }}>Season standings · fixtures</div>
+          <div style={{ fontFamily:"'Playfair Display', serif", fontSize: 22, fontWeight: 400, color: C.dark, letterSpacing: -0.3 }}>The League</div>
+          <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', marginTop:4, fontWeight:300, letterSpacing:'0.02em' }}>Season standings · fixtures</div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           {activeLeague && (
