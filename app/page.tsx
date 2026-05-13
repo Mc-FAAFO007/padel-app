@@ -874,9 +874,9 @@ export default function HomePage() {
                   {currentUser.is_admin && (
                     <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const }}>⚙️ Admin</button>
                   )}
-                  <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 13px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
-                    <div style={{ fontFamily:'inherit', fontSize:16, fontWeight:600, lineHeight:1.1, color:C.gold }}>{liveRating?.toFixed(1) || '--'}</div>
-                    {liveRating && <div style={{ fontSize:9, color:'rgba(184,150,62,0.65)', marginTop:2, letterSpacing:'0.06em' }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 14px', minWidth:62, border:'1px solid rgba(184,150,62,0.25)' }}>
+                    <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>{liveRating?.toFixed(1) || '--'}</div>
+                    {liveRating && <div style={{ fontSize:9, fontWeight:500, color:'rgba(184,150,62,0.65)', letterSpacing:'0.03em', marginTop:1, whiteSpace:'nowrap' as const }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
                   </div>
                 </div>
               </div>
