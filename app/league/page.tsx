@@ -180,7 +180,6 @@ function FixtureCard({
     <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', background: 'rgba(1,74,9,0.03)', borderBottom: '1px solid rgba(1,74,9,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.dark, background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px' }}>Week {fixture.round}</div>
           <div style={{ fontSize: 10, color: '#888' }}>Court {fixture.court} · {formatMatchDate(fixture.scheduled_date)} · {formatTime(fixture.scheduled_time)}</div>
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, color: statusPill.color, background: statusPill.bg, borderRadius: 5, padding: '2px 8px' }}>{statusPill.label}</div>
