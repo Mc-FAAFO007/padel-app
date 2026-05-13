@@ -325,7 +325,7 @@ export default function LeaguePage() {
   const [boxPlayers, setBoxPlayers]     = useState<LeagueBoxPlayer[]>([])
   const [fixtures, setFixtures]         = useState<LeagueFixture[]>([])
   const [sport, setSport]               = useState<'padel' | 'tennis'>('padel')
-  const [tab, setTab]                   = useState<'boxes' | 'schedule'>('boxes')
+  const [tab, setTab]                   = useState<'standings' | 'schedule'>('standings')
   const [logFixture, setLogFixture]     = useState<LeagueFixture | null>(null)
   const [notif, setNotif]               = useState<string | null>(null)
   const notifRef                        = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -417,7 +417,7 @@ export default function LeaguePage() {
         <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The League</div>
-            <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Season standings · fixtures</div>
+            <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Standings | Fixtures</div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
 
@@ -462,17 +462,17 @@ export default function LeaguePage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap:6, margin: '8px 16px 0' }}>
-          {(['boxes', 'schedule'] as const).map(t => (
+          {(['standings', 'schedule'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)} style={
               tab === t
                 ? { background: C.dark, color: C.gold, fontSize:11, fontWeight:500, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', transition:'all 0.15s', letterSpacing:'0.04em' }
                 : { background: 'transparent', color: 'rgba(1,74,9,0.45)', fontSize:11, fontWeight:400, padding:'7px 16px', borderRadius:20, cursor:'pointer', border:'1px solid rgba(1,74,9,0.18)', fontFamily:'inherit', whiteSpace:'nowrap', transition:'all 0.15s', letterSpacing:'0.04em' }
-            }>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
+            }>{t === 'standings' ? 'Standings' : 'Schedule'}</button>
           ))}
         </div>
 
         {/* Boxes tab */}
-        {tab === 'boxes' && (
+        {tab === 'standings' && (
           <div style={{ padding: '14px 16px 0' }}>
             {boxes.length === 0 ? (
               <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 24 }}>
@@ -555,24 +555,50 @@ export default function LeaguePage() {
                     const allInBox = boxPlayers.filter(p => roundFixtures.some(f => f.box_id === p.box_id))
                     const byes = allInBox.filter(p => !playersInRound.has(p.player_id))
                     if (byes.length === 0) return null
-                    return byes.map(p => (
-                      <div key={p.player_id} style={{ background:'rgba(26,58,42,0.04)', border:'1px dashed rgba(26,58,42,0.15)', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                        <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', fontWeight:400 }}>{p.player_name}</div>
-                        <div style={{ fontSize:11, fontWeight:600, color:'rgba(26,58,42,0.35)', background:'rgba(26,58,42,0.08)', borderRadius:6, padding:'3px 10px', letterSpacing:'0.06em' }}>BYE</div>
-                      </div>
-                    ))
+                    return byes.map(p => {
+                      const roundFix = roundFixtures[0]
+                      return (
+                        <div key={p.player_id} style={{ background:'#fff', borderRadius:16, overflow:'hidden', marginBottom:10, opacity:0.7 }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 14px', background:'rgba(1,74,9,0.03)', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                              <div style={{ fontSize:10, fontWeight:600, color:C.dark, background:'rgba(1,74,9,0.10)', borderRadius:5, padding:'2px 8px' }}>Week {round}</div>
+                              <div style={{ fontSize:10, color:'#888' }}>Court {roundFix?.court} · {formatMatchDate(roundFix?.scheduled_date||'')} · {formatTime(roundFix?.scheduled_time||'')}</div>
+                            </div>
+                          </div>
+                          <div style={{ padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                              <div style={{ fontSize:13, color:'#bbb', fontWeight:400 }}>{p.player_name}</div>
+                            </div>
+                            <div style={{ fontSize:22, fontWeight:700, color:'rgba(26,58,42,0.2)', letterSpacing:'0.06em' }}>BYE</div>
+                          </div>
+                        </div>
+                      )
+                    })
                   })()}
                   {(() => {
                     const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
                     const allInBox = boxPlayers.filter(p => roundFixtures.some(f => f.box_id === p.box_id))
                     const byes = allInBox.filter(p => !playersInRound.has(p.player_id))
                     if (byes.length === 0) return null
-                    return byes.map(p => (
-                      <div key={p.player_id} style={{ background:'rgba(26,58,42,0.04)', border:'1px dashed rgba(26,58,42,0.15)', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-                        <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', fontWeight:400 }}>{p.player_name}</div>
-                        <div style={{ fontSize:11, fontWeight:600, color:'rgba(26,58,42,0.35)', background:'rgba(26,58,42,0.08)', borderRadius:6, padding:'3px 10px', letterSpacing:'0.06em' }}>BYE</div>
-                      </div>
-                    ))
+                    return byes.map(p => {
+                      const roundFix = roundFixtures[0]
+                      return (
+                        <div key={p.player_id} style={{ background:'#fff', borderRadius:16, overflow:'hidden', marginBottom:10, opacity:0.7 }}>
+                          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 14px', background:'rgba(1,74,9,0.03)', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                              <div style={{ fontSize:10, fontWeight:600, color:C.dark, background:'rgba(1,74,9,0.10)', borderRadius:5, padding:'2px 8px' }}>Week {round}</div>
+                              <div style={{ fontSize:10, color:'#888' }}>Court {roundFix?.court} · {formatMatchDate(roundFix?.scheduled_date||'')} · {formatTime(roundFix?.scheduled_time||'')}</div>
+                            </div>
+                          </div>
+                          <div style={{ padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                            <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+                              <div style={{ fontSize:13, color:'#bbb', fontWeight:400 }}>{p.player_name}</div>
+                            </div>
+                            <div style={{ fontSize:22, fontWeight:700, color:'rgba(26,58,42,0.2)', letterSpacing:'0.06em' }}>BYE</div>
+                          </div>
+                        </div>
+                      )
+                    })
                   })()}
                 </div>
               )
