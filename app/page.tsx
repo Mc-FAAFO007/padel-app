@@ -870,9 +870,14 @@ export default function HomePage() {
                     <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>L{currentUser.level} · {levelDesc[currentUser.level]}</div>
                   </div>
                 </div>
-                <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 13px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
-                  <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, lineHeight:1.1, color:C.gold }}>{liveRating?.toFixed(1) || '--'}</div>
-                  {liveRating && <div style={{ fontSize:9, color:'rgba(184,150,62,0.65)', marginTop:2, letterSpacing:'0.06em' }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  {currentUser.is_admin && (
+                    <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const }}>⚙️ Admin</button>
+                  )}
+                  <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 13px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
+                    <div style={{ fontFamily:'inherit', fontSize:16, fontWeight:600, lineHeight:1.1, color:C.gold }}>{liveRating?.toFixed(1) || '--'}</div>
+                    {liveRating && <div style={{ fontSize:9, color:'rgba(184,150,62,0.65)', marginTop:2, letterSpacing:'0.06em' }}>L{ratingToLevel(liveRating).level} · {ratingToLevel(liveRating).desc}</div>}
+                  </div>
                 </div>
               </div>
             </div>
@@ -881,9 +886,7 @@ export default function HomePage() {
               {[{key:'edit',label:'Edit Profile'},{key:'schedule',label:'My Schedule'},{key:'results',label:'My Results'}].map(({key,label})=>(
                 <button key={key} onClick={()=>setProfileTab(key as any)} style={pill(profileTab===key)}>{label}</button>
               ))}
-              {currentUser.is_admin && (
-                <button onClick={()=>router.push('/admin')} style={{ background:'rgba(139,32,32,0.25)', border:'none', borderRadius:20, padding:'7px 12px', color:'#ffaaaa', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em', whiteSpace:'nowrap' as const, flexShrink:0 }}>Admin</button>
-              )}
+
             </div>
 
             {/* ─ Edit Profile ─ */}
