@@ -254,8 +254,11 @@ export default function RatingsPage() {
   useEffect(() => {
     loadData()
     const tab = sessionStorage.getItem('arenaTab')
-    if (tab === 'log' || tab === 'league' || tab === 'leaderboard') {
-      setView(tab as 'leaderboard'|'log'|'league')
+    if (tab === 'league') {
+      sessionStorage.removeItem('arenaTab')
+      router.push('/league')
+    } else if (tab === 'log' || tab === 'leaderboard') {
+      setView(tab as 'leaderboard'|'log')
       sessionStorage.removeItem('arenaTab')
     }
   }, [loadData])
