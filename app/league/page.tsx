@@ -180,7 +180,7 @@ function FixtureCard({
     <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', background: 'rgba(1,74,9,0.03)', borderBottom: '1px solid rgba(1,74,9,0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.dark, background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px' }}>Round {fixture.round}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: C.dark, background: 'rgba(1,74,9,0.10)', borderRadius: 5, padding: '2px 8px' }}>Week {fixture.round}</div>
           <div style={{ fontSize: 10, color: '#888' }}>Court {fixture.court} · {formatMatchDate(fixture.scheduled_date)} · {formatTime(fixture.scheduled_time)}</div>
         </div>
         <div style={{ fontSize: 10, fontWeight: 600, color: statusPill.color, background: statusPill.bg, borderRadius: 5, padding: '2px 8px' }}>{statusPill.label}</div>
@@ -203,11 +203,11 @@ function FixtureCard({
             : emptyScores}
         </div>
       </div>
-      {today && !played && (
+      {!played && (
         <button onClick={() => onLogResult(fixture)} style={{
           display: 'block', width: 'calc(100% - 28px)', margin: '0 14px 12px', padding: '9px',
-          background: C.dark, color: C.gold, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}>+ Log result</button>
+          background: C.dark, color: C.gold, border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+        }}>+ Log Score</button>
       )}
     </div>
   )
@@ -293,7 +293,7 @@ function LogResultModal({
       <div style={{ background: '#f5f0e8', borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', width: '100%', maxWidth: 480 }} onClick={e => e.stopPropagation()}>
         <div style={{ width: 36, height: 4, background: 'rgba(1,74,9,0.2)', borderRadius: 2, margin: '0 auto 18px' }} />
         <div style={{ fontSize: 16, fontWeight: 700, color: C.dark, marginBottom: 4 }}>Log Result</div>
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Round {fixture.round} · {fixture.team_1_p1_name} & {fixture.team_1_p2_name} vs {fixture.team_2_p1_name} & {fixture.team_2_p2_name}</div>
+        <div style={{ fontSize: 12, color: '#888', marginBottom: 16 }}>Week {fixture.round} · {fixture.team_1_p1_name} & {fixture.team_1_p2_name} vs {fixture.team_2_p1_name} & {fixture.team_2_p2_name}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 20px 1fr', gap: 6, marginBottom: 8 }}>
           <div />
           <div style={{ fontSize: 11, fontWeight: 700, color: C.dark, textAlign: 'center' }}>{fixture.team_1_p1_name?.split(' ')[0]} & {fixture.team_1_p2_name?.split(' ')[0]}</div>
@@ -420,12 +420,7 @@ export default function LeaguePage() {
             <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Season standings · fixtures</div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            {activeLeague && (
-              <div style={{ background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'5px 12px', textAlign:'center' as const, border:'1px solid rgba(184,150,62,0.25)' }}>
-                <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>Wk {currentRound}</div>
-                <div style={{ fontSize:9, fontWeight:500, color:'rgba(184,150,62,0.65)', marginTop:1 }}>of {activeLeague.total_rounds}</div>
-              </div>
-            )}
+
             <button onClick={() => router.push('/ratings')} style={{ background:'rgba(184,150,62,0.12)', border:'1px solid rgba(184,150,62,0.2)', borderRadius:20, padding:'7px 14px', color:C.gold, fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.06em', whiteSpace:'nowrap' as const }}>← Arena</button>
           </div>
         </div>
@@ -441,7 +436,7 @@ export default function LeaguePage() {
         {todayFixtures.length > 0 && (
           <div style={{ margin: '8px 16px 0', background: C.dark, borderRadius: 16, padding: '14px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ color: C.gold, fontSize: 14, fontWeight: 600 }}>Tonight — Round {currentRound}</div>
+              <div style={{ color: C.gold, fontSize: 14, fontWeight: 600 }}>Tonight — Week {currentRound}</div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
             </div>
             {[slot1, slot2].filter(s => s.length > 0).map((slotFixtures, si) => (
@@ -549,7 +544,7 @@ export default function LeaguePage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <div style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor }} />
                       <div style={{ fontSize: 11, fontWeight: 600, color: C.dark, letterSpacing: '0.5px' }}>
-                        Round {round}{done ? ' — Complete' : isNow ? ' — Tonight' : round === Math.max(...rounds) ? ' — Final' : ''}
+                        Week {round}{done ? ' — Complete' : isNow ? ' — Tonight' : round === Math.max(...rounds) ? ' — Final' : ''}
                       </div>
                     </div>
                     <div style={{ fontSize: 11, color: '#888' }}>{formatMatchDate(roundDate)}</div>
