@@ -45,8 +45,8 @@ function formatSlotDisplay(slot: string): string {
 
 const levels    = ['1','2','3','4']
 // ── UPDATED level colours to match staff portal palette ──
-const levelColor: Record<string,string> = { '1':'#cc9900','2':'#000099','3':'#0077aa','4':'#990033','5':'#888888' }
-const levelBg:    Record<string,string> = { '1':'rgba(204,153,0,0.10)','2':'rgba(0,0,153,0.08)','3':'rgba(0,119,170,0.08)','4':'rgba(153,0,51,0.08)','5':'rgba(136,136,136,0.08)' }
+const levelColor: Record<string,string> = { '1':'#cc9900','2':'#000099','3':'#1a5c35','4':'#990033','5':'#888888' }
+const levelBg:    Record<string,string> = { '1':'rgba(204,153,0,0.10)','2':'rgba(0,0,153,0.08)','3':'rgba(26,92,53,0.12)','4':'rgba(153,0,51,0.08)','5':'rgba(136,136,136,0.08)' }
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Premier','3':'Club','4':'Social','5':'Starter' }
 
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
@@ -820,7 +820,7 @@ export default function HomePage() {
                   {[
                     { level:'1', name:'Elite',   range:'6.0 – 7.0', color:'#cc9900', bg:'rgba(204,153,0,0.10)',   desc:'Master of the game. Consistently dominant, exceptional technical execution and game intelligence. Wall play is automatic and shot selection is deliberate.' },
                     { level:'2', name:'Premier', range:'4.5 – 5.9', color:'#000099', bg:'rgba(0,0,153,0.08)',      desc:'A solid club player with real technical ability. Comfortable with the glass, can execute a bandeja and vibora under pressure, and moves well as a unit with a partner.' },
-                    { level:'3', name:'Club',    range:'3.0 – 4.4', color:'#0077aa', bg:'rgba(0,119,170,0.08)',    desc:'Found your feet on the court and can hold a rally. Wall bounces no longer cause panic and you are developing your shot repertoire. Building consistency and starting to think tactically.' },
+                    { level:'3', name:'Club',    range:'3.0 – 4.4', color:'#1a5c35', bg:'rgba(26,92,53,0.12)',    desc:'Found your feet on the court and can hold a rally. Wall bounces no longer cause panic and you are developing your shot repertoire. Building consistency and starting to think tactically.' },
                     { level:'4', name:'Social',  range:'2.0 – 2.9', color:'#990033', bg:'rgba(153,0,51,0.08)',     desc:'Getting comfortable with the game and the walls. Still building consistency but you can hold a point and are developing your court awareness.' },
                     { level:'5', name:'Starter', range:'1.0 – 1.9', color:'#888888', bg:'rgba(136,136,136,0.08)',     desc:'New to padel or still finding your footing. Learning the rules, getting comfortable with the walls, and figuring out court positioning. The only way is up.' },
                   ].map(l => (
