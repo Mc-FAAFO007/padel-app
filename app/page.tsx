@@ -840,7 +840,7 @@ export default function HomePage() {
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
               {([
-                ['🏆','Leaderboard','See club rankings',  () => { sessionStorage.setItem('arenaTab','leaderboard'); router.push('/ratings') }],
+                ['🥇','Leaderboard','See club rankings',  () => { sessionStorage.setItem('arenaTab','leaderboard'); router.push('/ratings') }],
                 ['🎾','Log Match',  'Record results',      () => { sessionStorage.setItem('arenaTab','log'); router.push('/ratings') }],
                 ['🏆','Leagues',    'Club competitions',  () => { sessionStorage.setItem('arenaTab','league'); router.push('/ratings') }],
               ] as const).map(([icon,title,desc,action])=>(
