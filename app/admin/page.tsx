@@ -508,7 +508,8 @@ export default function AdminPage() {
                             match_count: Math.max(0, (cur?.match_count || 1) - 1),
                           }).eq('player_id', p.id)
                         }))
-                        await supabase.from('matches').delete().eq('id', m.id)
+                        const { error: delErr } = await supabase.from('matches').delete().eq('id', m.id)
+                        if (delErr) { console.error('Match delete failed:', delErr); showNotif('Delete failed: ' + delErr.message); return }
                         setMatches(matches.filter(x => x.id !== m.id))
                         setRatings(prev => prev.map(r => {
                           const p = affected.find(a => a.id === r.player_id)
