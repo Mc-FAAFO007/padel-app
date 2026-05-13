@@ -546,42 +546,9 @@ export default function LeaguePage() {
                         Week {round}{done ? ' — Complete' : isNow ? ' — Tonight' : round === Math.max(...rounds) ? ' — Final' : ''}
                       </div>
                     </div>
-                    <div style={{ fontSize: 11, color: '#888' }}>{formatMatchDate(roundDate)}</div>
+
                   </div>
                   {roundFixtures.map(f => <FixtureCard key={f.id} fixture={f} currentUserId={userId} onLogResult={setLogFixture} />)}
-                  {(() => {
-                    const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
-                    const allBoxIds = [...new Set(fixtures.map(f => f.box_id))]
-                    const seen = new Set<string>()
-                    const byeGroups = allBoxIds.map(boxId => ({
-                      boxId,
-                      players: boxPlayers.filter(p => p.box_id === boxId && !playersInRound.has(p.player_id))
-                    })).filter(g => {
-                      if (g.players.length === 0) return false
-                      const key = g.players.map(p=>p.player_id).sort().join(',')
-                      if (seen.has(key)) return false
-                      seen.add(key); return true
-                    })
-                    const roundFix = roundFixtures[0]
-                    return byeGroups.map(g => (
-                      <div key={g.boxId} style={{ background:'#fff', borderRadius:16, overflow:'hidden', marginBottom:10 }}>
-                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 14px', background:'rgba(1,74,9,0.03)', borderBottom:'1px solid rgba(1,74,9,0.06)' }}>
-                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                            <div style={{ fontSize:10, fontWeight:600, color:C.dark, background:'rgba(1,74,9,0.10)', borderRadius:5, padding:'2px 8px' }}>Week {round}</div>
-                            <div style={{ fontSize:10, color:'#888' }}>Court {roundFix?.court} · {formatMatchDate(roundFix?.scheduled_date||'')} · {formatTime(roundFix?.scheduled_time||'')}</div>
-                          </div>
-                        </div>
-                        <div style={{ padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                          <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-                            {g.players.map(p => (
-                              <div key={p.player_id} style={{ fontSize:13, fontWeight:500, color:C.dark }}>{p.player_name}</div>
-                            ))}
-                          </div>
-                          <div style={{ fontSize:22, fontWeight:700, color:'rgba(26,58,42,0.25)', letterSpacing:'0.06em' }}>BYE</div>
-                        </div>
-                      </div>
-                    ))
-                  })()}
                   {(() => {
                     const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
                     const allBoxIds = [...new Set(fixtures.map(f => f.box_id))]
