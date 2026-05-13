@@ -45,8 +45,8 @@ function formatSlotDisplay(slot: string): string {
 
 const levels    = ['1','2','3','4']
 // ── UPDATED level colours to match staff portal palette ──
-const levelColor: Record<string,string> = { '1':'#b8963e','2':'#2d3a8a','3':'#1a5c35','4':'#8b2020' }
-const levelBg:    Record<string,string> = { '1':'rgba(184,150,62,0.12)','2':'rgba(45,58,138,0.10)','3':'rgba(26,92,53,0.10)','4':'rgba(139,32,32,0.12)' }
+const levelColor: Record<string,string> = { '1':'#cc9900','2':'#000099','3':'#0077aa','4':'#990033','5':'#888888' }
+const levelBg:    Record<string,string> = { '1':'rgba(204,153,0,0.10)','2':'rgba(0,0,153,0.08)','3':'rgba(0,119,170,0.08)','4':'rgba(153,0,51,0.08)','5':'rgba(136,136,136,0.08)' }
 const levelDesc:  Record<string,string> = { '1':'Elite','2':'Premier','3':'Club','4':'Social','5':'Starter' }
 
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
