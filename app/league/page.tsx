@@ -153,7 +153,7 @@ function FixtureCard({
   const t1Won = played && fixture.result?.winning_team === 1
   const t2Won = played && fixture.result?.winning_team === 2
   function nameColor(team: 1 | 2) {
-    if (!played) return upcoming ? '#bbb' : '#888'
+    if (!played) return C.dark
     return team === 1 ? (t1Won ? C.win : C.loss) : (t2Won ? C.win : C.loss)
   }
   function nameFw(team: 1 | 2) {
@@ -417,7 +417,7 @@ export default function LeaguePage() {
         <div style={{ maxWidth: 480, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <div style={{ fontFamily:"'Playfair Display',serif", color: C.gold, fontSize:20, fontWeight:400, letterSpacing:-0.3 }}>The League</div>
-            <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Standings | Fixtures</div>
+            <div style={{ color:'rgba(255,255,255,0.45)', fontSize:11, marginTop:3, fontWeight:300, letterSpacing:'0.04em' }}>Standings | Schedule</div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
 
@@ -553,10 +553,16 @@ export default function LeaguePage() {
                   {(() => {
                     const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
                     const allBoxIds = [...new Set(fixtures.map(f => f.box_id))]
+                    const seen = new Set<string>()
                     const byeGroups = allBoxIds.map(boxId => ({
                       boxId,
                       players: boxPlayers.filter(p => p.box_id === boxId && !playersInRound.has(p.player_id))
-                    })).filter(g => g.players.length > 0)
+                    })).filter(g => {
+                      if (g.players.length === 0) return false
+                      const key = g.players.map(p=>p.player_id).sort().join(',')
+                      if (seen.has(key)) return false
+                      seen.add(key); return true
+                    })
                     const roundFix = roundFixtures[0]
                     return byeGroups.map(g => (
                       <div key={g.boxId} style={{ background:'#fff', borderRadius:16, overflow:'hidden', marginBottom:10 }}>
@@ -580,10 +586,16 @@ export default function LeaguePage() {
                   {(() => {
                     const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
                     const allBoxIds = [...new Set(fixtures.map(f => f.box_id))]
+                    const seen = new Set<string>()
                     const byeGroups = allBoxIds.map(boxId => ({
                       boxId,
                       players: boxPlayers.filter(p => p.box_id === boxId && !playersInRound.has(p.player_id))
-                    })).filter(g => g.players.length > 0)
+                    })).filter(g => {
+                      if (g.players.length === 0) return false
+                      const key = g.players.map(p=>p.player_id).sort().join(',')
+                      if (seen.has(key)) return false
+                      seen.add(key); return true
+                    })
                     const roundFix = roundFixtures[0]
                     return byeGroups.map(g => (
                       <div key={g.boxId} style={{ background:'#fff', borderRadius:16, overflow:'hidden', marginBottom:10 }}>
