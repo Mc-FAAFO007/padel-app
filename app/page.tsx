@@ -506,7 +506,7 @@ export default function HomePage() {
                     const lvl = ratingToLevel(liveRating).level
                     const lblMap: Record<string,string> = {'1':'Elite','2':'Premier','3':'Club','4':'Social','5':'Starter'}
                     return (
-                      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 14px', minWidth:62, border:'1px solid rgba(184,150,62,0.25)' }}>
+                      <div onClick={() => { setView('profile'); setProfileTab('results') }} style={{ display:'flex', flexDirection:'column', alignItems:'center', background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 14px', minWidth:62, border:'1px solid rgba(184,150,62,0.25)', cursor:'pointer' }}>
                         <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>{liveRating.toFixed(1)}</div>
                         <div style={{ fontSize:9, fontWeight:500, color:'rgba(184,150,62,0.65)', letterSpacing:'0.03em', marginTop:1, whiteSpace:'nowrap' as const }}>L{lvl} · {lblMap[String(lvl)]}</div>
                       </div>
@@ -842,7 +842,7 @@ export default function HomePage() {
               {([
                 ['🏆','Leaderboard','See club rankings',  () => { sessionStorage.setItem('arenaTab','leaderboard'); router.push('/ratings') }],
                 ['🎾','Log Match',  'Record results',      () => { sessionStorage.setItem('arenaTab','log'); router.push('/ratings') }],
-                ['📈','My Results', 'Track your rating',  () => { sessionStorage.setItem('mainView','profile'); setView('profile'); setProfileTab('results') }],
+                ['🏆','Leagues',    'Club competitions',  () => { sessionStorage.setItem('arenaTab','league'); router.push('/ratings') }],
               ] as const).map(([icon,title,desc,action])=>(
                 <button key={title} onClick={action} style={{ ...card, textAlign:'center' as const, border:'1px solid rgba(26,58,42,0.1)', cursor:'pointer', fontFamily:'inherit', padding:'12px 8px' }}>
                   <div style={{ fontSize:20, marginBottom:6, opacity:0.75 }}>{icon}</div>
