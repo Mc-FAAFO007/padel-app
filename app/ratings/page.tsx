@@ -8,11 +8,11 @@ import type { Rating, Match } from '@/lib/types'
 // ─── Rating Engine ────────────────────────────────────────────────────────────
 // UPDATED: band colours aligned with staff portal palette
 const BANDS = [
-  { label:'Starter',  min:1.0, max:1.9, color:'#990033', bg:'rgba(153,0,51,0.10)'    },
-  { label:'Social',   min:2.0, max:2.9, color:'#990033', bg:'rgba(153,0,51,0.10)'    },
-  { label:'Club',     min:3.0, max:4.4, color:'#0077aa', bg:'rgba(0,119,170,0.10)'   },
-  { label:'Premier',  min:4.5, max:5.9, color:'#000099', bg:'rgba(0,0,153,0.10)'     },
-  { label:'Elite',    min:6.0, max:7.0, color:'#cc9900', bg:'rgba(204,153,0,0.12)'   },
+  { label:'Starter',  min:1.0, max:1.9, color:'#555555', bg:'rgba(85,85,85,0.10)'    },
+  { label:'Social',   min:2.0, max:2.9, color:'#990033', bg:'rgba(153,0,51,0.08)'    },
+  { label:'Club',     min:3.0, max:4.4, color:'#1a5c35', bg:'rgba(26,92,53,0.10)'    },
+  { label:'Premier',  min:4.5, max:5.9, color:'#000099', bg:'rgba(0,0,153,0.08)'     },
+  { label:'Elite',    min:6.0, max:7.0, color:'#cc9900', bg:'rgba(204,153,0,0.10)'   },
 ]
 
 function getBand(r: number) {

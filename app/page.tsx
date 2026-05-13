@@ -221,6 +221,7 @@ export default function HomePage() {
   const [view,          setView]          = useState<'home'|'board'|'arena'|'profile'>('home')
   const [profileTab,    setProfileTab]    = useState<'edit'|'schedule'|'results'|'buddies'>('edit')
   const [ratingHistory, setRatingHistory] = useState<Match[]>([])
+  const [leagueFixtures, setLeagueFixtures] = useState<any[]>([])
   const [editName,      setEditName]      = useState('')
   const [editLevel,     setEditLevel]     = useState('')
   const [editSlots,     setEditSlots]     = useState<string[]>([])
@@ -271,6 +272,13 @@ export default function HomePage() {
       const enrichedPosts = (postsRes.data || []).map((p: any) => ({ ...p, interested_ids:(p.post_interests||[]).map((i:any)=>i.player_id) }))
       setPosts(enrichedPosts)
       setRatingHistory(matchesRes.data || [])
+      const { data: lfData } = await supabase
+        .from('league_fixtures')
+        .select('*, league_boxes(name)')
+        .or(`team_1_p1.eq.${userId},team_1_p2.eq.${userId},team_2_p1.eq.${userId},team_2_p2.eq.${userId}`)
+        .neq('status', 'played')
+        .order('scheduled_date')
+      setLeagueFixtures(lfData || [])
       const ratingRes = await supabase.from('ratings').select('rating').eq('player_id', userId).single()
       if (ratingRes.data) {
         const rating = ratingRes.data.rating
@@ -965,50 +973,83 @@ export default function HomePage() {
             {/* ─ My Results ─ */}
             {profileTab === 'results' && (
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
-                {ratingTimeline.length === 0 ? (
+                {ratingHistory.length === 0 ? (
                   <div style={{ ...card2, textAlign:'center' as const, padding:'32px 16px' }}>
                     <div style={{ fontSize:26, marginBottom:10, opacity:0.3 }}>📈</div>
                     <div style={{ fontFamily:"'Playfair Display', serif", fontSize:15, fontWeight:400, color:C.dark, marginBottom:6 }}>No matches yet</div>
                     <div style={{ fontSize:12, color:'rgba(26,58,42,0.5)', marginBottom:14, fontWeight:300 }}>Log a match to start tracking your rating</div>
                     <button onClick={()=>{sessionStorage.setItem('arenaTab','log');router.push('/ratings')}} style={{ background:C.dark, border:'none', borderRadius:10, padding:'10px 22px', color:C.gold, fontWeight:500, fontSize:13, cursor:'pointer', fontFamily:'inherit', letterSpacing:'0.04em' }}>Log a match →</button>
                   </div>
-                ) : (
-                  <>
-                    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
-                      {[['Matches',ratingTimeline.length],['Current',ratingTimeline[ratingTimeline.length-1].rating.toFixed(1)],['Trend',(ratingTrend>=0?'+':'')+ratingTrend.toFixed(1)]].map(([l,v],i)=>(
-                        <div key={String(l)} style={{ ...card, textAlign:'center' as const }}>
-                          <div style={{ fontSize:9, color:'rgba(26,58,42,0.4)', textTransform:'uppercase' as const, marginBottom:6, letterSpacing:'0.1em', fontWeight:500 }}>{l}</div>
-                          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:400, color:i===2?(ratingTrend>=0?C.win:C.loss):C.dark }}>{v}</div>
+                ) : (()=>{
+                  const myMatches = [...ratingHistory].reverse().map(m => {
+                    const onA = [m.team_a1_id, m.team_a2_id].includes(currentUser.id)
+                    const won = onA
+                      ? m.sets_a.reduce((a:number,b:number)=>a+b,0) > m.sets_b.reduce((a:number,b:number)=>a+b,0)
+                      : m.sets_b.reduce((a:number,b:number)=>a+b,0) > m.sets_a.reduce((a:number,b:number)=>a+b,0)
+                    const isA1 = m.team_a1_id === currentUser.id
+                    const isA2 = m.team_a2_id === currentUser.id
+                    const before = isA1?m.rating_a1_before:isA2?m.rating_a2_before:m.team_b1_id===currentUser.id?m.rating_b1_before:m.rating_b2_before
+                    const after  = isA1?m.rating_a1_after :isA2?m.rating_a2_after :m.team_b1_id===currentUser.id?m.rating_b1_after :m.rating_b2_after
+                    const partner = onA?(isA1?m.team_a2_name:m.team_a1_name):(m.team_b1_id===currentUser.id?m.team_b2_name:m.team_b1_name)
+                    const opp1 = onA?m.team_b1_name:m.team_a1_name
+                    const opp2 = onA?m.team_b2_name:m.team_a2_name
+                    const sets = m.sets_a.map((a:number,i:number)=>`${a}-${m.sets_b[i]}`).join(', ')
+                    return { id:m.id, date:m.created_at, before, after, won, partner, opp1, opp2, sets }
+                  })
+                  const lvl = liveRating ? ratingToLevel(liveRating) : null
+                  const wins = myMatches.filter(m=>m.won).length
+                  return (
+                    <>
+                      <div style={{ background:C.dark, borderRadius:14, padding:'14px 16px', display:'flex', alignItems:'center', gap:16, borderLeft:`3px solid ${C.gold}` }}>
+                        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:38, fontWeight:400, color:'#ffcc66', lineHeight:1 }}>{liveRating?.toFixed(1)||'--'}</div>
+                        <div>
+                          <div style={{ fontSize:10, color:'rgba(184,150,62,0.6)', marginBottom:3, letterSpacing:'0.08em', textTransform:'uppercase' as const, fontWeight:300 }}>Current rating</div>
+                          <div style={{ fontSize:14, fontWeight:500, color:'#fff' }}>{lvl?.desc||'--'}</div>
+                          <div style={{ fontSize:11, color:'rgba(184,150,62,0.55)', marginTop:3, fontWeight:300 }}>{myMatches.length} match{myMatches.length!==1?'es':''} played</div>
                         </div>
-                      ))}
-                    </div>
-                    <div style={{ background:'rgba(26,58,42,0.04)', borderRadius:14, padding:'14px', overflowX:'auto', border:'1px solid rgba(26,58,42,0.07)' }}>
-                      <div style={{ display:'flex', alignItems:'flex-end', gap:10, minWidth:ratingTimeline.length*56 }}>
-                        {ratingTimeline.map(point => {
-                          const h = Math.max(22, ((point.rating-ratingMin)/Math.max(ratingMax-ratingMin,1))*100)
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+                        {([['Matches',myMatches.length],['Wins',wins],['Trend',(ratingTrend>=0?'+':'')+ratingTrend.toFixed(1)]] as [string,any][]).map(([l,v],i)=>(
+                          <div key={l} style={{ ...card, textAlign:'center' as const }}>
+                            <div style={{ fontSize:9, color:'rgba(26,58,42,0.4)', textTransform:'uppercase' as const, marginBottom:6, letterSpacing:'0.1em', fontWeight:500 }}>{l}</div>
+                            <div style={{ fontFamily:"'Playfair Display', serif", fontSize:20, fontWeight:400, color:i===2?(ratingTrend>=0?C.win:C.loss):C.dark }}>{v}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:12, height:1, background:C.gold }} />
+                        <div style={{ fontSize:9, fontWeight:500, color:'rgba(26,58,42,0.38)', textTransform:'uppercase' as const, letterSpacing:'1.2px' }}>Match history ({myMatches.length})</div>
+                      </div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        {myMatches.slice(0,10).map(m => {
+                          const wc = m.won ? C.win : C.loss
+                          const wbg = m.won ? 'rgba(26,92,53,0.07)' : 'rgba(139,32,32,0.07)'
+                          const wborder = m.won ? 'rgba(26,92,53,0.2)' : 'rgba(139,32,32,0.22)'
+                          const delta = Math.round((m.after - m.before) * 10) / 10
                           return (
-                            <div key={point.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:7, minWidth:44 }}>
-                              <div style={{ width:10, height:h, borderRadius:999, background:point.won?C.win:C.loss }} />
-                              <div style={{ fontSize:10, color:'rgba(26,58,42,0.55)', fontWeight:400 }}>{point.rating.toFixed(1)}</div>
-                              <div style={{ fontSize:9, color:'rgba(26,58,42,0.38)', textAlign:'center' as const, fontWeight:300 }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            <div key={m.id} style={{ background:'rgba(255,255,255,0.8)', border:'1px solid rgba(26,58,42,0.08)', borderLeft:`3px solid ${wc}`, borderRadius:'0 12px 12px 0', padding:'11px 14px' }}>
+                              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                                <div style={{ fontSize:11, color:'rgba(26,58,42,0.4)', fontWeight:300 }}>{new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+                                <div style={{ fontSize:12, fontWeight:500, color:wc }}>{m.won?'W':'L'} · {m.sets}</div>
+                              </div>
+                              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:7, marginBottom:7 }}>
+                                <div style={{ padding:'6px 8px', borderRadius:8, background:wbg, border:`1px solid ${wborder}` }}>
+                                  <div style={{ fontSize:9, fontWeight:500, color:wc, textTransform:'uppercase' as const, marginBottom:2, letterSpacing:'0.06em' }}>{m.won?'Won':'Lost'}</div>
+                                  <div style={{ fontSize:11, color:wc, fontWeight:400 }}>{currentUser.name}<br/>{m.partner}</div>
+                                </div>
+                                <div style={{ padding:'6px 8px', borderRadius:8, background:m.won?'rgba(139,32,32,0.07)':'rgba(26,92,53,0.07)', border:`1px solid ${m.won?'rgba(139,32,32,0.22)':'rgba(26,92,53,0.2)'}` }}>
+                                  <div style={{ fontSize:9, fontWeight:500, color:m.won?C.loss:C.win, textTransform:'uppercase' as const, marginBottom:2, letterSpacing:'0.06em' }}>{m.won?'Lost':'Won'}</div>
+                                  <div style={{ fontSize:11, color:m.won?C.loss:C.win, fontWeight:400 }}>{m.opp1}<br/>{m.opp2}</div>
+                                </div>
+                              </div>
+                              <div style={{ fontFamily:"'Playfair Display',serif", fontSize:14, fontWeight:400, color:delta>=0?C.win:C.loss }}>{m.before.toFixed(1)} → {m.after.toFixed(1)} ({delta>=0?'+':''}{delta.toFixed(1)} rating)</div>
                             </div>
                           )
                         })}
                       </div>
-                    </div>
-                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                      {ratingTimeline.slice(-5).reverse().map(point => (
-                        <div key={`r-${point.id}`} style={{ ...card, borderLeft:`3px solid ${point.won?C.win:C.loss}`, borderRadius:'0 14px 14px 0', paddingLeft:11, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                          <div>
-                            <div style={{ fontSize:12, fontWeight:500, color:C.dark }}>{new Date(point.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                            <div style={{ fontSize:11, color:'rgba(26,58,42,0.5)', fontWeight:300 }}>{point.won?'Win':'Loss'} · {point.before.toFixed(1)} → {point.rating.toFixed(1)}</div>
-                          </div>
-                          <div style={{ fontFamily:"'Playfair Display', serif", fontSize:16, fontWeight:400, color:point.won?C.win:C.loss }}>{point.won?'+':''}{(point.rating-point.before).toFixed(1)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                    </>
+                  )
+                })()}
               </div>
             )}
           </div>
