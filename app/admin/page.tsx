@@ -157,7 +157,7 @@ export default function AdminPage() {
           const { error: fixErr } = await supabase.from('league_fixtures').insert(pairs.map(f => ({
             league_id: league.id, box_id: box.id, round: f.round, court: gi + 1,
             status: 'upcoming', team_1_p1: f.t1p1, team_1_p2: f.t1p2, team_2_p1: f.t2p1, team_2_p2: f.t2p2,
-            scheduled_date: leagueStart || new Date().toISOString().split('T')[0], scheduled_time: '19:00',
+            scheduled_date: (() => { const base = leagueStart ? new Date(leagueStart) : new Date(); base.setDate(base.getDate() + (f.round - 1) * 7); return base.toISOString().split('T')[0] })(), scheduled_time: '19:00',
           })))
           if (fixErr) { const m = 'Fixtures insert: ' + fixErr.message; setLeagueError(m); showNotif(m); setLeagueCreating(false); return }
         }
@@ -508,6 +508,11 @@ export default function AdminPage() {
                             match_count: Math.max(0, (cur?.match_count || 1) - 1),
                           }).eq('player_id', p.id)
                         }))
+                        const { data: lfResult } = await supabase.from('league_fixture_results').select('fixture_id').eq('match_id', m.id).single()
+                        if (lfResult?.fixture_id) {
+                          await supabase.from('league_fixture_results').delete().eq('match_id', m.id)
+                          await supabase.from('league_fixtures').update({ status: 'upcoming' }).eq('id', lfResult.fixture_id)
+                        }
                         const { error: delErr } = await supabase.from('matches').delete().eq('id', m.id)
                         if (delErr) { console.error('Match delete failed:', delErr); showNotif('Delete failed: ' + delErr.message); return }
                         setMatches(matches.filter(x => x.id !== m.id))

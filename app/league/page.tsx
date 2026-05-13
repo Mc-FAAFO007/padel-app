@@ -550,6 +550,30 @@ export default function LeaguePage() {
                     <div style={{ fontSize: 11, color: '#888' }}>{formatMatchDate(roundDate)}</div>
                   </div>
                   {roundFixtures.map(f => <FixtureCard key={f.id} fixture={f} currentUserId={userId} onLogResult={setLogFixture} />)}
+                  {(() => {
+                    const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
+                    const allInBox = boxPlayers.filter(p => roundFixtures.some(f => f.box_id === p.box_id))
+                    const byes = allInBox.filter(p => !playersInRound.has(p.player_id))
+                    if (byes.length === 0) return null
+                    return byes.map(p => (
+                      <div key={p.player_id} style={{ background:'rgba(26,58,42,0.04)', border:'1px dashed rgba(26,58,42,0.15)', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+                        <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', fontWeight:400 }}>{p.player_name}</div>
+                        <div style={{ fontSize:11, fontWeight:600, color:'rgba(26,58,42,0.35)', background:'rgba(26,58,42,0.08)', borderRadius:6, padding:'3px 10px', letterSpacing:'0.06em' }}>BYE</div>
+                      </div>
+                    ))
+                  })()}
+                  {(() => {
+                    const playersInRound = new Set(roundFixtures.flatMap(f => [f.team_1_p1, f.team_1_p2, f.team_2_p1, f.team_2_p2]))
+                    const allInBox = boxPlayers.filter(p => roundFixtures.some(f => f.box_id === p.box_id))
+                    const byes = allInBox.filter(p => !playersInRound.has(p.player_id))
+                    if (byes.length === 0) return null
+                    return byes.map(p => (
+                      <div key={p.player_id} style={{ background:'rgba(26,58,42,0.04)', border:'1px dashed rgba(26,58,42,0.15)', borderRadius:12, padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+                        <div style={{ fontSize:13, color:'rgba(26,58,42,0.5)', fontWeight:400 }}>{p.player_name}</div>
+                        <div style={{ fontSize:11, fontWeight:600, color:'rgba(26,58,42,0.35)', background:'rgba(26,58,42,0.08)', borderRadius:6, padding:'3px 10px', letterSpacing:'0.06em' }}>BYE</div>
+                      </div>
+                    ))
+                  })()}
                 </div>
               )
             })}
