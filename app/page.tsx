@@ -54,7 +54,7 @@ function ratingToLevel(rating: number): { level: string; color: string; bg: stri
   if (rating >= 4.5) return { level:'2', color:'#000099', bg:'rgba(0,0,153,0.10)',    desc:'Premier' }
   if (rating >= 3.0) return { level:'3', color:'#0077aa', bg:'rgba(0,119,170,0.10)',  desc:'Club' }
   if (rating >= 2.0) return { level:'4', color:'#990033', bg:'rgba(153,0,51,0.12)',   desc:'Social' }
-  return                     { level:'5', color:'#555555', bg:'rgba(85,85,85,0.10)',   desc:'Starter' }
+  return                     { level:'5', color:'#888888', bg:'rgba(136,136,136,0.08)', desc:'Starter' }
 }
 
 function timeAgo(iso: string) {
