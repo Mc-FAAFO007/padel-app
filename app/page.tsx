@@ -47,7 +47,7 @@ const levels    = ['1','2','3','4']
 // ── UPDATED level colours to match staff portal palette ──
 const levelColor: Record<string,string> = { '1':'#b8963e','2':'#2d3a8a','3':'#1a5c35','4':'#8b2020' }
 const levelBg:    Record<string,string> = { '1':'rgba(184,150,62,0.12)','2':'rgba(45,58,138,0.10)','3':'rgba(26,92,53,0.10)','4':'rgba(139,32,32,0.12)' }
-const levelDesc:  Record<string,string> = { '1':'Elite','2':'Competitive','3':'Casual','4':'Beginner' }
+const levelDesc:  Record<string,string> = { '1':'Elite','2':'Premier','3':'Club','4':'Social','5':'Starter' }
 
 function ratingToLevel(rating: number): { level: string; color: string; bg: string; desc: string } {
   if (rating >= 6.0) return { level:'1', color:'#cc9900', bg:'rgba(204,153,0,0.12)',  desc:'Elite' }
@@ -504,7 +504,7 @@ export default function HomePage() {
                   )}
                   {liveRating && (()=>{
                     const lvl = ratingToLevel(liveRating).level
-                    const lblMap: Record<string,string> = {'1':'Elite','2':'Competitive','3':'Casual','4':'Beginner'}
+                    const lblMap: Record<string,string> = {'1':'Elite','2':'Premier','3':'Club','4':'Social','5':'Starter'}
                     return (
                       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', background:'rgba(184,150,62,0.15)', borderRadius:12, padding:'6px 14px', minWidth:62, border:'1px solid rgba(184,150,62,0.25)' }}>
                         <div style={{ fontSize:15, fontWeight:700, color:C.gold, lineHeight:1.1 }}>{liveRating.toFixed(1)}</div>
@@ -818,10 +818,11 @@ export default function HomePage() {
                     Your rating moves up or down after every logged match based on the result and your opponents' strength. The more you play, the more accurate it becomes.
                   </div>
                   {[
-                    { level:'1', name:'Elite',       range:'5.6 – 7.0', desc:'Master of the game. Consistently dominant, exceptional technical execution and game intelligence. Wall play is automatic and shot selection is deliberate.' },
-                    { level:'2', name:'Competitive',  range:'4.1 – 5.5', desc:'A solid club player with real technical ability. Comfortable with the glass, can execute a bandeja and vibora under pressure, and moves well as a unit with a partner.' },
-                    { level:'3', name:'Casual',       range:'2.6 – 4.0', desc:'Found your feet on the court and can hold a rally. Wall bounces no longer cause panic and you are developing your shot repertoire. Building consistency and starting to think tactically.' },
-                    { level:'4', name:'Beginner',     range:'1.0 – 2.5', desc:'New to padel or still finding your footing. Learning the rules, getting comfortable with the walls, and figuring out court positioning. The only way is up.' },
+                    { level:'1', name:'Elite',   range:'6.0 – 7.0', color:'#cc9900', bg:'rgba(204,153,0,0.10)',   desc:'Master of the game. Consistently dominant, exceptional technical execution and game intelligence. Wall play is automatic and shot selection is deliberate.' },
+                    { level:'2', name:'Premier', range:'4.5 – 5.9', color:'#000099', bg:'rgba(0,0,153,0.08)',      desc:'A solid club player with real technical ability. Comfortable with the glass, can execute a bandeja and vibora under pressure, and moves well as a unit with a partner.' },
+                    { level:'3', name:'Club',    range:'3.0 – 4.4', color:'#0077aa', bg:'rgba(0,119,170,0.08)',    desc:'Found your feet on the court and can hold a rally. Wall bounces no longer cause panic and you are developing your shot repertoire. Building consistency and starting to think tactically.' },
+                    { level:'4', name:'Social',  range:'2.0 – 2.9', color:'#990033', bg:'rgba(153,0,51,0.08)',     desc:'Getting comfortable with the game and the walls. Still building consistency but you can hold a point and are developing your court awareness.' },
+                    { level:'5', name:'Starter', range:'1.0 – 1.9', color:'#990033', bg:'rgba(153,0,51,0.08)',     desc:'New to padel or still finding your footing. Learning the rules, getting comfortable with the walls, and figuring out court positioning. The only way is up.' },
                   ].map(l => (
                     <div key={l.level} style={{ background:levelBg[l.level], border:`1px solid ${levelColor[l.level]}25`, borderLeft:`3px solid ${levelColor[l.level]}`, borderRadius:10, padding:'13px 14px' }}>
                       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:7 }}>
